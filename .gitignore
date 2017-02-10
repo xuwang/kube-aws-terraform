@@ -1,0 +1,14 @@
+build*/*
+envs.sh
+token.csv
+tokens.csv
+*.pem
+*.key
+.DS_Store
+.git
+.terraform
+.vagrant
+coreos-cluster
+provider.tf
+ami.tf
+tmp/

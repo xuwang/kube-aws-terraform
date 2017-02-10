@@ -1,0 +1,310 @@
+#cloud-config
+coreos:
+  etcd2:
+    advertise-client-urls: https://$private_ipv4:2379
+    initial-advertise-peer-urls: https://$private_ipv4:2380
+    listen-client-urls: https://0.0.0.0:2379
+    listen-peer-urls: https://$private_ipv4:2380
+  fleet:
+    metadata: env=${CLUSTER_NAME},platform=ec2,provider=aws,role=etcd2
+    public-ip: $private_ipv4
+  update:
+    reboot-strategy: etcd-lock
+  locksmith:
+    group: etcd
+  units:
+    - name: locksmithd.service
+      command: start
+      drop-ins:
+        - name: 30-cloudinit.conf
+          content: |
+            [Unit]
+            Requires=etcd2.service
+            After=etcd2.service
+            [Service]
+            Environment="LOCKSMITHD_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem"
+            Environment="LOCKSMITHD_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem"
+            Environment="LOCKSMITHD_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem"
+            Environment="LOCKSMITHD_ENDPOINT=https://127.0.0.1:2379"
+            Environment="LOCKSMITHD_REBOOT_WINDOW_START=05:30"
+            Environment="LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h"
+    - name: etcd2.service
+      command: start
+      drop-ins:
+        - name: 60-etcd-peers.conf
+          content: |
+              [Unit]
+              Requires=etcd-init.service
+              Wants=install-cert.service s3sync.service
+              After=etcd-init.service install-cert.service s3sync.service
+              [Service]
+              EnvironmentFile=/etc/sysconfig/etcd-peers
+              EnvironmentFile=/etc/etcd/cert-envs
+    - name: fleet.service
+      command: start
+    - name: etcd-init.service
+      command: start
+      content: |
+        [Unit]
+        Description=etcd init
+        Requires=docker.service
+        After=docker.service
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=true
+        EnvironmentFile=/etc/environment
+        TimeoutStartSec=10min
+        ExecStart=/opt/bin/etcd-init.sh
+        [Install]
+        WantedBy=multi-user.target      
+
+# coreos.units.* components
+    - name: format-disk.service
+      command: start
+      content: |
+        [Unit]
+        Description=Formats the disk drive
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        Environment="LABEL=var-lib-docker"
+        Environment="DEV=/dev/xvdb"
+        # Do not wipe the disk if it's already being used, so the docker images persistent cross reboot.
+        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then wipefs -a -f $DEV && mkfs.ext4 -T news -F -L $LABEL $DEV && echo wiped; fi"
+    - name: var-lib-docker.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Mount disk to /var/lib/docker
+        Requires=format-disk.service
+        After=format-disk.service
+        Before=docker.service
+        [Mount]
+        What=/dev/xvdb
+        Where=/var/lib/docker
+        Type=ext4
+    - name: docker.service
+      command: start
+      drop-ins:
+        - name: 60-docker-wait-for-var-lib.conf
+          content: |
+              [Unit]
+              Requires=var-lib-docker.mount
+              After=var-lib-docker.mount
+              [Service]
+              Restart=always
+              RestartSec=5
+    - name: s3sync.service
+      command: start
+      content: |       
+          [Unit]
+          Description=Sync files from S3 
+          Wants=docker.service
+          After=docker.service
+          ConditionPathExists=/opt/bin/s3sync.json    
+          [Service]
+          Type=oneshot
+          RemainAfterExit=true
+          EnvironmentFile=/etc/environment
+          ExecStart=/opt/bin/s3sync.sh
+    - name: install-cert.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Install Kubernetes cert from Vault
+        Requires=docker.service
+        After=docker.service
+        [Service]
+        Type=oneshot
+        RemainAfterExit=true
+        ExecStartPre=/opt/bin/s3sync.sh
+        ExecStart=/usr/bin/docker run --rm -v /opt/bin:/tmp vault:${VAULT_RELEASE} cp /bin/vault /tmp/vault
+        ExecStart=/bin/bash -c "[ -x /opt/bin/vault ] &&  /opt/bin/get-kube-certs.sh "
+write_files:
+  - path: /etc/profile.d/alias.sh
+    permissions: 0755
+    owner: root
+    content: |
+      role=$(curl 169.254.169.254/latest/meta-data/iam/info -s | \
+              jq --raw-output '.InstanceProfileArn' | sed 's%.*instance-profile/%%')
+      PS1="\[\033[01;32m\]\u@\h\[\033[01;34m\]-$role \w \$\[\033[00m\] "
+  - path: /opt/bin/get-kube-certs.sh
+    permissions: 0755
+    owner: root
+    content: |
+        #!/bin/bash
+        export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
+        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server. 
+        export PATH=/opt/bin/:$PATH
+        /opt/bin/s3sync.sh
+        # Vault PKI Token
+        export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/etcd-member)
+        mkdir -p /etc/etcd/certs && cd /etc/etcd/certs
+        vault write -format=json ${CLUSTER_NAME}/pki/etcd-member/issue/etcd-member common_name=$(hostname --fqdn) \
+          alt_names="kube-$private_ipv4.cluster.local,*.cluster.local" \
+          ttl=43800h0m0s \
+          ip_sans="127.0.0.1,$private_ipv4" >  kube-bundle.certs
+        if [ -s kube-bundle.certs ]; then
+            cat kube-bundle.certs | jq -r ".data.certificate" > /etc/etcd/certs/etcd-member.pem
+            cat kube-bundle.certs | jq -r ".data.private_key" > /etc/etcd/certs/etcd-member-key.pem
+            cat kube-bundle.certs | jq -r ".data.issuing_ca" > /etc/etcd/certs/etcd-member-ca.pem
+        else
+            echo "kube-bundle.certs doesn't exist."
+            exit 1
+        fi
+  - path: /etc/profile.d/locksmithctl.sh
+    permissions: 0644
+    owner: root
+    content: |
+      # For locksmothclt client to connect etcd cluster through TLS
+      export LOCKSMITHCTL_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem
+      export LOCKSMITHCTL_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem
+      export LOCKSMITHCTL_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem
+      export LOCKSMITHCTL_ENDPOINT=https://127.0.0.1:2379
+
+  - path: /etc/profile.d/etcdctl.sh
+    permissions: 0644
+    owner: root
+    content: |
+      # For etcdctl client to connect server through TLS
+      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-member.pem
+      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
+      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
+      export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
+
+  - path: /etc/profile.d/vault.sh
+    permissions: 0644
+    owner: root
+    content: |
+      # For vault client to connect server through TLS
+      export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
+      export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
+  - path: /opt/bin/s3sync.sh
+    permissions: 0755
+    owner: root
+    content: |
+        #!/bin/bash
+        # Sync files from s3 bucket, based on s3sync.json configuration
+        AWS_CONFIG_ENV=/root/.aws/envvars
+        S3SYNC_CONF=/opt/bin/s3sync.json
+        [[ ! -f $AWS_CONFIG_ENV ]] && echo "$AWS_CONFIG_ENV doesn't exit." && exit 0
+        IMAGE=suet/awscli:latest
+        if [[ ! -f $S3SYNC_CONF ]];
+        then
+          echo "$S3SYNC_CONF doesn't exist."
+          exit 1
+        fi
+        arr=( $(jq 'keys[]' $S3SYNC_CONF) )
+        for i in $${arr[@]}
+        do
+          source=$(cat $S3SYNC_CONF | jq -r ".$i.source")
+          destination=$(cat $S3SYNC_CONF | jq -r ".$i.destination")
+          excludes=$(cat $S3SYNC_CONF | jq -r ".$i.excludes")
+          if [ "$excludes" = "null" ];
+          then
+              s3command="aws s3 sync --exact-timestamps $source $destination"
+          fi
+          # sync s3 apps to destination
+          docker rm s3sync
+          docker run --rm --name s3sync -v $destination:$destination --env-file=$AWS_CONFIG_ENV $IMAGE /bin/bash -c "$s3command"
+          # Kind of a hack work to fix excuteble permissions
+          if [ -d $destination/bin ];
+          then
+            chmod 755 $destination/bin/*
+          fi
+          tarballs=$(ls -1 $destination/*.tar.gz $destination/*.tar 2> /dev/null)
+          if [ -s "$tarballs" ]; then
+            tar zxvf $tarballs -C $destination
+          fi
+        done
+  - path: /opt/bin/s3sync.json
+    permissions: 0644
+    owner: root
+    content: |
+        {
+            "cACerts": {
+              "source":   "s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki",
+              "destination": "/opt/etc/vault/ca"
+            },
+            "caVaultToken": {
+              "source":   "s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens",
+              "destination": "/opt/etc/pki-tokens"
+            }
+        }
+  - path: /opt/bin/post-provision.sh
+    permissions: 0700
+    owner: root
+    content: |
+        #!/usr/bin/bash
+        # This script gets excecuted on each reboot. 
+        # It can be an additional config you want to set after CoreOS's cloud-config.
+        post_provisions="/var/lib/apps/post_provision /opt/etc/${MODULE_NAME}/post_provision"
+        # Wait until the post_provision is downloaded from git/s3
+        sleep 5
+        for i in $post_provisions
+        do
+          if [ -d $i ]; then
+            for i in $i/*.sh
+            do
+              /bin/bash -x $i
+            done
+          fi
+        done
+        exit 0
+  - path: /etc/systemd/system/docker.service.d/50-insecure-registry.conf
+    content: |
+        [Service]
+        Environment=DOCKER_OPTS='--insecure-registry=10.240.0.0/16'
+
+  - path: /opt/bin/etcd-init.sh
+    permissions: 0700
+    owner: root
+    content: |
+      #!/bin/bash
+      
+      # dyamically create/join the etcd cluster by querying autoscaling group
+      # see https://github.com/dockerage/etcd-aws-cluster
+      image=dockerage/etcd-aws-cluster
+      /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
+      
+      # upload etcd initial-cluster urls to s3 bucket for worker cluster's etcd_proxy
+      /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https --env S3BUCKET="s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit" --entrypoint /etcd-aws-proxy $image
+
+  - path: /etc/etcd/cert-envs
+    permissions: 0644
+    owner: root
+    content: |
+        ETCD_CERT_FILE=/etc/etcd/certs/etcd-member.pem
+        ETCD_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
+        ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-member.pem
+        ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
+        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
+        ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
+        
+  - path: /etc/aws/account.envvars
+    permissions: 0644
+    owner: root
+    content: |
+        AWS_ACCOUNT=${AWS_ACCOUNT}
+        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+        CLUSTER_NAME=${CLUSTER_NAME}
+  - path: /root/.aws/envvars
+    permissions: 0600
+    owner: root
+    content: |
+        AWS_ACCOUNT=${AWS_ACCOUNT}
+        AWS_USER=${AWS_USER}
+        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+  - path: /root/.aws/config
+    permissions: 0600
+    owner: root
+    content: |
+        [default]
+        aws_access_key_id=${AWS_ACCESS_KEY_ID}
+        aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+        region=${AWS_DEFAULT_REGION}
+

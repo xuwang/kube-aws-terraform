@@ -1,0 +1,13 @@
+{
+  "Rules": [
+    {
+      "ID": "Move to Glacier after sixty days (all objects in bucket)",
+      "Prefix": "",
+      "Status": "Enabled",
+      "Transition": {
+        "Days": 60,
+        "StorageClass": "GLACIER"
+      }
+    }
+  ]
+}

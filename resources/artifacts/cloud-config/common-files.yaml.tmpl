@@ -1,0 +1,104 @@
+
+  - path: /opt/bin/git-sync.sh
+    permissions: 0700
+    owner: root
+    content: |
+        #!/bin/bash
+        # This script sync /var/lib/apps with github repo
+        export GIT_SSH_COMMAND=${GIT_SSH_COMMAND}
+        if [[ -d /var/lib/apps/.git ]]; 
+        then 
+            cd /var/lib/apps; git pull
+        else
+            mkdir -p /var/lib
+            #git clone https://github.com/dockerage/coreos-cluster-apps /var/lib/apps
+            git clone ${APP_REPOSITORY} /var/lib/apps
+        fi
+  - path: /opt/bin/s3sync.sh
+    permissions: 0755
+    owner: root
+    content: |
+        #!/bin/bash
+        # Sync files from s3 bucket, based on s3sync.json configuration
+        AWS_CONFIG_ENV=/root/.aws/envvars
+        S3SYNC_CONF=/opt/bin/s3sync.json
+        [[ ! -f $AWS_CONFIG_ENV ]] && echo "$AWS_CONFIG_ENV doesn't exit." && exit 0
+        IMAGE=suet/awscli:latest
+        if [[ ! -f $S3SYNC_CONF ]];
+        then
+          echo "$S3SYNC_CONF doesn't exist."
+          exit 1
+        fi
+        arr=( $(jq 'keys[]' $S3SYNC_CONF) )
+        for i in ${arr[@]}
+        do
+          source=$(cat $S3SYNC_CONF | jq -r ".$i.source")
+          destination=$(cat $S3SYNC_CONF | jq -r ".$i.destination")
+          excludes=$(cat $S3SYNC_CONF | jq -r ".$i.excludes")
+          command=$(cat $S3SYNC_CONF | jq -r ".$i.command" )
+          if [ "$excludes" = "null" ];
+          then
+              s3command="aws s3 sync --exact-timestamps $source $destination"
+          fi
+          # sync s3 apps to destination
+          docker rm s3sync
+          docker run --rm --name s3sync -v $destination:$destination --env-file=$AWS_CONFIG_ENV $IMAGE /bin/bash -c "$s3command"
+          # Kind of a hack work to fix excuteble permissions
+          if [ -d $destination/bin ];
+          then
+            chmod 755 $destination/bin/*
+          fi
+          tarballs=$(ls -1 $destination/*.tar.gz $destination/*.tar 2> /dev/null)
+          if [ -s "$tarballs" ]; then
+            tar zxvf $tarballs -C $destination
+            if [ -s "$command" ]; then
+              $command
+            fi
+          fi
+        done
+  - path: /opt/bin/post-provision.sh
+    permissions: 0700
+    owner: root
+    content: |
+        #!/usr/bin/bash
+        # This script gets excecuted on each reboot. 
+        # It can be an additional config you want to set after CoreOS's cloud-config.
+        post_provisions="/var/lib/apps/post_provision /opt/etc/${MODULE_NAME}/post_provision"
+        # Wait until the post_provision is downloaded from git/s3
+        sleep 5
+        for i in $post_provisions
+        do
+          if [ -d $i ]; then
+            for i in $i/*.sh
+            do
+              /bin/bash -x $i
+            done
+          fi
+        done
+        exit 0
+  - path: /etc/aws/account.envvars
+    permissions: 0644
+    owner: root
+    content: |
+        AWS_ACCOUNT=${AWS_ACCOUNT}
+        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+        CLUSTER_NAME=${CLUSTER_NAME}
+  - path: /root/.aws/envvars
+    permissions: 0600
+    owner: root
+    content: |
+        AWS_ACCOUNT=${AWS_ACCOUNT}
+        AWS_USER=${AWS_USER}
+        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+  - path: /root/.aws/config
+    permissions: 0600
+    owner: root
+    content: |
+        [default]
+        aws_access_key_id=${AWS_ACCESS_KEY_ID}
+        aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+        region=${AWS_DEFAULT_REGION}
+
+

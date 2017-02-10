@@ -1,0 +1,381 @@
+#cloud-config
+coreos:
+  etcd2:
+    advertise-client-urls: http://$private_ipv4:2379
+    initial-advertise-peer-urls: http://$private_ipv4:2380
+    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
+    listen-peer-urls: http://$private_ipv4:2380
+  fleet:
+    metadata: env=${CLUSTER_NAME},platform=ec2,provider=aws,role=vault
+    public-ip: $private_ipv4
+  update:
+    reboot-strategy: best-effort
+  locksmith:
+    group: etcd
+  units:
+    - name: locksmithd.service
+      command: start
+      drop-ins:
+      - name: 30-cloudinit.conf
+        content: |
+          [Service]
+          Environment=LOCKSMITHD_REBOOT_WINDOW_START=05:30
+          Environment=LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h
+    - name: etcd2.service
+      command: start
+      drop-ins:
+        - name: 60-etcd-peers.conf
+          content: |
+              [Service]
+              EnvironmentFile=/etc/sysconfig/etcd-peers
+    - name: fleet.service
+      command: start
+    - name: etcd-init.service
+      command: start
+      content: |
+        [Unit]
+        Description=etcd init
+        Requires=docker.service
+        After=docker.service
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=true
+        EnvironmentFile=/etc/environment
+        TimeoutStartSec=10min
+        ExecStart=/opt/bin/etcd-init.sh
+        [Install]
+        WantedBy=multi-user.target
+    - name: vault.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=vault
+        Wants=docker.service
+        After=docker.service
+        [Service]
+        ExecStartPre=/bin/bash -c "docker run --rm -v /opt/bin:/tmp vault:${VAULT_RELEASE} cp /bin/vault /tmp/vault; \
+          mkdir -p /opt/etc/vault/certs && cd /opt/etc/vault/certs && /opt/bin/s3sync.sh; ./gen.sh"
+        EnvironmentFile=/etc/environment
+        EnvironmentFile=/opt/etc/vault/envvars
+        TimeoutStartSec=0
+        ExecStartPre=/usr/bin/docker pull $VAULT_IMAGE
+        ExecStartPre=-/usr/bin/docker rm %n
+        ExecStart=/usr/bin/sh -c "/usr/bin/docker run --rm --name %n --cap-add=IPC_LOCK \
+              -p 127.0.0.1:8200:8201 -p $COREOS_PRIVATE_IPV4:8200:8200 \
+              -v /var/log/vault:/vault/logs \
+              -v /opt/etc/vault:/vault/config \
+              $VAULT_IMAGE server "
+        ExecStartPost=/usr/bin/sh -c ". /etc/profile.d/vault.sh; \
+          if [ $VAULT_AUTO_UNSEAL = 'true' ]; then /opt/etc/vault/scripts/init-unseal.sh; fi "
+        RestartSec=20
+        Restart=always
+
+    - name: vault-audit.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Enable vault audit
+        Wants=vault.service
+        After=vault.service
+        [Service]
+        TimeoutStartSec=0
+        ExecStartPre=/bin/bash -c "if [ ! -f /root/.vault-token ]; then /opt/etc/vault/scripts/s3get.sh ${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-s3-backend root-token/root-token /root/.vault-token; fi "
+        ExecStart=/usr/bin/sh -c "source /etc/profile.d/vault.sh; \
+          if ! vault audit-list | grep -q  ^file/; then vault audit-enable file path=/vault/logs/vault_audit.log; fi "
+        RestartSec=20
+        Restart=always
+
+    - name: create-kube-ca.service
+      command: start
+      content: |       
+        [Unit]
+        Description=Create Kube CA
+        Wants=vault.service
+        After=vault.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=true
+        EnvironmentFile=/etc/environment
+        ExecStart=/opt/bin/s3sync.sh
+        ExecStart=/usr/bin/sh -c "/opt/etc/vault/scripts/create_kube_ca.sh ${CLUSTER_NAME}"
+
+    - name: git-sync.service
+      command: start
+      content: |
+        [Unit]
+        Description=git-sync
+        ConditionPathExists=/opt/bin/git-sync.sh
+        
+        [Service]
+        EnvironmentFile=/etc/environment
+        TimeoutStartSec=10min
+        ExecStart=/opt/bin/git-sync.sh
+    - name: git-sync.timer
+      command: start
+      content: |      
+        [Unit]
+        Description=git-sync timer
+        
+        [Timer]
+        OnCalendar=*:*:00
+        #OnUnitActiveSec=30
+    - name: post-provisioning.service
+      command: start
+      content: |       
+        [Unit]
+        Description=A hook to excute bootstrap script at boot
+        Wants=git-sync.service
+        After=git-sync.service
+        ConditionPathExists=/opt/bin/post-provision.sh
+        
+        [Service]
+        Type=oneshot
+        RemainAfterExit=true
+        EnvironmentFile=/etc/environment
+        ExecStart=/opt/bin/post-provision.sh
+
+write_files:
+  - path: /etc/profile.d/alias.sh
+    permissions: 0755
+    owner: root
+    content: |
+      role=$(curl 169.254.169.254/latest/meta-data/iam/info -s | \
+              jq --raw-output '.InstanceProfileArn' | sed 's%.*instance-profile/%%')
+      PS1="\[\033[01;32m\]\u@\h\[\033[01;34m\]-\$role \w \$\[\033[00m\] "
+  - path: /opt/bin/etcd-init.sh
+    permissions: 0700
+    owner: root
+    content: |
+      #!/bin/bash  
+      # dyamically create/join the etcd cluster by querying autoscaling group
+      # see https://github.com/dockerage/etcd-aws-cluster
+      image=dockerage/etcd-aws-cluster
+      /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ $image
+
+  - path: /opt/bin/s3sync.json
+    permissions: 0644
+    owner: root
+    content: |
+      {
+          "vaultCerts": {
+            "source":   "s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki",
+            "destination": "/opt/etc/vault/ca"
+          },
+          "artifactsUpload": {
+            "source":   "s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/artifacts/${MODULE_NAME}/upload",
+            "destination": "/root/upload",
+            "command": "/root/upload/install.sh"
+          }
+      }
+  - path: /opt/etc/vault/envvars
+    permissions: 0644
+    owner: root
+    content: |
+      # IMAGE
+      VAULT_IMAGE=vault:${VAULT_RELEASE}
+      VAULT_LOCAL_CONFIG=/opt/etc/vault/vault.hcl
+
+  - path: /opt/etc/vault/vault.hcl
+    permissions: 0644
+    owner: root
+    content: |
+      backend "s3" {
+        bucket = "${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-s3-backend"
+        region = "${AWS_DEFAULT_REGION}"
+      }
+      /* If use etcd backend
+      backend "etcd" {
+        address = "http://127.0.0.1:2379"
+         advertise_addr = "https://$public_ipv4:8200"
+         path = "vault"
+         sync = "yes"
+        ha_enabled = "true"
+      }
+      */
+      # Vault runs in container. See vault.service unit
+      listener "tcp" {
+        address = "0.0.0.0:8201"
+        tls_disable = 1
+      }
+      listener "tcp" {
+        address = "0.0.0.0:8200"
+        tls_cert_file = "/vault/config/certs/vault.crt"
+        tls_key_file = "/vault/config/certs/vault.key"
+      }
+      # if mlock is not supported
+      # disable_mlock = true
+      /* Need to install statesite for this to work 
+      telemetry {
+        statsite_address = "0.0.0.0:8125"
+        disable_hostname = true
+      }
+      */
+  - path: /opt/etc/vault/certs/vault.cnf
+    permissions: 0644
+    owner: root
+    content: |
+      [ req ]
+      default_bits       = 2048
+      default_md         = sha512
+      default_keyfile    = vault.key
+      distinguished_name = req_distinguished_name
+      x509_extensions    = v3_req
+      prompt             = no
+      encrypt_key        = no
+
+      [req_distinguished_name]
+      C = US
+      ST = CA
+      L =  city
+      O = company
+      CN = *
+
+      [v3_req]
+      subjectKeyIdentifier = hash
+      authorityKeyIdentifier = keyid,issuer
+      basicConstraints = CA:TRUE
+      subjectAltName = @alt_names
+
+      [alt_names]
+      DNS.1 = vault.${CLUSTER_INTERNAL_ZONE}
+      DNS.2 = vault.${CLUSTER_NAME}.local
+      IP.1 = $private_ipv4
+      IP.2 = $public_ipv4
+      IP.3 = 127.0.0.1
+  - path: /opt/etc/vault/certs/gen.sh
+    permissions: 0700
+    owner: root
+    content: |      
+      #!/bin/sh
+      # Need to fix "unable to write r'andom state'" error
+      export HOME=/root
+      echo "creating the vault.key and vault.csr...."
+      openssl req -new -out vault.csr -config vault.cnf
+      echo "signing vault.csr..."
+      openssl x509 -req -days 9999 -in vault.csr -CA ../ca/ca.pem -CAkey ../ca/ca-key.pem \
+              -CAcreateserial -extensions v3_req -out vault.crt -extfile vault.cnf
+  - path: /etc/profile.d/vault.sh
+    content: |
+        export ROUTE53_ZONE_NAME=${ROUTE53_ZONE_NAME}
+        export CLUSTER_NAME=${CLUSTER_NAME}
+        export CLUSTER_INTERNAL_ZONE=${CLUSTER_INTERNAL_ZONE}
+        export VAULT_ADDR=http://localhost:8200
+        export VAULT_AUTO_UNSEAL=${VAULT_AUTO_UNSEAL}
+        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
+        export VAULT_CLIENT_CERT=/opt/etc/vault/certs/vault.crt
+        export VAULT_CLIENT_KEY=/opt/etc/vault/certs/vault.key
+        export VAULT_ROOTCA_CN=${VAULT_ROOTCA_CN}
+        export VAULT_TOKEN_BUCKET=${VAULT_TOKEN_BUCKET}
+        export PATH=$PATH:/opt/bin
+
+  # Common cloud-config yaml files - copy of artifacts/cloud-config/common-files.yaml.tmpl
+  - path: /opt/bin/git-sync.sh
+    permissions: 0700
+    owner: root
+    content: |
+        #!/bin/bash
+        # This script sync /var/lib/apps with github repo
+        export GIT_SSH_COMMAND=${GIT_SSH_COMMAND}
+        if [[ -d /var/lib/apps/.git ]]; 
+        then 
+            cd /var/lib/apps; git pull
+        else
+            mkdir -p /var/lib
+            #git clone https://github.com/dockerage/coreos-cluster-apps /var/lib/apps
+            git clone ${APP_REPOSITORY} /var/lib/apps
+        fi
+  - path: /opt/bin/s3sync.sh
+    permissions: 0755
+    owner: root
+    content: |
+        #!/bin/bash
+        # Sync files from s3 bucket, based on s3sync.json configuration
+        AWS_CONFIG_ENV=/root/.aws/envvars
+        S3SYNC_CONF=/opt/bin/s3sync.json
+        [[ ! -f $AWS_CONFIG_ENV ]] && echo "$AWS_CONFIG_ENV doesn't exit." && exit 0
+        IMAGE=suet/awscli:latest
+        if [[ ! -f $S3SYNC_CONF ]];
+        then
+          echo "$S3SYNC_CONF doesn't exist."
+          exit 1
+        fi
+        arr=( $(jq 'keys[]' $S3SYNC_CONF) )
+        for i in $${arr[@]}
+        do
+          source=$(cat $S3SYNC_CONF | jq -r ".$i.source")
+          destination=$(cat $S3SYNC_CONF | jq -r ".$i.destination")
+          excludes=$(cat $S3SYNC_CONF | jq -r ".$i.excludes")
+          command=$(cat $S3SYNC_CONF | jq -r ".$i.command" )
+          if [ "$excludes" = "null" ];
+          then
+              s3command="aws s3 sync --exact-timestamps $source $destination"
+          fi
+          # sync s3 apps to destination
+          docker rm s3sync
+          docker run --rm --name s3sync -v $destination:$destination --env-file=$AWS_CONFIG_ENV $IMAGE /bin/bash -c "$s3command"
+          # Kind of a hack work to fix excuteble permissions
+          if [ -d $destination/bin ];
+          then
+            chmod 755 $destination/bin/*
+          fi
+          tarballs=$(ls -1 $destination/*.tar.gz $destination/*.tar 2> /dev/null)
+          if [ -s "$tarballs" ]; then
+            tar zxvf $tarballs -C $destination
+            if [ -s "$command" ]; then
+              $command
+            fi
+          fi
+        done
+  - path: /opt/bin/post-provision.sh
+    permissions: 0700
+    owner: root
+    content: |
+        #!/usr/bin/bash
+        # This script gets excecuted on each reboot. 
+        # It can be an additional config you want to set after CoreOS's cloud-config.
+        post_provisions="/var/lib/apps/post_provision /opt/etc/${MODULE_NAME}/post_provision"
+        # Wait until the post_provision is downloaded from git/s3
+        sleep 5
+        for i in $post_provisions
+        do
+          if [ -d $i ]; then
+            for i in $i/*.sh
+            do
+              /bin/bash -x $i
+            done
+          fi
+        done
+        exit 0
+  - path: /etc/aws/account.envvars
+    permissions: 0644
+    owner: root
+    content: |
+        AWS_ACCOUNT=${AWS_ACCOUNT}
+        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+        CLUSTER_NAME=${CLUSTER_NAME}
+  - path: /root/.aws/envvars
+    permissions: 0600
+    owner: root
+    content: |
+        AWS_ACCOUNT=${AWS_ACCOUNT}
+        AWS_USER=${AWS_USER}
+        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+  - path: /root/.aws/config
+    permissions: 0600
+    owner: root
+    content: |
+        [default]
+        aws_access_key_id=${AWS_ACCESS_KEY_ID}
+        aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+        region=${AWS_DEFAULT_REGION}
+
+
+
+
+

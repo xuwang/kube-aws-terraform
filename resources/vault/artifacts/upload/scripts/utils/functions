@@ -1,0 +1,82 @@
+#### Functions
+usage() {
+  cat <<EOF
+Setup the Vault PKI secret backend
+
+Prerequisites:
+
+Needs to be run on a node with Vault installed, authenticated, and unsealed.
+
+This script assumes your root-token is stored in S3 bucket and the vault node has role-based
+access to the bucket.
+
+$1
+
+EOF
+  exit 1
+}
+
+exit1() { echo "$1"; exit 1; }
+
+exit0() { echo "$1"; exit 0; }
+
+check_vault() {
+  if ! which vault > /dev/null; then
+    exit1 "ERROR: The vault executable was not found. This script requires vault"
+  fi
+}
+
+bucket_exist() { 
+ docker run --rm xueshanf/awscli aws s3 ls s3://$BUCKET > /dev/null 2>&1
+}
+s3ls() { 
+ docker run --rm xueshanf/awscli aws s3 ls s3://$BUCKET/$1 > /dev/null 2>&1
+}
+
+get_root_token() {
+  s3get.sh $BUCKET root-token/root-token $TMPDIR/root-token
+  cat $TMPDIR/root-token
+}
+
+init_vault() {
+  echo "Initialize Vault"
+  vault init | tee $TMPDIR/vault.init > /dev/null
+
+  # Store master keys in S3 for operator to retrieve and remove
+  COUNTER=1
+  cat $TMPDIR/vault.init | grep '\(Unseal Key\)' | awk '{print $4}' | for key in $(cat -); do
+    echo $key > $TMPDIR/unseal-key-$COUNTER
+    s3put.sh $BUCKET root-token $TMPDIR/unseal-key-$COUNTER
+    COUNTER=$((COUNTER + 1))
+  done
+
+  cat $TMPDIR/vault.init | grep '^Initial' | awk '{print $4}' > $TMPDIR/root-token
+  s3put.sh $BUCKET root-token $TMPDIR/root-token
+
+  echo "Remove master keys from disk"
+  #shred -u $TMPDIR/*key*
+}
+
+unseal_vault() {
+  echo "Downloading keys"
+  s3get.sh $BUCKET root-token/unseal-key-1 $TMPDIR/unseal-key-1
+  s3get.sh $BUCKET root-token/unseal-key-2 $TMPDIR/unseal-key-2
+  s3get.sh $BUCKET root-token/unseal-key-3 $TMPDIR/unseal-key-3
+
+  echo "Unsealing Vault"
+  vault unseal $(cat $TMPDIR/unseal-key-1)
+  vault unseal $(cat $TMPDIR/unseal-key-2)
+  vault unseal $(cat $TMPDIR/unseal-key-3)
+  echo "Vault setup complete."
+}
+
+instructions() {
+  cat <<EOF
+We use an instance of HashiCorp Vault for secrets management.
+It has been automatically initialized and unsealed once. Future unsealing must
+be done manually.
+The unseal keys and root token have been temporarily stored in S3.
+  $BUCKET/root-token $BUCKET/root-token/unseal-key-{1..5}
+Please securely distribute and record these secrets and remove them from Etcd.
+EOF
+}
