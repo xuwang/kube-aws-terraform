@@ -56,7 +56,7 @@ destroy-route53:
 s3: 
 	cd resources/s3; make
 destroy-s3:
-	cd resources/s3; make destro
+	cd resources/s3; make destroy
 
 vault: iam pki route53 vpc
 	cd resources/vault; make
@@ -125,7 +125,7 @@ get-apiserver-elb:
 	cd resources/controller; make get-apiserver-elb
 	
 kube-cleanup:
-	kubectl proxy --port=0
+	cd resources/kubectl; make kube-cleanup
 
 .PHONY: provider.tf all help vpc s3 iam etcd worker 
 .PHONY: destroy destroy-vpc destroy-s3 destroy-iam destroy-etcd destroy-worker smoke-test
