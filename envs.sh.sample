@@ -33,7 +33,7 @@ export TF_VAR_cluster_name=${CLUSTER_NAME}
 # Default auto scaling group parameters: you can override in each resource's own envs.sh.
 export TF_VAR_cluster_min_size=1
 export TF_VAR_cluster_max_size=5
-export TF_VAR_cluster_desired_capacity=3
+export TF_VAR_cluster_desired_capacity=1
 export TF_VAR_coreos_update_channel=${COREOS_UPDATE_CHANNEL}
 export TF_VAR_instance_type=t2.medium
 
