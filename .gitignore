@@ -1,5 +1,4 @@
 build*/*
-envs.sh
 token.csv
 tokens.csv
 *.pem
