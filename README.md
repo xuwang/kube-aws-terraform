@@ -146,7 +146,7 @@ $ ./get-load-balancer.sh
 Waiting for loadBanlancer...
 Conntect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
 ```
-Now you should be able to connet Gitlab service at the above load-balancer address.
+Now you should be able to connet Gitlab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
 
 Tear down:
 ```
