@@ -136,6 +136,23 @@ $ kubectl proxy --port=0
 
 Point your browser to 127.1.1.0:<localport>/ui to bring up Kubernetes dashboard.
 
+### Start a gitlab application
+
+There is a gitlab deployment example that contains redis, postgres, and gitlab container. To start it:
+```
+$ cd apps/gitlab
+$ ./deploy.sh
+$ ./get-load-balancer.sh
+Waiting for loadBanlancer...
+Conntect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
+```
+Now you should be able to connet Gitlab service at the above load-balancer address.
+
+Tear down:
+```
+$ cd apps/gitlab
+$ ./teardown
+```
 ## Cluster Guide
 
 - [AWS Resourses](docs/01-AWS-resources.md)
