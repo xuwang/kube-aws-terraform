@@ -5,7 +5,7 @@ KUBEDNS_DEPLOYMENT := ../artifacts/kubedns-deployment.yaml
 KUBEDNS_SERVICE := ../artifacts/kubedns-service.yaml
 KUBE_UI := ../artifacts/kubernetes-dashboard.yaml
 
-add-ons: kube-config kube-route turn-off-source-dest-check kube-dns kube-ui
+add-ons: kube-config kube-dns kube-ui
 kube-config:
 	@echo Download vault generated ca cert from the api server
 	@ssh-add -D
@@ -25,17 +25,7 @@ kube-config:
   		--cluster=kubernetes \
   		--user=admin
 	kubectl config use-context default-context
-
-kube-route:
-	$(SCRIPTS)/kube-aws-route.sh
-
-# All virtual machines should be created with the --no-source-dest-check flag to  enable traffic between foreign 
-# subnets to flow. The will enable Pods to communicate with nodes and other Pods via the Kubernetes service IP.
-# https://github.com/kelseyhightower/kubernetes-the-hard-way/issues/25#issuecomment-246176967
-turn-off-source-dest-check:
-	$(SCRIPTS)/turn-off-source-dest-check.sh $(CLUSTER_NAME)-controller
-	$(SCRIPTS)/turn-off-source-dest-check.sh $(CLUSTER_NAME)-worker
-
+	
 kube-dns: kube-dns-service kube-dns-rc
 
 kube-dns-service:
