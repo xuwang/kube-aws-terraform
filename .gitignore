@@ -1,6 +1,8 @@
 build*/*
 token.csv
 tokens.csv
+envs.sh
+!resources/*/envs.sh
 *.pem
 *.key
 .DS_Store
