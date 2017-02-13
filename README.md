@@ -1,7 +1,7 @@
 # Building Kubernetes Cluster on AWS 
 
 This is a Kubernetes implementation using [CoreOS cluster architecture] 
-(https://coreos.com/os/docs/latest/cluster-architectures.html) on AWS platform. The goals of this implementation are:
+(https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
 
 * Automate Kubernetes cluster build process
 * Design with production quality (.e.g., HA, security) in mind
