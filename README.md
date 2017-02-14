@@ -19,7 +19,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 ## Features
 
 * Kubernetes 1.5.2, Docker engine 1.12.6
-* AWS provider integration (ELB)
+* AWS provider integration (ELB,EBS)
 * Terraform 0.8.4, with remote state on S3 storage
 * Etcd2 cluster for Kubernetes controllers
 * All instances are created in autoscaling group
