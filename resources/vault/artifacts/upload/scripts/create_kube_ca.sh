@@ -24,7 +24,7 @@ create_pki() {
 }
 create_pki_role_etcd_member() {
     vault write $CLUSTER_ID/pki/etcd-member/roles/etcd-member \
-        allow_sdomains="cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
+        allow_domains="cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
         allow_subdomains=true \
         allow_any_name=true \
         ttl=87600h0m0s
