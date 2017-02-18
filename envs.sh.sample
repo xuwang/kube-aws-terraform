@@ -2,16 +2,16 @@
 # Environments for the cluster. 
 ###############################
 
-export AWS_PROFILE=<undefined>
+export AWS_PROFILE=undefined
 export AWS_REGION=us-west-2
 export AWS_VM_TYPE=hvm
-export CLUSTER_NAME=<undefine>
+export CLUSTER_NAME=undefined
 export COREOS_UPDATE_CHANNEL=beta
 export ROUTE53_ZONE_NAME=example.com
 export ENABLE_REMOTE_VERSIONING=false
 
 # Kubernetes API server DNS name
-export KUBE_API_DNSNAME=<kube-api.example.com>
+export KUBE_API_DNSNAME=kube-api.example.com
 
 export SCRIPTS=../scripts
 export SEC_PATH=../artifacts/secrets
