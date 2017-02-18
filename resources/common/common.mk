@@ -48,6 +48,8 @@ plan: init
 apply: init
 	${TF_APPLY}
 
+list: ${TF_PROVIDER} remote
+	${TF_LIST}
 show: ${TF_PROVIDER} remote
 	${TF_SHOW}
 
@@ -98,7 +100,7 @@ update-user-data:
 	
 # Call this explicitly to upload scripts to s3 
 upload-artifacts:
-	if [ -d "$(PWD)/artifacts/upload" ]; \
+	@if [ -d "$(PWD)/artifacts/upload" ]; \
 	then \
 		mkdir -p $(PWD)/tmp ; \
 		COPYFILE_DISABLE=1 tar zcvhf tmp/${MODULE}.tar.gz -C $(PWD)/artifacts/upload . ; \
@@ -131,6 +133,12 @@ remote: ${TF_PROVIDER}
     	-backend-config="key=${TF_REMOTE_STATE_PATH}" \
         -backend-config="encrypt=true"
 
+upgrade-kube:
+	@echo "Will upgrade ${MODULE}'s Kubernetes to ${TF_VAR_kube_version}."
+	@$(MAKE) confirm
+	@$(MAKE) 
+	@echo "Don't forget to reboot ${MODULE}s."
+
 force-destroy-remote:
 	@if aws s3 --profile ${AWS_PROFILE} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
 	then \
@@ -140,6 +148,12 @@ force-destroy-remote:
 			--region ${AWS_REGION} \
 			--force ; \
 	fi
+
+confirm:
+	@echo "CONTINUE? [Y/N]: "; read ANSWER; \
+	if [ ! "$$ANSWER" = "Y" ]; then \
+		echo "Exiting." ; exit 1 ; \
+    fi
 
 .PHONY: all remote plan apply show output destroy clean remote-push remote-pull help
 .PHONY: update-profile update-ami update_user-data get-ips

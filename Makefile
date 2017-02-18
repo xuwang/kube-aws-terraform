@@ -114,8 +114,12 @@ destroy-remote:		# Destroy Terraform remote state, as final cleanup
 	@$(MAKE) confirm	
 	@cd resources/vpc; $(MAKE) force-destroy-remote
 
-list-all:	## List all resources
-	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(TF_LIST) 2> /tmp/destroy.err;)
+show-all:	## Show all resources
+	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) show 2> /tmp/destroy.err;)
+
+upgrade-kube:	## Upgrade Kubernetes version
+	@cd resources/worker; make upgrade-kube
+	@cd resources/controller; make upgrade-kube
 
 # Extras
 add-ons:	## Kubernetes add-ons, e.g. dns, dashboard
