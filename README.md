@@ -14,6 +14,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 - [Quick Start](#quick-start)
 - [Test the Cluster](#test-cluster)
 - [Cluster Guide](#guide)
+- [Limitations](#limitations)
 - [Major References](#major-references)
 
 ## Features
@@ -151,7 +152,7 @@ Now you should be able to connet Gitlab service at the above load-balancer addre
 Tear down:
 ```
 $ cd apps/gitlab
-$ ./teardown
+$ ./teardown.sh
 ```
 ## Cluster Guide
 
@@ -167,6 +168,13 @@ $ ./teardown
 
 - Xueshan Feng <xueshan.feng@gmail.com>
 - Xu Wang <xuwang@gmail.com>
+
+## Limitations
+
+* Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.  
+* VPC assumes you have at least 3 availability zones in a region. If you need fewer or more, you can add/remove subnet resources to accommadate. 
+
+All of these will be further automated in future release.
 
 ## Major references
 
