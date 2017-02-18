@@ -33,6 +33,32 @@ $ ssh core@52.36.180.132
 core@ip-10-240-10-80-kubev1-controller ~ $
 ```
 
+## Update Cloud Config
+
+Cloud config contains system units and post-installation scripts. Per resource **cloud-config.yaml.tmpl** file is located
+at resources/\<controller|worker|etcd|vault\>/artifacts/cloug-config.yaml.tmpl. The generated cloud-config.yaml file is uploaded
+to the resource's specific s3 bucket and will be picked up at each reboot. 
+
+To upload a new file after modifying the **cloud-config.yaml.tmpl**
+```
+$ cd resources/<controller|worker|etcd|vault>
+$ make
+```
+## Service Verification
+
+This verifies controller installation status.
+```
+$ cd resources/controller
+$ make get-ips
+$ ssh core@52.36.180.132 "cd /etc/systemd/system; systemctl status kube-*" | less
+```
+This verifies worker's installation status.
+```
+$ cd resources/worker
+$ make get-ips
+$ ssh core@52.36.180.132 "cd /etc/systemd/system; systemctl status kube*" | less
+```
+
 ## Upgrade Kubernetes
 
 * Edit envs.sh file to change the version of Kubernetes, as show in bellow example:
