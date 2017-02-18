@@ -107,10 +107,9 @@ $ make cluster | tee /tmp/build.log
 
 This build will create following nodes, S3 buckets, necessary iam roles, polices, keypairs, and keys. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
 
-* 1 vault node: PKI service
-* 1 etcd node: controller backend
-* 1 controller node: kube controller
-* 2 worker node: Kubernetes workers
+At AWS console, you should see you should have the following compute instances:
+
+![EC2 Console](./images/ec2-instances.png)
 
 ## Test the cluster
 
