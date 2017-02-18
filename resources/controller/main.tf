@@ -90,6 +90,7 @@ data "template_file" "controller_cloud_config" {
         "KUBE_SERVICE_NODE_PORTS" = "${var.kube_service_node_ports}"
         "KUBE_API_DNSNAME" = "${var.kube_api_dnsname}"   
         "KUBE_API_SERVICE" = "${var.kube_api_service}"
+        "KUBE_VERSION" = "${var.kube_version}"
     }
 }
 

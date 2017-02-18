@@ -121,7 +121,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=true
-        ExecStart=/bin/bash -c "docker run --rm -v /opt/bin:/shared xueshanf/install-kubernetes"
+        ExecStart=/bin/bash -c "docker run --env VERSION="${KUBE_VERSION}" --rm -v /opt/bin:/shared xueshanf/install-kubernetes"
         [Install]
         WantedBy=multi-user.target
     - name: kube-controller-manager.service
