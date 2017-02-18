@@ -9,83 +9,86 @@ ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # When destroy-all runs, the resources on this list will be destroyed, in this order. 
 ALL_RESOURCES := worker controller etcd iam pki vault route53 s3 vpc
+
 export 
 
 help:
-	@echo "make [ help | all | controller | etcd | iam | pki | route53 | s3 | vault | vpc | worker ]"
-	@echo "make show-<controller | etcd |i am | s3 | pki | route53 | vault | vpc | worker>" 
-	@echo "make destroy-<controller | etcd | iam | s3 | pki | route53 | vault | vpc |worker >"
+	@# adapted from https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+	@echo '_________________'
+	@echo '| Make targets: |'
+	@echo '-----------------'
+	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-cluster: core controller worker
+cluster: core controller worker  ## Create or update a kubernetes cluster (include core, controllers and workers)
 
-core: vpc s3 route53 iam pki vault etcd
+core: vpc s3 route53 iam pki vault etcd  ## Create or update vpc, s3, route 53, iam, pki, vault, and etcd.
 
-controller: etcd
+controller: etcd  ## Create or update controllers
 	cd resources/controller; make
-show-controller:
+show-controller: ## Show controller resources
 	cd resources/controller; make show
-destroy-controller:
+destroy-controller:  ## Destroy controllers
 	cd resources/controller; make destroy
 
-etcd: iam vault vpc
+etcd: iam vault vpc ## Create or update etcd cluster
 	cd resources/etcd; make
-plan-etcd:
+plan-etcd: ## Generate etcd cluster Terraform plan (dry-run)
 	cd resources/etcd; make plan
-show-etcd:
+show-etcd: ## Show etcd cluster resources
 	cd resources/etcd; make show
-destroy-etcd: destroy-worker
+destroy-etcd: destroy-worker ## Destroy worker and etcd cluster
 	cd resources/etcd; make destroy
 
-iam: s3
+iam: s3 ## Create or update IAM and S3 buckets
 	cd resources/iam; make
-destroy-iam: destroy-etcd 
+destroy-iam: destroy-etcd ## Destroy IAM and its dependencies
 	cd resources/iam; make destroy
 
-pki: s3 
+pki: s3 ## Create or update Vault PKI backend
 	cd resources/pki; make
-destroy-pki: 
+destroy-pki: ## Destroy Vault PKI backend.
 	cd resources/pki; make destroy
 
-route53: vpc
+route53: vpc ## Create or update Route53 zone
 	cd resources/route53; make
-show-route53:
+show-route53: ## Show Route53 resource
 	cd resources/route53; make show
-destroy-route53:
+destroy-route53: ## Destroy Route53 Zone
 	cd resources/route53; make destroy
 
-s3: 
+s3: ## Create or update S3 buckets
 	cd resources/s3; make
-destroy-s3:
+destroy-s3: ## Destroy S3 buckets
 	cd resources/s3; make destroy
 
-vault: iam pki route53 vpc
+vault: iam pki route53 vpc ## Create or updat Vault server
 	cd resources/vault; make
-plan-vault:
+plan-vault: ## Generate Vault Terraform plan
 	cd resources/vault; make plan
-show-vault:
+show-vault: ## Show Vault resource
 	cd resources/vault; make show
-destroy-vault:
+destroy-vault: ## Destroy Vault 
 	cd resources/vault; make destroy
 
-vpc: 
+vpc: 		## Create or upate VPC, gateways, routing tables, subnets
 	cd resources/vpc; make
-plan-vpc:
+plan-vpc:	## Generate VPC Terraform plan
 	cd resources/vpc; make plan
-show-vpc:
+show-vpc:	## Show VPC and subnets resources
 	cd resources/vpc; make show
-destroy-vpc: destroy-s3
+destroy-vpc: destroy-s3	## Destroy VPC
 	cd resources/vpc; make destroy
 
-worker: etcd
+worker: etcd   	## Create or udpate workers
 	cd resources/worker; make
-show-worker:
+show-worker:	## Show worker resource
 	cd resources/worker; make show
-plan-worker:
+plan-worker:	## Generate worker Terraform plan
 	cd resources/worker; make plan
-destroy-worker: 
+destroy-worker: ## Destroy worker
 	cd resources/worker; make destroy
 
-plan-destroy-all:
+plan-destroy-all:	## Generate destroy plan of all resources
 	@rm -rf ${ROOT_DIR}/tmp; mkdir -p ${ROOT_DIR}/tmp
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) destroy-plan  2> /tmp/destroy.err;)
 
@@ -95,7 +98,7 @@ confirm:
 		echo "Exiting." ; exit 1 ; \
     fi
 
-destroy-all: | plan-destroy-all
+destroy-all: | plan-destroy-all		## Destroy all resources
 	for i in ${ROOT_DIR}tmp/*.plan; do terraform show $$i; done | grep -- -
 	@$(eval total=$(shell for i in ${ROOT_DIR}/tmp/*.plan; do terraform show $$i; done | grep -- - | wc -l))
 	@echo ""
@@ -105,27 +108,26 @@ destroy-all: | plan-destroy-all
 	@$(MAKE) destroy-remote
 	rm -rf ${ROOT_DIR}tmp/*.plan
 
-# ToDo: Need to delete all versions of remote state to actually delete the bucket. This target now just empty the bucket.
-destroy-remote:
+destroy-remote:		# Destroy Terraform remote state, as final cleanup
 	@echo "Destroy Terraform remote state?"
 	@echo "This will destroy remote state for each module, all remote state versions, and delete the bucket"
 	@$(MAKE) confirm	
 	@cd resources/vpc; $(MAKE) force-destroy-remote
 
-show-all:
-	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) show  2> /tmp/destroy.err;)
+list-all:	## List all resources
+	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(TF_LIST) 2> /tmp/destroy.err;)
 
 # Extras
-add-ons:
+add-ons:	## Kubernetes add-ons, e.g. dns, dashboard
 	cd resources/kubectl; make add-ons
 smoke-test:
 	cd resources/worker; make smoke-test
 
-get-apiserver-elb:
+get-apiserver-elb: ## Get API server ELB address
 	cd resources/controller; make get-apiserver-elb
 	
-kube-cleanup:
+kube-cleanup: ## Delete all kubernetes deployments
 	cd resources/kubectl; make kube-cleanup
 
-.PHONY: provider.tf all help vpc s3 iam etcd worker 
+.PHONY: all help vpc s3 iam etcd worker 
 .PHONY: destroy destroy-vpc destroy-s3 destroy-iam destroy-etcd destroy-worker smoke-test

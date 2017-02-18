@@ -15,6 +15,7 @@ TF_GET := terraform get
 TF_GRAPH := terraform graph -module-depth=0
 TF_PLAN := terraform plan -refresh=true
 TF_SHOW := terraform show
+TF_LIST := terraform state list
 TF_REFRESH := terraform refresh
 TF_TAINT := terraform taint -allow-missing
 TF_OUTPUT := terraform output -json
