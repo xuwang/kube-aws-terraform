@@ -118,8 +118,6 @@ File tree resource/module:
 │   │   ├── session-lock.sh
 │   │   ├── tf-apply-confirm.sh
 │   │   └── turn-off-source-dest-check.sh
-│   ├── security-groups
-│   │   └── kubernetes.tf
 │   ├── vault
 │   │   ├── Makefile
 │   │   ├── artifacts
@@ -165,7 +163,7 @@ File tree resource/module:
 └── tmp
 
 ```
-### Add a new module
+## Add a new module
 
     - mkdir -p resource/\<module\>
     - cd resource/\<module\>; ln -sf ../common/common.tf common.tf

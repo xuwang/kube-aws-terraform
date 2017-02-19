@@ -2,7 +2,7 @@
 
 Using Terraform to manage AWS resources means you can do incremental changes safely. 
 You can plan, show, apply, destroy resources. For example, you wan to change node's instance type or re-size the 
-autoscaling group, or update cloud-configurtaion to add systemd units etc.
+autoscaling group, or update cloud-configuration to add systemd units etc.
 
 In general you can manage resources like this:
 

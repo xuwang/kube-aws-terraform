@@ -13,7 +13,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 - [Prerequisite](#prerequisite)
 - [Quick Start](#quick-start)
 - [Test Cluster](#test-cluster)
-- [Teardown](#teardown
+- [Teardown](#teardown)
 - [Cluster Guide](#cluster-guide)
 - [Limitations](#limitations)
 - [Major References](#major-references)
@@ -23,7 +23,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 * Kubernetes 1.5.3, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
 * Terraform 0.8.4, with remote state on S3 storage
-* Autoscalng group for each etcd2, controller, worker, and vault cluster
+* Autoscaling group for each etcd2, controller, worker, and vault cluster
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 6.4](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
 * Separated CA/Certs for secure communications between Kubernetes components
@@ -147,7 +147,7 @@ $ ./get-load-balancer.sh
 Waiting for loadBanlancer...
 Conntect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
 ```
-Now you should be able to connet Gitlab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
+Now you should be able to connect GitLab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
 
 ## Teardown
 
@@ -175,7 +175,7 @@ $ make teardown
 ## Limitations
 
 * Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.  
-* VPC assumes you have at least 3 availability zones in a region. If you need fewer or more, you can add/remove subnet resources to accommadate. 
+* VPC assumes you have at least 3 availability zones in a region. If you need fewer or more, you can add/remove subnet resources to accommodate. 
 
 All of these will be further automated in future release.
 

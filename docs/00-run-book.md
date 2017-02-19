@@ -91,7 +91,7 @@ $ /opt/bin/kubectl version
 - cd resource/\<module\>; ln -sf ../common/common.mk Makefile, or include ../common/common.mk in module's customized Makefile
 - Add envs.sh to define module name, override auto-configuration parameters
 - Add a target and its dependencies in top level Makefile
-- Add "terraform_remote_state" in common.tf if the module output will be referened by other modules
+- Add "terraform_remote_state" in common.tf if the module output will be referenced by other modules
 
 ## Upgrade-Vault
 
