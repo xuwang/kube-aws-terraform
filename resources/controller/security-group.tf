@@ -48,6 +48,9 @@ resource "aws_security_group" "kubernetes"  {
   }
 
   tags {
+    KubernetesCluster = "${var.cluster_name}"
+  }
+  tags {
     Name = "${var.cluster_name}-kubernetes"
   }
 }
