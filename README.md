@@ -135,6 +135,7 @@ $ kubectl proxy --port=0
 ```
 
 Point your browser to 127.1.1.0:\<localport\>/ui to bring up Kubernetes dashboard.
+![Dashboard](./images/dasnboard.png)
 
 ### Start a gitlab application
 
