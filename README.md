@@ -4,7 +4,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 (https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
 
 * Automate Kubernetes cluster build process
-* Design with production quality (.e.g., HA, security) in mind
+* Design with production quality (.e.g., HA, secure communications) in mind
 * Provide flexibility to allow each cluster component to be changed, expanded, and updated after build
 
 ## Table of Contents ##
@@ -12,14 +12,14 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 - [Features](#features)
 - [Prerequisite](#rerequisite)
 - [Quick Start](#quick-start)
-- [Test the Cluster](#test-cluster)
-- [Cluster Guide](#guide)
+- [Test Cluster](#test-cluster)
+- [Cluster Guide](#cluster-guide)
 - [Limitations](#limitations)
 - [Major References](#major-references)
 
 ## Features
 
-* Kubernetes 1.5.2, Docker engine 1.12.6
+* Kubernetes 1.5.3, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
 * Terraform 0.8.4, with remote state on S3 storage
 * Etcd2 cluster for Kubernetes controllers
@@ -111,7 +111,7 @@ At AWS console, you should see you should have the following compute instances:
 
 ![EC2 Console](./images/ec2-instances.png)
 
-## Test the cluster
+## Test Cluster
 
 ### Setup public api server DNS
 
@@ -135,7 +135,7 @@ $ kubectl proxy --port=0
 ```
 
 Point your browser to 127.1.1.0:\<localport\>/ui to bring up Kubernetes dashboard.
-![Dashboard](./images/dasnboard.png)
+![Dashboard](./images/dashboard.png)
 
 ### Start a gitlab application
 
@@ -149,10 +149,13 @@ Conntect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-wes
 ```
 Now you should be able to connet Gitlab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
 
-Tear down:
+## Teardown everthing
+
+This will delete all Kubernetes deployments provisioned and destroy all AWS resources. You will be asked to confirm when
+AWS resources are to be destroyed. This includes vault data, remote terraform state. You rarely do this unless you are doing development work. 
+
 ```
-$ cd apps/gitlab
-$ ./teardown.sh
+$ make teardown
 ```
 ## Cluster Guide
 
