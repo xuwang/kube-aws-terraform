@@ -10,9 +10,10 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 ## Table of Contents ##
 
 - [Features](#features)
-- [Prerequisite](#rerequisite)
+- [Prerequisite](#prerequisite)
 - [Quick Start](#quick-start)
 - [Test Cluster](#test-cluster)
+- [Teardown](#teardown-everything)
 - [Cluster Guide](#cluster-guide)
 - [Limitations](#limitations)
 - [Major References](#major-references)
