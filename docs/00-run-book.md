@@ -2,6 +2,7 @@
 
 - [How to login to instances](#login)
 - [How to update cloud-config](#update-cloud-config)
+- [How to scale the cluster](#scaling-the-cluster)
 - [How to verify services status](#service-verification)
 - [How to upgrade kubernetes binaries](#upgrade-kubernetes)
 - [How to add more Terraform modules, such as elb, efs, rds](#add-modules)
@@ -47,6 +48,31 @@ $ make update-user-data
 ```
 When you reboot etcd, controllers, wait the cluster has elected new leaders before rebooting another one.
 
+## Scaling the Cluster
+
+You re-size controller, worker, vault, and etcd autoscaling group by overriding the default vaules defined in **enva.sh**.
+
+NOTE: For etcd autoscaling group, use 1,3,5,7.. odd number and make min=max=desired. For production, use at least 3 to begin with for high availability.
+
+Here is an example of adding more workers:
+
+In **resources/worker/envs.sh** file, change the capacity you want:
+
+```
+# Workers ASG override
+export TF_VAR_instance_type="m3.large"
+export TF_VAR_cluster_min_size=1
+export TF_VAR_cluster_max_size=10
+export TF_VAR_cluster_desired_capacity=5
+```
+
+Updating the autoscaling group
+
+```
+$ cd resources/worker
+$ make
+```
+
 ## Service Verification
 
 This verifies controller installation status.
@@ -62,7 +88,7 @@ $ make get-ips
 $ ssh core@52.36.180.132 "cd /etc/systemd/system; systemctl status kube*" | less
 ```
 
-## Upgrade Kubernetes binaries
+## Upgrade Kubernetes
 
 Read Kubernetes release notes to make necessary configuration changes. Ideally use a test environment to test out the new releases.
 
