@@ -98,6 +98,11 @@ confirm:
 		echo "Exiting." ; exit 1 ; \
     fi
 
+teardown:
+	@-cd ${ROOT_DIR}/apps/gitlab; ./teardown.sh
+	@cd resources/kubectl; make kube-cleanup
+	$(MAKE) destroy-all
+
 destroy-all: | plan-destroy-all		## Destroy all resources
 	for i in ${ROOT_DIR}tmp/*.plan; do terraform show $$i; done | grep -- -
 	@$(eval total=$(shell for i in ${ROOT_DIR}/tmp/*.plan; do terraform show $$i; done | grep -- - | wc -l))
