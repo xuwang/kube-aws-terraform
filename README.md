@@ -13,7 +13,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 - [Prerequisite](#prerequisite)
 - [Quick Start](#quick-start)
 - [Test Cluster](#test-cluster)
-- [Teardown](#teardown-everything)
+- [Teardown](#teardown
 - [Cluster Guide](#cluster-guide)
 - [Limitations](#limitations)
 - [Major References](#major-references)
@@ -149,7 +149,7 @@ Conntect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-wes
 ```
 Now you should be able to connet Gitlab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
 
-## Teardown everthing
+## Teardown
 
 This will delete all Kubernetes deployments provisioned and destroy all AWS resources. You will be asked to confirm when
 AWS resources are to be destroyed. This includes vault data, remote terraform state. You rarely do this unless you are doing development work. 
