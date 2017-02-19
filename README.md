@@ -159,12 +159,12 @@ $ make teardown
 ```
 ## Cluster Guide
 
-- [AWS Resourses](docs/01-AWS-resources.md)
+- [Run book](docs/00-run-book.md)
+- [AWS Resourses](docs/01-aws-resources.md)
 - [Kubernetes PKI vault backend](docs/02-vault-pki.md)
 - [Cluster configuration](docs/03-configuration.md)
 - [Code structure](docs/04-files.md)
-- [Manage individual platform resources](docs/05-manage-individual-platform-resources.md)
-- [Run book](docs/06-run-book.md)
+- [Manage individual platform resources](docs/05-manage-resources.md)
 - [Clean up](docs/07-cleanup.md)
 
 ## The Team
