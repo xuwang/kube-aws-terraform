@@ -22,9 +22,8 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 * Kubernetes 1.5.3, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
 * Terraform 0.8.4, with remote state on S3 storage
-* Etcd2 cluster for Kubernetes controllers
-* All instances are created in autoscaling group
-* CoreOS image for self-upgrade/patching management
+* Autoscalng group for each etcd2, controller, worker, and vault cluster
+* CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 6.4](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
 * Separated CA/Certs for secure communications between Kubernetes components
 
@@ -124,7 +123,7 @@ $ make get-apiserver-elb
 Please add 54.186.177.19 kube-api.example.com to /etc/hosts file.
 ``` 
 
-You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup domain delegation properly to kube-cluster.example.com for production.
+You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup example.com domain delegation properly for production.
 
 ### Setup kubectl
 
