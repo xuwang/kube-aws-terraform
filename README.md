@@ -81,7 +81,7 @@ There are two files you want to make change:
 # Environments for the cluster.
 ###############################
 
-export AWS_PROFILE=kube-cluster
+export AWS_PROFILE=kube-user
 export AWS_REGION=us-west-2
 export CLUSTER_NAME=kube-cluster
 export COREOS_UPDATE_CHANNEL=beta
