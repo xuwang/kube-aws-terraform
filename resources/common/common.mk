@@ -116,12 +116,12 @@ remote: ${TF_PROVIDER}
 		aws s3 --profile ${AWS_PROFILE} \
 			mb s3://${TF_REMOTE_STATE_BUCKET} --region ${AWS_REGION}; \
 		sleep 30; \
-		if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
-		then \
-			echo Enable versioning... ; \
-			aws s3api --profile ${AWS_PROFILE} put-bucket-versioning \
-				--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
-        	fi ; \
+	fi
+	@if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
+	then \
+		echo Enable versioning... ; \
+		aws s3api --profile ${AWS_PROFILE} put-bucket-versioning \
+			--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
 	fi
     # If remote path is not set, configure it; or modify it
 	terraform remote config -backend=s3 \
