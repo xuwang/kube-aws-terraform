@@ -124,6 +124,9 @@ resource "aws_security_group" "etcd"  {
   }
 
   tags {
+    KubernetesCluster = "${var.cluster_name}"
+  }
+  tags {
     Name = "${var.cluster_name}-etcd"
   }
 }

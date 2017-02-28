@@ -72,11 +72,11 @@ S3 Buckets are used to store various cluster data. All buckets are prefixed with
 | terraform/${MODULE}.tfstat                 | * Terraform remote state                            |common/common.mk|
 | vault-s3-backend                           | * Kubernetes PKI management                         |                |
 | pki                                        | * ca to sign vault root ca/crt; tls for vault client| pki            |
-| pki-token                                  | * auth token to request kubernets's cert dynamically| vault          | 
+| pki-token                                  | * auth token to request kubernets's cert dynamically vault          | 
 
 ###  Storage - EBS disks
 
-/var/lib/docker and /opt are on their own partitions and can be tuned in each resource's main.tf file. For exampe,
+/var/lib/docker and /opt are on their own partitions and can be tuned in each resource's main.tf file. For example,
 worker node has this as default:
 
 ```
@@ -96,6 +96,6 @@ worker node has this as default:
 | Keypairs         | ${CLUSTER_NAME}-[etcd,controller,worker,vault]| Saved in SSHKEY_DIR, ${HOME}/.ssh by default     |
 | Profiles         | instances profile, with polices               |                                                  |
 | Roles            |                                               | vpc/vpc-subnet-controller.tf                     |
-| Route53          | TF_VAR_route53_zone=example.com                 | api server endpoint: api-server.example.com      | 
+| Route53          | TF_VAR_route53_zone=example.com               | api server endpoint: api-server.example.com      | 
 
 

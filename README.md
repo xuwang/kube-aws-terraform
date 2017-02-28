@@ -1,29 +1,30 @@
 # Building Kubernetes Cluster on AWS 
 
 This is a Kubernetes implementation using [CoreOS cluster architecture] 
-(https://coreos.com/os/docs/latest/cluster-architectures.html) on AWS platform. The goals of this implementation are:
+(https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
 
 * Automate Kubernetes cluster build process
-* Design with production quality (.e.g., HA, security) in mind
+* Design with production quality (.e.g., HA, secure communications) in mind
 * Provide flexibility to allow each cluster component to be changed, expanded, and updated after build
 
 ## Table of Contents ##
 
 - [Features](#features)
-- [Prerequisite](#rerequisite)
+- [Prerequisite](#prerequisite)
 - [Quick Start](#quick-start)
-- [Test the Cluster](#test-cluster)
-- [Cluster Guide](#guide)
+- [Test Cluster](#test-cluster)
+- [Teardown](#teardown)
+- [Cluster Guide](#cluster-guide)
+- [Limitations](#limitations)
 - [Major References](#major-references)
 
 ## Features
 
-* Kubernetes 1.5.2, Docker engine 1.12.6
-* AWS provider integration (ELB)
+* Kubernetes 1.5.3, Docker engine 1.12.6
+* AWS provider integration (ELB,EBS)
 * Terraform 0.8.4, with remote state on S3 storage
-* Etcd2 cluster for Kubernetes controllers
-* All instances are created in autoscaling group
-* CoreOS image for self-upgrade/patching management
+* Autoscaling group for each etcd2, controller, worker, and vault cluster
+* CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 6.4](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
 * Separated CA/Certs for secure communications between Kubernetes components
 
@@ -80,7 +81,7 @@ There are two files you want to make change:
 # Environments for the cluster.
 ###############################
 
-export AWS_PROFILE=kube-cluster
+export AWS_PROFILE=kube-user
 export AWS_REGION=us-west-2
 export CLUSTER_NAME=kube-cluster
 export COREOS_UPDATE_CHANNEL=beta
@@ -106,12 +107,11 @@ $ make cluster | tee /tmp/build.log
 
 This build will create following nodes, S3 buckets, necessary iam roles, polices, keypairs, and keys. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
 
-* 1 vault node: PKI service
-* 1 etcd node: controller backend
-* 1 controller node: kube controller
-* 2 worker node: Kubernetes workers
+At AWS console, you should see you should have the following compute instances:
 
-## Test the cluster
+![EC2 Console](./images/ec2-instances.png)
+
+## Test Cluster
 
 ### Setup public api server DNS
 
@@ -124,7 +124,7 @@ $ make get-apiserver-elb
 Please add 54.186.177.19 kube-api.example.com to /etc/hosts file.
 ``` 
 
-You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup domain delegation properly to kube-cluster.example.com for production.
+You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup example.com domain delegation properly for production.
 
 ### Setup kubectl
 
@@ -135,6 +135,7 @@ $ kubectl proxy --port=0
 ```
 
 Point your browser to 127.1.1.0:\<localport\>/ui to bring up Kubernetes dashboard.
+![Dashboard](./images/dashboard.png)
 
 ### Start a gitlab application
 
@@ -146,27 +147,37 @@ $ ./get-load-balancer.sh
 Waiting for loadBanlancer...
 Conntect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
 ```
-Now you should be able to connet Gitlab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
+Now you should be able to connect GitLab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
 
-Tear down:
+## Teardown
+
+This will delete all Kubernetes deployments provisioned and destroy all AWS resources. You will be asked to confirm when
+AWS resources are to be destroyed. This includes vault data, remote terraform state. You rarely do this unless you are doing development work. 
+
 ```
-$ cd apps/gitlab
-$ ./teardown
+$ make teardown
 ```
 ## Cluster Guide
 
-- [AWS Resourses](docs/01-AWS-resources.md)
+- [Run book](docs/00-run-book.md)
+- [AWS Resourses](docs/01-aws-resources.md)
 - [Kubernetes PKI vault backend](docs/02-vault-pki.md)
 - [Cluster configuration](docs/03-configuration.md)
 - [Code structure](docs/04-files.md)
-- [Manage individual platform resources](docs/05-manage-individual-platform-resources.md)
-- [Run book](docs/06-run-book.md)
+- [Manage individual platform resources](docs/05-manage-resources.md)
 - [Clean up](docs/07-cleanup.md)
 
 ## The Team
 
 - Xueshan Feng <xueshan.feng@gmail.com>
 - Xu Wang <xuwang@gmail.com>
+
+## Limitations
+
+* Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.  
+* VPC assumes you have at least 3 availability zones in a region. If you need fewer or more, you can add/remove subnet resources to accommodate. 
+
+All of these will be further automated in future release.
 
 ## Major references
 

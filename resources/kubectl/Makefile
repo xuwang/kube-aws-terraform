@@ -1,6 +1,6 @@
 include ../common/common.mk
 
-KUBE_APISERVER_CA := ${ROOT_DIR}/tmp/kube-apiserver-ca.pem
+KUBE_APISERVER_CA := /tmp/kube-apiserver-ca.pem
 KUBEDNS_DEPLOYMENT := ../artifacts/kubedns-deployment.yaml
 KUBEDNS_SERVICE := ../artifacts/kubedns-service.yaml
 KUBE_UI := ../artifacts/kubernetes-dashboard.yaml
@@ -25,25 +25,30 @@ kube-config:
   		--cluster=kubernetes \
   		--user=admin
 	kubectl config use-context default-context
-	
-kube-dns: kube-dns-service kube-dns-rc
+	@kubectl get nodes
 
-kube-dns-service:
-	kubectl create -f ${KUBEDNS_SERVICE}
-kube-dns-rc:
-	kubectl create -f ${KUBEDNS_DEPLOYMENT}
-kube-dns-rc-apply: ${KUBEDNS_DEPLOYMENT}
-	kubectl apply --namespace=kube-system -f ${KUBEDNS_DEPLOYMENT}
-kube-get-pods:
-	kubectl get pods --namespace=kube-system
+kube-dns:
+	@if ! kubectl get svc -n kube-system | grep kube-dns &> /dev/null ; \
+	then \
+		kubectl apply -f ${KUBEDNS_SERVICE} ; \
+		kubectl apply -f ${KUBEDNS_DEPLOYMENT} ; \
+	else \
+		kubectl get pods -n kube-system -l k8s-app=kube-dns ; \
+	fi
 
 kube-dns-delete:
 	kubectl delete -f ${KUBEDNS_DEPLOYMENT} 
 	kubectl delete -f ${KUBEDNS_SERVICE}
+
 kube-ui-delete:
 	kubectl delete -f ${KUBE_UI}
 kube-ui:
-	@-kubectl create -f ${KUBE_UI}
+	@if ! kubectl get pods -n kube-system | grep kubernetes-dashboard &> /dev/null ; \
+	then \
+		kubectl create -f ${KUBE_UI} ; \
+	else \
+		kubectl get pods -n kube-system -l app=kubernetes-dashboard ; \
+	fi
 kube-cleanup:
 	$(MAKE) kube-dns-delete
 	$(MAKE) kube-ui-delete

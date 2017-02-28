@@ -1,9 +1,9 @@
-###
-
 Here are configurations and their default value. The environment variables are used in cloud-config template and
-TF_VAR_* will override terraform variables in defined in resources/common/common.tf. Copy the configuration file
-to top level as *envs.sh*. before build.
+TF_VAR_* will override terraform variables defined in resources/common/common.tf. Copy the envs.sh.sample configuration file  as *envs.sh*. before build.
 
+The complete configurations:
+
+```
 ###############################
 # Environments for the cluster. 
 ###############################
@@ -66,3 +66,4 @@ export TF_VAR_vault_rootca_cn=vault.${TF_VAR_route53_zone}
 
 # Default VPC prefix
 export TF_VAR_vpc_prefix="10.240"
+```
