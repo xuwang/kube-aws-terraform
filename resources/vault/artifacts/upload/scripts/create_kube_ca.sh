@@ -14,7 +14,7 @@ COMPONENTS="etcd-member kube-apiserver"
 
 if [ -z "$CLUSTER_ID" ];
 then
-  exit1 "A unique Kubernetes cluster id is required."   
+  exit1 "A unique Kubernetes cluster id is required."
 fi
 
 # Etcd CA. Etcd and apiserver's cert should be signed by the same CA.
@@ -33,7 +33,7 @@ create_pki_role_etcd_member() {
 
 create_pki_role_kube_apiserver() {
     vault write $CLUSTER_ID/pki/kube-apiserver/roles/kube-apiserver \
-        allowed_domains="kubelet,cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
+        allowed_domains="kubelet,kubernetes.default,cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
         allow_bare_domains=true \
         allow_subdomains=false \
         allow_any_name=true \
@@ -54,7 +54,7 @@ policy = "write"
 EOT
 }
 
-# Provided each machine with a Vault token that can be renewed indefinitely. 
+# Provided each machine with a Vault token that can be renewed indefinitely.
 # This token is only granted the policies that it requires.
 create_auth_role() {
   vault write auth/token/roles/kube-$CLUSTER_ID \
@@ -70,7 +70,7 @@ create_auth_token() {
   $DIR/s3get.sh ${VAULT_TOKEN_BUCKET} pki-tokens/$token_name $TMPDIR/$token_name
   if [[ -s "$TMPDIR/$token_name" ]] && vault token-lookup $(cat $TMPDIR/$token_name) > /dev/null 2>&1 ; then
     echo "Token $token already exist. Renew token"
-    vault token-renew $(cat $TMPDIR/$token_name) 
+    vault token-renew $(cat $TMPDIR/$token_name)
   else
     token=$(vault token-create \
       -policy="$CLUSTER_ID/$token_path" \
@@ -93,4 +93,3 @@ create_role_policy kube-apiserver kube-apiserver
 create_auth_role
 create_auth_token pki/etcd-member/etcd-member etcd-member
 create_auth_token pki/kube-apiserver/kube-apiserver kube-apiserver
-
