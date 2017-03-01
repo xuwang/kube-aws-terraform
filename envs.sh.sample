@@ -41,7 +41,7 @@ export TF_VAR_instance_type=t2.medium
 # clash with kubernetes "cluster.local"
 export TF_VAR_cluster_internal_zone="cluster.internal"
 export TF_VAR_kube_api_dnsname=${KUBE_API_DNSNAME}
-export TF_VAR_kube_version="v1.5.2"
+export TF_VAR_kube_version="v1.5.3"
 
 # Terraform remote state bucket name, defined as ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform
 # in /resources/common/common.mk. 
@@ -55,7 +55,7 @@ export TF_VAR_vault_ca={country = "US", province = "California", \
 	organization = "IT Department", common_name = "${TF_VAR_route53_zone_name}"}
 
 # Vault release: restart vault service if changed
-export TF_VAR_vault_release=0.6.4
+export TF_VAR_vault_release=0.6.5
 
 # Default vault root ca common name, for cert signing
 export TF_VAR_vault_rootca_cn=vault.${TF_VAR_route53_zone_name}
