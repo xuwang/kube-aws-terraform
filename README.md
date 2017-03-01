@@ -22,10 +22,10 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 
 * Kubernetes 1.5.3, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
-* Terraform 0.8.4, with remote state on S3 storage
+* Terraform 0.8.7, with remote state on S3 storage
 * Autoscaling group for each etcd2, controller, worker, and vault cluster
 * CoreOS for self-upgrade/patching management
-* [Hashicorp Vault 6.4](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
+* [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
 * Separated CA/Certs for secure communications between Kubernetes components
 
 ## Prerequisite 
