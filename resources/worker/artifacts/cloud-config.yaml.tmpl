@@ -3,7 +3,7 @@
 # Workers cloud-config
 coreos:
   update:
-    reboot-strategy: etcd-lock
+    reboot-strategy: reboot
   units:
 # coreos.units.* components
     - name: format-disk.service
@@ -28,7 +28,7 @@ coreos:
         RemainAfterExit=yes
         Environment="LABEL=opt-data"
         Environment="DEV=/dev/xvdc"
-        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then  wipefs -a -f $DEV && mkfs.ext4 -F -L $LABEL $DEV && echo wiped; fi" 
+        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then  wipefs -a -f $DEV && mkfs.ext4 -F -L $LABEL $DEV && echo wiped; fi"
     - name: opt-data.mount
       command: start
       content: |
@@ -65,9 +65,9 @@ coreos:
               RestartSec=5
     - name: s3sync.service
       command: start
-      content: |       
+      content: |
         [Unit]
-        Description=Sync files from S3 
+        Description=Sync files from S3
         Wants=docker.service
         After=docker.service
         ConditionPathExists=/opt/bin/s3sync.json
@@ -129,7 +129,7 @@ coreos:
       content: |
         [Unit]
         Description=Kubernetes Kube Proxy
-        Documentation=https://github.com/GoogleCloudPlatform/kubernetes 
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
         After=install-cert.service
         Requires=install-cert.service
         [Service]
@@ -142,13 +142,13 @@ coreos:
         Restart=on-failure
         RestartSec=5
         [Install]
-        WantedBy=multi-user.target 
+        WantedBy=multi-user.target
     - name: install-vault.service
       command: start
       enable: true
       content: |
         [Unit]
-        Description=Install Vault binary 
+        Description=Install Vault binary
         Wants=s3sync.service
         After=s3sync.service
         [Service]
@@ -232,13 +232,26 @@ write_files:
     content: |
         #!/bin/bash
         export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server. 
+        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
         export PATH=/opt/bin/:$PATH
+
+        # Wait for vault service
+        retry=5
+        until vault status || [[ $retry -eq 0 ]];
+        do
+          sleep 3
+          let "retry--"
+        done
+        if [ $retry -eq 0 ];
+          then
+          echo "Vault service is not ready."
+          exit 1
+        fi
         # Vault PKI Token
         export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/kube-apiserver)
         cert_path=/var/lib/kubernetes
         vault write -format=json ${CLUSTER_NAME}/pki/kube-apiserver/issue/kube-apiserver common_name=$(hostname --fqdn) \
-            alt_names="kube-$private_ipv4.cluster.local,*.cluster.local" \
+            alt_names="kube-$private_ipv4.cluster.local,*.cluster.local,kubernetes.default" \
             ttl=43800h0m0s \
             ip_sans="127.0.0.1,$private_ipv4,${KUBE_API_SERVICE}" >  /tmp/kube-bundle.certs
         cert_paths="/var/lib/kubernetes"
@@ -310,5 +323,3 @@ write_files:
         aws_access_key_id=${AWS_ACCESS_KEY_ID}
         aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
         region=${AWS_DEFAULT_REGION}
-
-
