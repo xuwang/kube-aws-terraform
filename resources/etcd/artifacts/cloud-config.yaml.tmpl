@@ -14,7 +14,7 @@ coreos:
     group: etcd
   units:
     - name: locksmithd.service
-      command: start
+      command: reload-or-restart
       drop-ins:
         - name: 30-cloudinit.conf
           content: |
@@ -29,7 +29,7 @@ coreos:
             Environment="LOCKSMITHD_REBOOT_WINDOW_START=05:30"
             Environment="LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h"
     - name: etcd2.service
-      command: start
+      command: reload-or-restart
       drop-ins:
         - name: 60-etcd-peers.conf
           content: |
@@ -49,7 +49,7 @@ coreos:
         Description=etcd init
         Requires=docker.service
         After=docker.service
-        
+
         [Service]
         Type=oneshot
         RemainAfterExit=true
@@ -57,7 +57,7 @@ coreos:
         TimeoutStartSec=10min
         ExecStart=/opt/bin/etcd-init.sh
         [Install]
-        WantedBy=multi-user.target      
+        WantedBy=multi-user.target
 
 # coreos.units.* components
     - name: format-disk.service
@@ -97,12 +97,12 @@ coreos:
               RestartSec=5
     - name: s3sync.service
       command: start
-      content: |       
+      content: |
           [Unit]
-          Description=Sync files from S3 
+          Description=Sync files from S3
           Wants=docker.service
           After=docker.service
-          ConditionPathExists=/opt/bin/s3sync.json    
+          ConditionPathExists=/opt/bin/s3sync.json
           [Service]
           Type=oneshot
           RemainAfterExit=true
@@ -136,9 +136,22 @@ write_files:
     content: |
         #!/bin/bash
         export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server. 
+        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
         export PATH=/opt/bin/:$PATH
         /opt/bin/s3sync.sh
+
+        # Wait for vault service
+        retry=5
+        until vault status || [[ $retry -eq 0 ]];
+        do
+          sleep 3
+          let "retry--"
+        done
+        if [ $retry -eq 0 ];
+          then
+          echo "Vault service is not ready."
+          exit 1
+        fi
         # Vault PKI Token
         export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/etcd-member)
         mkdir -p /etc/etcd/certs && cd /etc/etcd/certs
@@ -238,7 +251,7 @@ write_files:
     owner: root
     content: |
         #!/usr/bin/bash
-        # This script gets excecuted on each reboot. 
+        # This script gets excecuted on each reboot.
         # It can be an additional config you want to set after CoreOS's cloud-config.
         post_provisions="/var/lib/apps/post_provision /opt/etc/${MODULE_NAME}/post_provision"
         # Wait until the post_provision is downloaded from git/s3
@@ -263,12 +276,12 @@ write_files:
     owner: root
     content: |
       #!/bin/bash
-      
+
       # dyamically create/join the etcd cluster by querying autoscaling group
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
       /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
-      
+
       # upload etcd initial-cluster urls to s3 bucket for worker cluster's etcd_proxy
       /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https --env S3BUCKET="s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit" --entrypoint /etcd-aws-proxy $image
 
@@ -282,7 +295,7 @@ write_files:
         ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
         ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
         ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
-        
+
   - path: /etc/aws/account.envvars
     permissions: 0644
     owner: root
@@ -307,4 +320,3 @@ write_files:
         aws_access_key_id=${AWS_ACCESS_KEY_ID}
         aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
         region=${AWS_DEFAULT_REGION}
-
