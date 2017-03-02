@@ -140,8 +140,8 @@ coreos:
           --cluster-name=${CLUSTER_NAME} \
           --leader-elect=true \
           --master=http://$private_ipv4:8080 \
-          --root-ca-file=/var/lib/kubernetes/etcd-member-ca.pem \
-          --service-account-private-key-file=/var/lib/kubernetes/etcd-member-key.pem \
+          --root-ca-file=/var/lib/kubernetes/kube-apiserver-ca.pem \
+          --service-account-private-key-file=/var/lib/kubernetes/kube-apiserver-key.pem \
           --service-cluster-ip-range=${KUBE_SERVICE_CIDR} \
           --v=2
         Restart=on-failure
