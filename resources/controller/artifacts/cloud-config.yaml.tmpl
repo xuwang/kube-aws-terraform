@@ -13,7 +13,7 @@ coreos:
     group: controller
   units:
     - name: locksmithd.service
-      command: start
+      command: reload-or-restart
       drop-ins:
         - name: 30-cloudinit.conf
           content: |
@@ -28,7 +28,7 @@ coreos:
             Environment="LOCKSMITHD_REBOOT_WINDOW_START=05:30"
             Environment="LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h"
     - name: etcd2.service
-      command: start
+      command: reload-or-restart
       drop-ins:
         - name: 60-initial-cluster.conf
           content: |
@@ -47,7 +47,7 @@ coreos:
         RemainAfterExit=yes
         Environment="LABEL=opt-data"
         Environment="DEV=/dev/xvdc"
-        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then  wipefs -a -f $DEV && mkfs.ext4 -F -L $LABEL $DEV && echo wiped; fi" 
+        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then  wipefs -a -f $DEV && mkfs.ext4 -F -L $LABEL $DEV && echo wiped; fi"
     - name: opt-data.mount
       command: start
       content: |
@@ -98,9 +98,9 @@ coreos:
               RestartSec=5
     - name: s3sync.service
       command: start
-      content: |       
+      content: |
         [Unit]
-        Description=Sync files from S3 
+        Description=Sync files from S3
         Wants=docker.service
         After=docker.service
         ConditionPathExists=/opt/bin/s3sync.json
@@ -206,7 +206,7 @@ coreos:
       enable: true
       content: |
         [Unit]
-        Description=Install Vault binary 
+        Description=Install Vault binary
         Wants=s3sync.service
         After=s3sync.service
         [Service]
@@ -226,7 +226,7 @@ coreos:
         RemainAfterExit=true
         ExecStartPre=/opt/bin/s3sync.sh
         ExecStartPre=/usr/bin/docker run --rm -v /opt/bin:/tmp vault:${VAULT_RELEASE} cp /bin/vault /tmp/vault
-        ExecStart=/bin/bash -c "[ -x /opt/bin/vault ] &&  /opt/bin/get-ca-certs.sh  kube-apiserver etcd-member"
+        ExecStart=/bin/bash -c "[ -x /opt/bin/vault ] &&  /opt/bin/get-kube-certs.sh  kube-apiserver etcd-member"
 write_files:
   - path: /etc/profile.d/alias.sh
     permissions: 0755
@@ -296,26 +296,39 @@ write_files:
             "destination": "/opt/etc/pki-tokens"
           }
       }
-  - path: /opt/bin/get-ca-certs.sh
+  - path: /opt/bin/get-kube-certs.sh
     permissions: 0755
     owner: root
     content: |
         #!/bin/bash
-        # Request Kubernetes certificates. 
+        # Request Kubernetes certificates.
         export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server. 
+        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
         export PATH=/opt/bin/:$PATH
         cert_paths="/var/lib/kubernetes /etc/etcd/certs"
         /opt/bin/s3sync.sh > /dev/null 2>&1
 
+        # Wait for vault service
+        retry=5
+        until vault status || [[ $retry -eq 0 ]];
+        do
+          sleep 3
+          let "retry--"
+        done
+        if [ $retry -eq 0 ];
+          then
+          echo "Vault service is not ready."
+          exit 1
+        fi
+
         # Vault PKI Token. We store them in both /etc/etcd/certs and /var/lib/kubernetes directories
         for i in $*
-        do     
+        do
             token_name=$i
             export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/$token_name)
             vault write -format=json \
               ${CLUSTER_NAME}/pki/$token_name/issue/$token_name common_name=$(hostname --fqdn) \
-              alt_names="kube-$private_ipv4.cluster.local,*.cluster.local,*.${CLUSTER_INTERNAL_ZONE},${KUBE_API_SERVICE},${KUBE_API_DNSNAME}" \
+              alt_names="kube-$private_ipv4.cluster.local,kubernetes.default,*.cluster.local,*.${CLUSTER_INTERNAL_ZONE},${KUBE_API_SERVICE},${KUBE_API_DNSNAME}" \
               ttl=43800h0m0s \
               ip_sans="127.0.0.1,$private_ipv4" >  /tmp/ca-bundle.certs
             if [ ! -s /tmp/ca-bundle.certs ]; then
@@ -393,5 +406,3 @@ write_files:
       aws_access_key_id=${AWS_ACCESS_KEY_ID}
       aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
       region=${AWS_DEFAULT_REGION}
-
-
