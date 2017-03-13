@@ -104,6 +104,7 @@ The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (h
 ```
 $ make cluster | tee /tmp/build.log
 ```
+It takes about 15 minutes for the cluster to be ready. 
 
 This build will create following nodes, S3 buckets, necessary iam roles, polices, keypairs, and keys. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
 
@@ -121,7 +122,7 @@ will use /etc/hosts file for testing purpose.
 ```
 $ make get-apiserver-elb
 
-Please add 54.186.177.19 kube-api.example.com to /etc/hosts file.
+Please add "54.186.177.19 kube-api.example.com" to /etc/hosts file.
 ``` 
 
 You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup example.com domain delegation properly for production.
@@ -134,7 +135,8 @@ $ kubectl proxy --port=0
 127.1.1.0:<localport>
 ```
 
-Point your browser to 127.1.1.0:\<localport\>/ui to bring up Kubernetes dashboard.
+Point your browser to 127.1.1.0:\<localport\>/ui to bring up Kubernetes dashboard. Switch the Namespace to "kube-system" you should see the kube-dns and dashboard deployments.
+
 ![Dashboard](./images/dashboard.png)
 
 ### Start a gitlab application
