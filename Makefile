@@ -7,10 +7,10 @@
 SHELL := /bin/bash
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# When destroy-all runs, the resources on this list will be destroyed, in this order. 
+# When destroy-all runs, the resources on this list will be destroyed, in this order.
 ALL_RESOURCES := worker controller etcd iam pki vault route53 s3 vpc
 
-export 
+export
 
 help:
 	@# adapted from https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -67,7 +67,7 @@ plan-vault: ## Generate Vault Terraform plan
 	cd resources/vault; make plan
 show-vault: ## Show Vault resource
 	cd resources/vault; make show
-destroy-vault: ## Destroy Vault 
+destroy-vault: ## Destroy Vault
 	cd resources/vault; make destroy
 
 vpc: 		## Create or upate VPC, gateways, routing tables, subnets
@@ -100,7 +100,7 @@ confirm:
 
 teardown:
 	@-cd ${ROOT_DIR}/apps/gitlab; ./teardown.sh
-	@cd resources/kubectl; make kube-cleanup
+	$(MAKE) destroy-add-ons
 	$(MAKE) destroy-all
 
 destroy-all: | plan-destroy-all		## Destroy all resources
@@ -116,7 +116,7 @@ destroy-all: | plan-destroy-all		## Destroy all resources
 destroy-remote:		# Destroy Terraform remote state, as final cleanup
 	@echo "Destroy Terraform remote state?"
 	@echo "This will destroy remote state for each module, all remote state versions, and delete the bucket"
-	@$(MAKE) confirm	
+	@$(MAKE) confirm
 	@cd resources/vpc; $(MAKE) force-destroy-remote
 
 show-all:	## Show all resources
@@ -128,15 +128,16 @@ upgrade-kube:	## Upgrade Kubernetes version
 
 # Extras
 add-ons:	## Kubernetes add-ons, e.g. dns, dashboard
-	cd resources/kubectl; make add-ons
+	cd resources/add-ons; make add-ons
+
 smoke-test:
 	cd resources/worker; make smoke-test
 
 get-apiserver-elb: ## Get API server ELB address
 	cd resources/controller; make get-apiserver-elb
-	
-kube-cleanup: ## Delete all kubernetes deployments
-	cd resources/kubectl; make kube-cleanup
 
-.PHONY: all help vpc s3 iam etcd worker 
+destroy-add-ons: ## Delete all add-ons, ie. kubedns, dashboard, and monitor
+	cd resources/add-ons; make kube-cleanup
+
+.PHONY: all help vpc s3 iam etcd worker add-ons destroy-add-ons
 .PHONY: destroy destroy-vpc destroy-s3 destroy-iam destroy-etcd destroy-worker smoke-test

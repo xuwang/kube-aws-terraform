@@ -1,11 +1,9 @@
 include ../common/common.mk
 
 KUBE_APISERVER_CA := /tmp/kube-apiserver-ca.pem
-KUBEDNS_DEPLOYMENT := ../artifacts/kubedns-deployment.yaml
-KUBEDNS_SERVICE := ../artifacts/kubedns-service.yaml
-KUBE_UI := ../artifacts/kubernetes-dashboard.yaml
 
-add-ons: kube-config kube-dns kube-ui
+add-ons: kube-config kubedns dashboard monitor
+
 kube-config:
 	@echo Download vault generated ca cert from the api server
 	@ssh-add -D
@@ -27,31 +25,42 @@ kube-config:
 	kubectl config use-context default-context
 	@kubectl get nodes
 
-kube-dns:
+kubedns:
 	@if ! kubectl get svc -n kube-system | grep kube-dns &> /dev/null ; \
 	then \
-		kubectl apply -f ${KUBEDNS_SERVICE} ; \
-		kubectl apply -f ${KUBEDNS_DEPLOYMENT} ; \
+		kubectl create -f kubedns/ ; \
 	else \
-		kubectl get pods -n kube-system -l k8s-app=kube-dns ; \
+		kubectl get svc,pods -n kube-system -l k8s-app=kube-dns ; \
 	fi
 
-kube-dns-delete:
-	kubectl delete -f ${KUBEDNS_DEPLOYMENT} 
-	kubectl delete -f ${KUBEDNS_SERVICE}
+delete-kubedns:
+	kubectl delete -f kubedns/
 
-kube-ui-delete:
-	kubectl delete -f ${KUBE_UI}
-kube-ui:
+dashboard:
 	@if ! kubectl get pods -n kube-system | grep kubernetes-dashboard &> /dev/null ; \
 	then \
-		kubectl create -f ${KUBE_UI} ; \
+		kubectl create -f dashboard/ ; \
 	else \
-		kubectl get pods -n kube-system -l app=kubernetes-dashboard ; \
+		kubectl get svc,pods -n kube-system -l app=kubernetes-dashboard ; \
 	fi
+
+delete-dashboard:
+	kubectl delete -f dashboard/
+
+monitor:
+	@if ! kubectl get pods -n kube-system | grep monitoring-grafana &> /dev/null ; \
+	then \
+		kubectl create -f monitor/ ; \
+	else \
+		kubectl get svc,pods -n kube-system -l task=monitoring ; \
+	fi
+
+delete-monitor:
+	kubectl delete -f monitor/
+
 kube-cleanup:
-	$(MAKE) kube-dns-delete
-	$(MAKE) kube-ui-delete
+	$(MAKE) delete-dashboard
+	$(MAKE) delete-monitor
+	$(MAKE) delete-kubedns
 
-.PHONY: kube-config kube-route kube-dns kube-route add-ons kube-config turn-off-source-dest-check
-
+.PHONY: add-ons kube-config kubedns delete-kubedns dashboard delete-dashboard monitor delete-monitor

@@ -1,6 +1,6 @@
-# Building Kubernetes Cluster on AWS 
+# Building Kubernetes Cluster on AWS
 
-This is a Kubernetes implementation using [CoreOS cluster architecture] 
+This is a Kubernetes implementation using [CoreOS cluster architecture]
 (https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
 
 * Automate Kubernetes cluster build process
@@ -27,8 +27,12 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
 * Separated CA/Certs for secure communications between Kubernetes components
+* Add-ons installed:
+  * kubedns
+  * kubernetes-dashboard
+  * monitoring-grafana
 
-## Prerequisite 
+## Prerequisite
 
 ### Setup AWS credentials
 
@@ -38,11 +42,11 @@ You can use an exiting account profile (then skip this section), or create a new
 * Create a user `kube-user` and __Download__ the user credentials.
 * Add user `kube-user` to group `kube-admin`.
 
-To configure AWS profile with `kube-user` credential: 
+To configure AWS profile with `kube-user` credential:
 
 ```
 $ aws configure --profile kube-user
-``` 
+```
 Input AWS access key id and secret at the prompt. The build process bellow will configure Terraform AWS provider to use `kube-user` profile stored in ~/.aws/credentials.
 
 ### Install tools
@@ -56,7 +60,7 @@ $ brew link --force gettext
 ```
 [Install kubectl](https://kubernetes.io/docs/user-guide/prereqs/)
 
-Remember to periodically update these packages. 
+Remember to periodically update these packages.
 
 ## Quick Start
 
@@ -72,7 +76,7 @@ $ cd kube-aws-terraform
 There are two files you want to make change:
 
 * Copy **envs.sh.sample** to **envs.sh** and customize environment variables to match your setup.
-* Copy **artifacts/secrets/api-server/token.csv.sample** to **artifacts/secrets/api-server/token.csv**, change the token value. This is used for kubelet and API server ABAC token-based authentication. 
+* Copy **artifacts/secrets/api-server/token.csv.sample** to **artifacts/secrets/api-server/token.csv**, change the token value. This is used for kubelet and API server ABAC token-based authentication.
 
 **envs.sh** and **tokens.csv** files are ignored in .gitignore. A minimum cluster configuration must contain **AWS_ROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
 
@@ -95,7 +99,7 @@ export SCRIPTS=../scripts
 export SEC_PATH=../artifacts/secrets
 export SSHKEY_DIR=${HOME}/.ssh
 ```
-NOTE: AWS route53 zone will be created. If you use an existing Route53 zone, you need to change Terraform configuration under *resources/route53* directory. 
+NOTE: AWS route53 zone will be created. If you use an existing Route53 zone, you need to change Terraform configuration under *resources/route53* directory.
 
 ### Build default cluster
 
@@ -115,27 +119,34 @@ At AWS console, you should see you should have the following compute instances:
 
 ### Setup public api server DNS
 
-In order to test using Kube API server DNS name, we need to get the kube api server's public ELB IP. Here we 
+In order to test using Kube API server DNS name, we need to get the kube api server's public ELB IP. Here we
 will use /etc/hosts file for testing purpose.
 
 ```
 $ make get-apiserver-elb
 
 Please add 54.186.177.19 kube-api.example.com to /etc/hosts file.
-``` 
+```
 
 You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup example.com domain delegation properly for production.
 
-### Setup kubectl
+### Config kubectl and deploy add-ons
+
+To setup kubectl config and deploy add-ons, i.e. kubedns, dashboard, and monitor:
 
 ```
 $ make add-ons
-$ kubectl proxy --port=0
-127.1.1.0:<localport>
+$ kubectl proxy --port=8001
+127.1.1.0:8001
 ```
 
-Point your browser to 127.1.1.0:\<localport\>/ui to bring up Kubernetes dashboard.
+To access the kubernetes dashboard, point your browser to 127.1.1.0:8001/ui
+
 ![Dashboard](./images/dashboard.png)
+
+To access the grafana monitoring via proxy: point your browser to 127.1.1.0:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
+
+![Monitor](./images/kube-monitor.png)
 
 ### Start a gitlab application
 
@@ -152,7 +163,7 @@ Now you should be able to connect GitLab service at the above load-balancer addr
 ## Teardown
 
 This will delete all Kubernetes deployments provisioned and destroy all AWS resources. You will be asked to confirm when
-AWS resources are to be destroyed. This includes vault data, remote terraform state. You rarely do this unless you are doing development work. 
+AWS resources are to be destroyed. This includes vault data, remote terraform state. You rarely do this unless you are doing development work.
 
 ```
 $ make teardown
@@ -175,7 +186,7 @@ $ make teardown
 ## Limitations
 
 * Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.  
-* VPC assumes you have at least 3 availability zones in a region. If you need fewer or more, you can add/remove subnet resources to accommodate. 
+* VPC assumes you have at least 3 availability zones in a region. If you need fewer or more, you can add/remove subnet resources to accommodate.
 
 All of these will be further automated in future release.
 
