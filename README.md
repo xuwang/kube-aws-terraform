@@ -105,7 +105,7 @@ NOTE: AWS route53 zone will be created. If you use an existing Route53 zone, you
 
 ### Build default cluster
 
-The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (https://aws.amazon.com/free/) service. Please review resources before proceed.
+The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (https://aws.amazon.com/free/) service. Estimated cost with the default infrastructure build is about $16.00/day. Please review resources before proceed.
 
 ```
 $ make cluster | tee /tmp/build.log
