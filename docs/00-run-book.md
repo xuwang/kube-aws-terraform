@@ -36,9 +36,9 @@ Same for worker, etcd nodes.
 ## Update Cloud Config
 
 All machines use the same script ('user-data') to bootstrap. The bootstrap uses role-based IAM policy to download the
-machine's own cloud-config.yaml and run cloud-init to setup the machine. This second stage bootstrapping gives us the flexibilty of changing cloud-config without having to re-provisioned the machine. All you need to do is to reboot the machine. 
+machine's own cloud-config.yaml and run cloud-init to setup the machine. This second stage bootstrapping gives us the flexibilty of changing cloud-config without having to re-provisioned the machine. All you need to do is to reboot the machine.
 
-Cloud config contains system units and post-installation scripts. Per resource **cloud-config.yaml.tmpl** file is located at resources/\<controller|worker|etcd|vault\>/artifacts/cloug-config.yaml.tmpl. The generated cloud-config.yaml file is uploaded to the resource's specific s3 bucket and will be picked up at each reboot. 
+Cloud config contains system units and post-installation scripts. Per resource **cloud-config.yaml.tmpl** file is located at resources/\<controller|worker|etcd|vault\>/artifacts/cloug-config.yaml.tmpl. The generated cloud-config.yaml file is uploaded to the resource's specific s3 bucket and will be picked up at each reboot.
 
 To upload a new file after modifying the **cloud-config.yaml.tmpl**:
 
@@ -95,7 +95,7 @@ Read Kubernetes release notes to make necessary configuration changes. Ideally u
 * Edit envs.sh file to change the version of Kubernetes, as shown in bellow example:
 
 ```
-export TF_VAR_kube_version="v1.5.3"
+export TF_VAR_kube_version="v1.5.4"
 ```
 
 * Update systemd install-kubernetes unit
@@ -140,6 +140,4 @@ $ sudo reboot
 
 ## Upgrade Instances Operating System
 
-All machines are running CoreOS image. With auto-update enabled, CoreOS and etcd binaries will be upgraded automatically when CoreOS has new release. 
-
-
+All machines are running CoreOS image. With auto-update enabled, CoreOS and etcd binaries will be upgraded automatically when CoreOS has new release.

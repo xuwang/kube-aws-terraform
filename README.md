@@ -78,7 +78,9 @@ There are two files you want to make change:
 * Copy **envs.sh.sample** to **envs.sh** and customize environment variables to match your setup.
 * Copy **artifacts/secrets/api-server/token.csv.sample** to **artifacts/secrets/api-server/token.csv**, change the token value. This is used for kubelet and API server ABAC token-based authentication.
 
-**envs.sh** and **tokens.csv** files are ignored in .gitignore. A minimum cluster configuration must contain **AWS_ROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
+**envs.sh** and **tokens.csv** files are ignored in .gitignore.
+
+A minimum cluster configuration must contain **AWS_ROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
 
 ```
 ###############################
@@ -125,14 +127,8 @@ will use /etc/hosts file for testing purpose.
 
 ```
 $ make get-apiserver-elb
-
-<<<<<<< HEAD
-Please add 54.186.177.19 kube-api.example.com to /etc/hosts file.
-```
-=======
 Please add "54.186.177.19 kube-api.example.com" to /etc/hosts file.
 ```
->>>>>>> 33ab24c30f9698ce59ef6764f24978c6bc0d5e79
 
 You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup example.com domain delegation properly for production.
 
@@ -145,11 +141,11 @@ $ make add-ons
 $ kubectl proxy --port=8001
 127.1.1.0:8001
 ```
-To access the kubernetes dashboard, point your browser to 127.1.1.0:8001/ui.
+#### To access the kubernetes dashboard, point your browser to 127.1.1.0:8001/ui
 
 ![Dashboard](./images/dashboard.png)
 
-To access the Grafana monitoring via proxy: point your browser to 127.1.1.0:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana.
+#### To access the Grafana monitoring via proxy: point your browser to 127.1.1.0:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
 
 ![Monitor](./images/kube-monitor.png)
 
