@@ -108,6 +108,7 @@ The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (h
 ```
 $ make cluster | tee /tmp/build.log
 ```
+It takes about 15 minutes for the cluster to be ready.
 
 This build will create following nodes, S3 buckets, necessary iam roles, polices, keypairs, and keys. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
 
@@ -125,8 +126,13 @@ will use /etc/hosts file for testing purpose.
 ```
 $ make get-apiserver-elb
 
+<<<<<<< HEAD
 Please add 54.186.177.19 kube-api.example.com to /etc/hosts file.
 ```
+=======
+Please add "54.186.177.19 kube-api.example.com" to /etc/hosts file.
+```
+>>>>>>> 33ab24c30f9698ce59ef6764f24978c6bc0d5e79
 
 You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup example.com domain delegation properly for production.
 
@@ -139,18 +145,17 @@ $ make add-ons
 $ kubectl proxy --port=8001
 127.1.1.0:8001
 ```
-
-To access the kubernetes dashboard, point your browser to 127.1.1.0:8001/ui
+To access the kubernetes dashboard, point your browser to 127.1.1.0:8001/ui.
 
 ![Dashboard](./images/dashboard.png)
 
-To access the grafana monitoring via proxy: point your browser to 127.1.1.0:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
+To access the Grafana monitoring via proxy: point your browser to 127.1.1.0:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana.
 
 ![Monitor](./images/kube-monitor.png)
 
-### Start a gitlab application
+### Start a GitLab application
 
-There is a gitlab deployment example that contains redis, postgres, and gitlab container. To start it:
+There is a GitLab deployment example that contains redis, postgres, and gitlab container. To start it:
 ```
 $ cd apps/gitlab
 $ ./deploy.sh
