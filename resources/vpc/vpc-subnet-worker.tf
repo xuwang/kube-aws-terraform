@@ -1,47 +1,28 @@
-module "worker_subnet_0" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-worker_0"
-  subnet_cidr = "${var.vpc_prefix}.5.0/26"
-  subnet_az = "${data.aws_availability_zones.available.names[0]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_subnet" "worker_subnet" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    vpc_id = "${aws_vpc.cluster_vpc.id}"
+    availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+    # Allow 255 worker nodes in each subnet
+    cidr_block = "${var.vpc_prefix}.100+${count.index}.0/24"
+    map_public_ip_on_launch = "true"
+    tags {
+         KubernetesCluster = "${var.cluster_name}"
+    }
+    tags {
+        Name = "${var.cluster_name}-worker-${count.index}"
+    }
 }
 
-module "worker_subnet_1" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-worker_1"
-  subnet_cidr = "${var.vpc_prefix}.5.64/26"
-  subnet_az = "${data.aws_availability_zones.available.names[1]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
-}
-
-module "worker_subnet_2" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-worker_2"
-  subnet_cidr = "${var.vpc_prefix}.5.128/26"
-  subnet_az = "${data.aws_availability_zones.available.names[2]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_route_table_association" "worker_rt" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    subnet_id = "${aws_subnet.worker_subnet.*.id[count.index]}"
+    route_table_id = "${aws_route_table.cluster_vpc.id}"
 }
 
 output "worker_zone_ids" {
-  value = [ 
-    "${module.worker_subnet_0.id}", 
-    "${module.worker_subnet_1.id}", 
-    "${module.worker_subnet_2.id}"
-    ]
+  value = [ "${aws_subnet.worker_subnet.*.id}"]
 }
+
 output "worker_zone_names" {
-  value = [ 
-    "${module.worker_subnet_0.az}", 
-    "${module.worker_subnet_1.az}", 
-    "${module.worker_subnet_2.az}"
-    ]
+  value = [ "${aws_subnet.worker_subnet.*.az}"]
 }

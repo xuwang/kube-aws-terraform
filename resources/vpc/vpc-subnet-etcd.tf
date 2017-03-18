@@ -1,47 +1,28 @@
-module "etcd_subnet_0" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-etcd_0"
-  subnet_cidr = "${var.vpc_prefix}.1.0/26"
-  subnet_az = "${data.aws_availability_zones.available.names[0]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_subnet" "etcd_subnet" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    vpc_id = "${aws_vpc.cluster_vpc.id}"
+    availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+    # Allow 16 etcd nodes in each subnet
+    cidr_block = "${var.vpc_prefix}.2.${16 * count.index}/28"
+    map_public_ip_on_launch = "true"
+    tags {
+         KubernetesCluster = "${var.cluster_name}"
+    }
+    tags {
+        Name = "${var.cluster_name}-etcd-${count.index}"
+    }
 }
 
-module "etcd_subnet_1" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-etcd_1"
-  subnet_cidr = "${var.vpc_prefix}.1.64/26"
-  subnet_az = "${data.aws_availability_zones.available.names[1]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
-}
-
-module "etcd_subnet_2" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-etcd_2"
-  subnet_cidr = "${var.vpc_prefix}.1.128/26"
-  subnet_az = "${data.aws_availability_zones.available.names[2]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_route_table_association" "etcd_rt" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    subnet_id = "${aws_subnet.etcd_subnet.*.id[count.index]}"
+    route_table_id = "${aws_route_table.cluster_vpc.id}"
 }
 
 output "etcd_zone_ids" {
-  value = [ 
-    "${module.etcd_subnet_0.id}", 
-    "${module.etcd_subnet_1.id}", 
-    "${module.etcd_subnet_2.id}"
-    ]
+  value = [ "${aws_subnet.etcd_subnet.*.id}"]
 }
+
 output "etcd_zone_names" {
-  value = [ 
-    "${module.etcd_subnet_0.az}", 
-    "${module.etcd_subnet_1.az}", 
-    "${module.etcd_subnet_2.az}"
-    ]
+  value = [ "${aws_subnet.etcd_subnet.*.az}"]
 }

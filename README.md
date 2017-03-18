@@ -25,7 +25,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 * Terraform 0.9, with remote state on S3 storage
 * Autoscaling group for each etcd2, controller, worker, and vault cluster
 * CoreOS for self-upgrade/patching management
-* [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
+* [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
 * Separated CA/Certs for secure communications between Kubernetes components
 * Add-ons installed:
   * kubedns
@@ -189,8 +189,7 @@ $ make teardown
 
 ## Limitations
 
-* Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.  
-* VPC assumes you have at least 3 availability zones in a region. If you need fewer or more, you can add/remove subnet resources to accommodate.
+* Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.
 
 All of these will be further automated in future release.
 

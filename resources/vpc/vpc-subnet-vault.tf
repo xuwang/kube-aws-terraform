@@ -1,61 +1,32 @@
-module "vault_subnet_0" {
-  source = "../modules/subnet"
+resource "aws_subnet" "vault_subnet" {
+    /* If need multi-az
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    */
 
-  subnet_name = "${var.cluster_name}-vault_0"
-  subnet_cidr = "${var.vpc_prefix}.6.0/26"
-  subnet_az = "${data.aws_availability_zones.available.names[0]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+    count = 1
+    vpc_id = "${aws_vpc.cluster_vpc.id}"
+    availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+    # Allow 16 vault nodes in each subnet
+    cidr_block = "${var.vpc_prefix}.1.${16 * count.index}/28"
+    map_public_ip_on_launch = "true"
+    tags {
+         KubernetesCluster = "${var.cluster_name}"
+    }
+    tags {
+        Name = "${var.cluster_name}-vault-${count.index}"
+    }
+}
+
+resource "aws_route_table_association" "vault_rt" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    subnet_id = "${aws_subnet.vault_subnet.*.id[count.index]}"
+    route_table_id = "${aws_route_table.cluster_vpc.id}"
 }
 
 output "vault_zone_ids" {
-  value = [ 
-    "${module.vault_subnet_0.id}"
-    ]
+  value = [ "${aws_subnet.vault_subnet.*.id}"]
 }
 
 output "vault_zone_names" {
-  value = [ 
-    "${module.vault_subnet_0.az}"
-    ]
+  value = [ "${aws_subnet.vault_subnet.*.az}"]
 }
-
-/* If need multi-az
-module "vault_subnet_1" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-vault_1"
-  subnet_cidr = "${var.vpc_prefix}.6.64/26"
-  subnet_az = "${data.aws_availability_zones.available.names[1]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
-}
-
-module "vault_subnet_2" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-vault_2"
-  subnet_cidr = "${var.vpc_prefix}.6.128/26"
-  subnet_az = "${data.aws_availability_zones.available.names[2]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
-}
-
-output "vault_zone_ids" {
-  value = [ 
-    "${module.vault_subnet_0.id}", 
-    "${module.vault_subnet_1.id}", 
-    "${module.vault_subnet_2.id}"
-    ]
-}
-output "vault_zone_names" {
-  value = [ 
-    "${module.vault_subnet_0.az}", 
-    "${module.vault_subnet_1.az}", 
-    "${module.vault_subnet_2.az}"
-    ]
-}
-*/

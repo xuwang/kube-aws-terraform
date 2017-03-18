@@ -15,6 +15,9 @@ variable "cluster_name" {
 # You can overide for each autoscaling group under etcd, worker, controller resource with envs.sh.
 variable "instance_type" {
 }
+variable "cluster_az_max_size" {
+    default = 4
+}
 variable "cluster_min_size" {
 }
 variable "cluster_max_size" {

@@ -1,56 +1,28 @@
-module "elb_subnet_0" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-elb_0"
-  subnet_cidr = "${var.vpc_prefix}.3.0/26"
-  subnet_az = "${data.aws_availability_zones.available.names[0]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_subnet" "elb_subnet" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    vpc_id = "${aws_vpc.cluster_vpc.id}"
+    availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+    # Allow 32 elb nodes in each subnet
+    cidr_block = "${var.vpc_prefix}.4.${32 * count.index}/27"
+    map_public_ip_on_launch = "true"
+    tags {
+         KubernetesCluster = "${var.cluster_name}"
+    }
+    tags {
+        Name = "${var.cluster_name}-elb-${count.index}"
+    }
 }
 
-module "elb_subnet_1" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-elb_1"
-  subnet_cidr = "${var.vpc_prefix}.3.64/26"
-  subnet_az = "${data.aws_availability_zones.available.names[1]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_route_table_association" "elb_rt" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    subnet_id = "${aws_subnet.elb_subnet.*.id[count.index]}"
+    route_table_id = "${aws_route_table.cluster_vpc.id}"
 }
-
-module "elb_subnet_2" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-elb_2"
-  subnet_cidr = "${var.vpc_prefix}.3.128/26"
-  subnet_az = "${data.aws_availability_zones.available.names[2]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
-}
-
-/*
-output "elb_subnet_a_id" { value = "${module.elb_subnet_0.id}" }
-output "elb_subnet_a_az" { value = "${module.elb_subnet_0.az}" }
-output "elb_subnet_b_id" { value = "${module.elb_subnet_1.id}" }
-output "elb_subnet_b_az" { value = "${module.elb_subnet_1.az}" }
-output "elb_subnet_c_id" { value = "${module.elb_subnet_2.id}" }
-output "elb_subnet_c_az" { value = "${module.elb_subnet_2.az}" }
-*/
 
 output "elb_zone_ids" {
-  value = [ 
-    "${module.elb_subnet_0.id}", 
-    "${module.elb_subnet_1.id}", 
-    "${module.elb_subnet_2.id}"
-    ]
+  value = [ "${aws_subnet.elb_subnet.*.id}"]
 }
+
 output "elb_zone_names" {
-  value = [ 
-    "${module.elb_subnet_0.az}", 
-    "${module.elb_subnet_1.az}", 
-    "${module.elb_subnet_2.az}"
-    ]
+  value = [ "${aws_subnet.elb_subnet.*.az}"]
 }

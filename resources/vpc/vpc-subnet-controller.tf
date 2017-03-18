@@ -1,57 +1,28 @@
-module "controller_subnet_0" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-controller_0"
-  subnet_cidr = "${var.vpc_prefix}.10.0/26"
-  subnet_az = "${data.aws_availability_zones.available.names[0]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_subnet" "controller_subnet" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    vpc_id = "${aws_vpc.cluster_vpc.id}"
+    availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+    # Allow 16 controller nodes in each subnet
+    cidr_block = "${var.vpc_prefix}.3.${16 * count.index}/28"
+    map_public_ip_on_launch = "true"
+    tags {
+         KubernetesCluster = "${var.cluster_name}"
+    }
+    tags {
+        Name = "${var.cluster_name}-controller-${count.index}"
+    }
 }
 
-module "controller_subnet_1" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-controller_1"
-  subnet_cidr = "${var.vpc_prefix}.10.64/26"
-  subnet_az = "${data.aws_availability_zones.available.names[1]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
+resource "aws_route_table_association" "controller_rt" {
+    count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    subnet_id = "${aws_subnet.controller_subnet.*.id[count.index]}"
+    route_table_id = "${aws_route_table.cluster_vpc.id}"
 }
-
-module "controller_subnet_2" {
-  source = "../modules/subnet"
-
-  subnet_name = "${var.cluster_name}-controller_2"
-  subnet_cidr = "${var.vpc_prefix}.10.128/26"
-  subnet_az = "${data.aws_availability_zones.available.names[2]}"
-  cluster_name ="${var.cluster_name}"
-  vpc_id = "${aws_vpc.cluster_vpc.id}"
-  route_table_id = "${aws_route_table.cluster_vpc.id}"
-}
-
-
-/*
-output "controller_subnet_a_id" { value = "${module.controller_subnet_0.id}" }
-output "controller_subnet_a_az" { value = "${module.controller_subnet_0.az}" }
-output "controller_subnet_b_id" { value = "${module.controller_subnet_1.id}" }
-output "controller_subnet_b_az" { value = "${module.controller_subnet_1.az}" }
-output "controller_subnet_c_id" { value = "${module.controller_subnet_2.id}" }
-output "controller_subnet_c_az" { value = "${module.controller_subnet_2.az}" }
-*/
 
 output "controller_zone_ids" {
-  value = [ 
-    "${module.controller_subnet_0.id}", 
-    "${module.controller_subnet_1.id}", 
-    "${module.controller_subnet_2.id}"
-    ]
+  value = [ "${aws_subnet.controller_subnet.*.id}"]
 }
+
 output "controller_zone_names" {
-  value = [ 
-    "${module.controller_subnet_0.az}", 
-    "${module.controller_subnet_1.az}", 
-    "${module.controller_subnet_2.az}"
-    ]
+  value = [ "${aws_subnet.controller_subnet.*.az}"]
 }

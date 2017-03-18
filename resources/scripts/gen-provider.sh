@@ -22,7 +22,7 @@ terraform {
 
 provider "aws" {
   profile = "$AWS_PROFILE"
-  max_retries = 10
+  max_retries = "$TF_MAX_RETRIES"
   region = "$AWS_REGION"
 EOF
 if [ ! -z $ALLOWED_ACCOUNT_IDS ]; then

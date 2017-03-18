@@ -25,11 +25,14 @@ export SSHKEY_DIR=${HOME}/.ssh
 # Required Terraform version: 0.9 <= version < 1.0
 export TF_VERSION="~>0.9"
 
+# Max AWS API retries for Terraform
+export TF_MAX_RETRIES=10
+
 # Allow ssh from: comma separated list of cidr blocks
 export TF_VAR_allow_ssh_cidr="0.0.0.0/0"
 
-# Max number of availability zones allowed
-export TF_VAR_cluster_az_max_size=3
+# Max number of availability zones allowed, default is min(4, <AZ number in AWS_REGION>)
+export TF_VAR_cluster_az_max_size=2
 
 # Default domain for route53 zone
 export TF_VAR_route53_zone_name=${ROUTE53_ZONE_NAME}
