@@ -133,7 +133,7 @@ variable "vault_ca_cert_ttl_hours" {
     default = "87600"
 }
 
-variable "aws_region" {}
+variable "remote_state_region" {}
 variable "remote_state_bucket" {}
 #
 # setup remote state data source
@@ -144,7 +144,7 @@ data "terraform_remote_state" "etcd" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "etcd.tfstate"
-        region = "${var.aws_region}"
+        region = "${var.remote_state_region}"
     }
 }
 
@@ -153,7 +153,7 @@ data "terraform_remote_state" "iam" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "iam.tfstate"
-        region = "${var.aws_region}"
+        region = "${var.remote_state_region}"
     }
 }
 
@@ -162,7 +162,7 @@ data "terraform_remote_state" "pki" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "pki.tfstate"
-        region = "${var.aws_region}"
+        region = "${var.remote_state_region}"
     }
 }
 
@@ -171,7 +171,7 @@ data "terraform_remote_state" "route53" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "route53.tfstate"
-        region = "${var.aws_region}"
+        region = "${var.remote_state_region}"
     }
 }
 
@@ -180,7 +180,7 @@ data "terraform_remote_state" "s3" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "s3.tfstate"
-        region = "${var.aws_region}"
+        region = "${var.remote_state_region}"
     }
 }
 
@@ -189,7 +189,7 @@ data "terraform_remote_state" "worker" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "worker.tfstate"
-        region = "${var.aws_region}"
+        region = "${var.remote_state_region}"
     }
 }
 
@@ -198,6 +198,6 @@ data "terraform_remote_state" "vpc" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "vpc.tfstate"
-        region = "${var.aws_region}"
+        region = "${var.remote_state_region}"
     }
 }

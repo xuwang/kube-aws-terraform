@@ -22,7 +22,7 @@ This is a Kubernetes implementation using [CoreOS cluster architecture]
 
 * Kubernetes 1.5.4, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
-* Terraform 0.8.7, with remote state on S3 storage
+* Terraform 0.9, with remote state on S3 storage
 * Autoscaling group for each etcd2, controller, worker, and vault cluster
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates
@@ -58,6 +58,9 @@ $ brew update
 $ brew install terraform jq graphviz awscli gettext
 $ brew link --force gettext
 ```
+__NOTE:__ Make sure the installed Terraform version is matching the required Terraform version defined in env.sh.sample by `TF_VERSION`.
+
+
 [Install kubectl](https://kubernetes.io/docs/user-guide/prereqs/)
 
 Remember to periodically update these packages.

@@ -110,44 +110,40 @@ upload-artifacts:
 	else \
 		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
 	fi
+
 remote: ${TF_PROVIDER}
 	@echo set remote state to s3://${TF_REMOTE_STATE_BUCKET}/${TF_REMOTE_STATE_PATH}
 
-	@if ! aws s3 --profile ${AWS_PROFILE} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
+	@if ! aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
 	then \
 		echo Creating bucket for remote state ... ; \
 		aws s3 --profile ${AWS_PROFILE} \
-			mb s3://${TF_REMOTE_STATE_BUCKET} --region ${AWS_REGION}; \
+			mb s3://${TF_REMOTE_STATE_BUCKET} --region ${TF_REMOTE_STATE_REGION}; \
 		sleep 30; \
+		if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
+		then \
+			echo Enable versioning... ; \
+			aws s3api --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} put-bucket-versioning \
+				--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
+    fi ; \
 	fi
-	@if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
+	# Terraform remote S3 backend init
+	terraform init
+
+force-destroy-remote:
+	@if aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
 	then \
-		echo Enable versioning... ; \
-		aws s3api --profile ${AWS_PROFILE} put-bucket-versioning \
-			--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
+		echo destroy bucket for remote state ... ; \
+		aws s3 --profile ${AWS_PROFILE} rb s3://${TF_REMOTE_STATE_BUCKET} \
+			--region ${TF_REMOTE_STATE_REGION} \
+			--force ; \
 	fi
-    # If remote path is not set, configure it; or modify it
-	terraform remote config -backend=s3 \
-    	-backend-config="bucket=${TF_REMOTE_STATE_BUCKET}" \
-    	-backend-config="region=${AWS_REGION}" \
-    	-backend-config="key=${TF_REMOTE_STATE_PATH}" \
-        -backend-config="encrypt=true"
 
 upgrade-kube:
 	@echo "Will upgrade ${MODULE}'s Kubernetes to ${TF_VAR_kube_version}."
 	@$(MAKE) confirm
 	@$(MAKE) 
 	@echo "Don't forget to reboot ${MODULE}s."
-
-force-destroy-remote:
-	@if aws s3 --profile ${AWS_PROFILE} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
-	then \
-		echo destroy bucket for remote state ... ; \
-		$(SCRIPTS)/delete-all-object-versions.sh ${TF_REMOTE_STATE_BUCKET} ; \
-		aws s3 --profile ${AWS_PROFILE} rb s3://${TF_REMOTE_STATE_BUCKET} \
-			--region ${AWS_REGION} \
-			--force ; \
-	fi
 
 confirm:
 	@echo "CONTINUE? [Y/N]: "; read ANSWER; \
