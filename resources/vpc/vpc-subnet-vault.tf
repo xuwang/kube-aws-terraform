@@ -2,7 +2,6 @@ resource "aws_subnet" "vault_subnet" {
     /* If need multi-az
     count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
     */
-
     count = 1
     vpc_id = "${aws_vpc.cluster_vpc.id}"
     availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
@@ -18,7 +17,10 @@ resource "aws_subnet" "vault_subnet" {
 }
 
 resource "aws_route_table_association" "vault_rt" {
+    /* If need multi-az
     count = "${ min(var.cluster_az_max_size, length(data.aws_availability_zones.available.names))}"
+    */
+    count = 1
     subnet_id = "${aws_subnet.vault_subnet.*.id[count.index]}"
     route_table_id = "${aws_route_table.cluster_vpc.id}"
 }
