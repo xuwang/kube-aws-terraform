@@ -1,7 +1,6 @@
 # Building Kubernetes Cluster on AWS
 
-This is a Kubernetes implementation using [CoreOS cluster architecture]
-(https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
+This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
 
 * Automate Kubernetes cluster build process
 * Design with production quality (.e.g., HA, secure communications) in mind
@@ -141,6 +140,14 @@ To setup kubectl config and deploy add-ons, i.e. kubedns, dashboard, and monitor
 
 ```
 $ make add-ons
+
+$ kubectl cluster-info
+Kubernetes master is running at https://kube-api.example.com:6443
+Heapster is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/heapster
+KubeDNS is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/kube-dns
+monitoring-grafana is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
+monitoring-influxdb is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/monitoring-influxdb
+
 $ kubectl proxy --port=8001
 127.1.1.0:8001
 ```
