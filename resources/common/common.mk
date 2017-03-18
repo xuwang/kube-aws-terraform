@@ -39,7 +39,7 @@ export
 
 all: apply
 
-init: | ${TF_PROVIDER} remote
+init: remote
 	${TF_GET}
 
 plan: init
@@ -48,18 +48,18 @@ plan: init
 apply: init
 	${TF_APPLY}
 
-list: ${TF_PROVIDER} remote
+list: remote
 	${TF_LIST}
-show: ${TF_PROVIDER} remote
+show: remote
 	${TF_SHOW}
 
 output:
 	@${TF_OUTPUT}
 
-destroy-plan: ${TF_PROVIDER} remote
+destroy-plan: remote
 	@-${TF_DESTROY_PLAN} -out ${ROOT_DIR}/tmp/destroy-${MODULE}.plan
 	
-destroy: ${TF_PROVIDER} remote
+destroy: remote
 	${TF_DESTROY}
 	$(MAKE) clean
 
@@ -77,9 +77,6 @@ remote-pull: init
 
 help:
 	@echo "make [ apply | init | remote | destroy | destroy-plan| help | show | output | refresh | remote-push | remote -pull | clean | update-user-data | upload-artifacts | force-destroy-remote ]"
-
-${TF_PROVIDER}: 
-	../scripts/gen-provider.sh > ${TF_PROVIDER}
 
 update-profile:
 	../scripts/gen-provider.sh > ${TF_PROVIDER}
@@ -111,7 +108,7 @@ upload-artifacts:
 		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
 	fi
 
-remote: ${TF_PROVIDER}
+remote: update-profile
 	@echo set remote state to s3://${TF_REMOTE_STATE_BUCKET}/${TF_REMOTE_STATE_PATH}
 
 	@if ! aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
@@ -130,7 +127,7 @@ remote: ${TF_PROVIDER}
 	# Terraform remote S3 backend init
 	terraform init
 
-force-destroy-remote:
+force-destroy-remote: update-profile
 	@if aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
 	then \
 		echo destroy bucket for remote state ... ; \
