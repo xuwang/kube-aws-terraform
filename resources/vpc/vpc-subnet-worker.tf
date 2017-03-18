@@ -3,7 +3,7 @@ resource "aws_subnet" "worker_subnet" {
     vpc_id = "${aws_vpc.cluster_vpc.id}"
     availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
     # Allow 255 worker nodes in each subnet
-    cidr_block = "${var.vpc_prefix}.100+${count.index}.0/24"
+    cidr_block = "${var.vpc_prefix}.${100+count.index}.0/24"
     map_public_ip_on_launch = "true"
     tags {
          KubernetesCluster = "${var.cluster_name}"
