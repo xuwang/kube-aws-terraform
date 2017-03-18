@@ -69,17 +69,9 @@ refresh: init
 clean:
 	rm -rf .terraform
 
-remote-push: init
-	terraform remote push
-
-remote-pull: init
-	terraform remote pull
-
 help:
 	@echo "make [ apply | init | remote | destroy | destroy-plan| help | show | output | refresh | remote-push | remote -pull | clean | update-user-data | upload-artifacts | force-destroy-remote ]"
 
-update-profile:
-	../scripts/gen-provider.sh > ${TF_PROVIDER}
 
 create-key:
 	../scripts/aws-keypair.sh -c $(CLUSTER_NAME)-${MODULE};
@@ -96,7 +88,7 @@ update-user-data:
 	${TF_APPLY}
 	
 # Call this explicitly to upload scripts to s3 
-upload-artifacts:
+upload-artifacts: check-profile
 	@if [ -d "$(PWD)/artifacts/upload" ]; \
 	then \
 		mkdir -p $(PWD)/tmp ; \
@@ -127,6 +119,12 @@ remote: update-profile
 	# Terraform remote S3 backend init
 	terraform init
 
+remote-push: init
+	terraform remote push
+
+remote-pull: init
+	terraform remote pull
+
 force-destroy-remote: update-profile
 	@if aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
 	then \
@@ -134,6 +132,15 @@ force-destroy-remote: update-profile
 		aws s3 --profile ${AWS_PROFILE} rb s3://${TF_REMOTE_STATE_BUCKET} \
 			--region ${TF_REMOTE_STATE_REGION} \
 			--force ; \
+	fi
+
+update-profile: check-profile
+	../scripts/gen-provider.sh > ${TF_PROVIDER}
+
+check-profile:
+	@if ! aws --profile ${AWS_PROFILE} iam get-user > /dev/null 2>&1 ; then \
+		echo "ERROR: AWS profile \"${AWS_PROFILE}\" is not setup!"; \
+		exit 1 ; \
 	fi
 
 upgrade-kube:
