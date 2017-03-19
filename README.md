@@ -167,7 +167,7 @@ $ cd apps/gitlab
 $ ./deploy.sh
 $ ./get-load-balancer.sh
 Waiting for loadBanlancer...
-Conntect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
+connect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
 ```
 Now you should be able to connect GitLab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
 
@@ -197,8 +197,6 @@ $ make teardown
 ## Limitations
 
 * Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.
-
-All of these will be further automated in future release.
 
 ## Major references
 
