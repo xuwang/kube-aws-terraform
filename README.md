@@ -149,13 +149,13 @@ monitoring-grafana is running at https://kube-api.example.com:6443/api/v1/proxy/
 monitoring-influxdb is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/monitoring-influxdb
 
 $ kubectl proxy --port=8001
-127.1.1.0:8001
+127.0.0.1:8001
 ```
-#### To access the kubernetes dashboard, point your browser to 127.1.1.0:8001/ui
+#### To access the kubernetes dashboard, point your browser to 127.0.0.1:80011/ui
 
 ![Dashboard](./images/dashboard.png)
 
-#### To access the Grafana monitoring via proxy: point your browser to 127.1.1.0:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
+#### To access the Grafana monitoring via proxy: point your browser to 127.0.0.1:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
 
 ![Monitor](./images/kube-monitor.png)
 
