@@ -4,7 +4,7 @@ This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/la
 
 Although there are many quick ways to start a Kubernetes cluster, ongoing management and support does require deep understanding of the platform itself, unless the cluster is supported by a vendor product, such as GKE.
 
-This implementation presents one of the ways for anyone who wants to rolling up sleeves and learn how to build a cluster by doing it youself. This gives you the opportunity to understand the techinical stacks (Kubernetes, AWS, Terraform, CoreOS, Vault) and let you change, expande and update cluster safely. 
+This implementation presents one of the ways for anyone who wants to rolling up sleeves and learn how to build a cluster by doing it yourself. This gives you the opportunity to understand the techinical stacks (Kubernetes, AWS, Terraform, CoreOS, Vault) and let you change, expande and update cluster safely. 
 
 ## Table of Contents ##
 
@@ -117,9 +117,10 @@ The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (h
 ```
 $ make cluster | tee /tmp/build.log
 ```
-It takes about 15 minutes for the cluster to be ready.
+It takes about 15 minutes for the cluster to be ready. 
+If you want to plan and build step-by-step, see Makefile `cluster` target. 
 
-This build will create following nodes, S3 buckets, necessary iam roles, polices, keypairs, and keys. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
+The default cluster contain total of 5 EC2 instances, S3 buckets, necessary AWS IAM roles/polices, keypairs, and SSL certs. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
 
 At AWS console, you should see you should have the following compute instances:
 
@@ -176,7 +177,11 @@ $ ./get-load-balancer.sh
 Waiting for loadBanlancer...
 connect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
 ```
-Now you should be able to connect GitLab service at the above load-balancer address. Default login info is in **gitlab-rc.yml**.
+Default login info is in **gitlab-rc.yml**. Note this is a demo, insecure connection. You can tear it down anytime:
+```
+cd apps/gitlab
+./teardown.sh
+```
 
 ## Teardown
 
