@@ -82,7 +82,7 @@ monitor:
 delete-monitor:
 	kubectl delete -f monitor/
 
-kube-cleanup: kill-ui
+kube-cleanup:
 	$(MAKE) delete-dashboard
 	$(MAKE) delete-monitor
 	$(MAKE) delete-kubedns
