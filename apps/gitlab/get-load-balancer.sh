@@ -12,4 +12,5 @@ do
   elb_dns=$(kubectl get svc gitlab  -o json | jq -r '.status.loadBalancer.ingress[0].hostname')
   sleep 10
 done
-echo "Conntect to GitLab at: http://$elb_dns"
+echo "Conntect to demo GitLab at: http://$elb_dns"
+open "http://$elb_dns"
