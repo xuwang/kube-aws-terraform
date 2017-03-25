@@ -1,6 +1,6 @@
 # Shared terraforms for all modules
 data "aws_availability_zones" "available" {}
-data "aws_caller_identity" "current" { } 
+data "aws_caller_identity" "current" { }
 
 data "aws_ami" "coreos_ami" {
  most_recent = true
@@ -35,7 +35,7 @@ variable "cluster_internal_zone" {
     default = "cluster.internal"
 }
 
-/* 
+/*
 Well, module source can't be var: see https://github.com/hashicorp/terraform/issues/1439
 variable "module_dir" {
     default = "../modules"
@@ -67,24 +67,24 @@ variable "git_ssh_command" {
     default = "undefined"
 }
 
-variable "route53_zone_name" { 
+variable "route53_zone_name" {
     default = "example.com"
 }
 
-variable "vault_release" { 
-    default = "0.6.4"
+variable "vault_release" {
+    default = "0.7.0"
 }
 
-variable "vault_auto_unseal" { 
+variable "vault_auto_unseal" {
     default = "false"
 }
 
-variable "vault_rootca_cn" { 
+variable "vault_rootca_cn" {
     default = "vault.example.com"
 }
 
 # Kubernetes
-variable "kube_api_dnsname" { 
+variable "kube_api_dnsname" {
     default = "kube-api.example.com"
 }
 variable "kube_cluster_cidr" {
@@ -104,7 +104,7 @@ variable "kube_dns_service" {
 variable "kube_service_node_ports" {
     default = "30000-32767"
 }
-# Kubernetes network plugin binary path 
+# Kubernetes network plugin binary path
 variable "cni_plugin_url" {
   default = "https://storage.googleapis.com/kubernetes-release/network-plugins/cni-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz"
 }
@@ -114,11 +114,11 @@ variable "kubelet_token" {
 }
 # Kubernetes version
 variable "kube_version" {
-    default = "v1.5.2"
+    default = "v1.5.5"
 }
 
 # Sensitive data
-variable "secrets_path" { 
+variable "secrets_path" {
     default = "../artifacts/secrets"
 }
 
@@ -132,7 +132,7 @@ variable "vault_ca" {
 }
 
 # 10 years TTL
-variable "vault_ca_cert_ttl_hours" { 
+variable "vault_ca_cert_ttl_hours" {
     default = "87600"
 }
 
