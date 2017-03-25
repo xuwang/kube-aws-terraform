@@ -130,6 +130,18 @@ upgrade-kube:	## Upgrade Kubernetes version
 add-ons:	## Kubernetes add-ons, e.g. dns, dashboard
 	cd resources/add-ons; make add-ons
 
+ui: ## Open dashboard UI in browser
+	cd resources/add-ons; make ui
+
+metrics: ## Open Granfana UI in browser
+	cd resources/add-ons; make metrics
+
+kill-ui: ## Close dashboard UI connection
+	cd resources/add-ons; make kill-ui
+
+kill-metrics: ## Close Granfana UI connection
+	cd resources/add-ons; make kill-metrics
+
 smoke-test:
 	cd resources/worker; make smoke-test
 

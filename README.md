@@ -1,4 +1,4 @@
-# Building Kubernetes Cluster on AWS
+# Kubernetes on AWS with Terraform (KAT)
 
 This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
 
@@ -19,9 +19,9 @@ This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/la
 
 ## Features
 
-* Kubernetes 1.5.4, Docker engine 1.12.6
+* Kubernetes 1.5.5, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
-* Terraform 0.9, with remote state on S3 storage
+* Terraform 0.9.1, with remote state on S3 storage
 * Autoscaling group for each etcd2, controller, worker, and vault cluster
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
@@ -147,15 +147,17 @@ Heapster is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces
 KubeDNS is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/kube-dns
 monitoring-grafana is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
 monitoring-influxdb is running at https://kube-api.example.com:6443/api/v1/proxy/namespaces/kube-system/services/monitoring-influxdb
-
-$ kubectl proxy --port=8001
-127.0.0.1:8001
 ```
-#### To access the kubernetes dashboard, point your browser to 127.0.0.1:80011/ui
-
+#### To open dashboard UI in browser:
+```
+$ make ui
+```
 ![Dashboard](./images/dashboard.png)
 
-#### To access the Grafana monitoring via proxy: point your browser to 127.0.0.1:8001/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana
+#### To open the Grafana UI browser:
+```
+$ make metrics
+```
 
 ![Monitor](./images/kube-monitor.png)
 

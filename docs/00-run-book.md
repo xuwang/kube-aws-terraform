@@ -95,7 +95,7 @@ Read Kubernetes release notes to make necessary configuration changes. Ideally u
 * Edit envs.sh file to change the version of Kubernetes, as shown in bellow example:
 
 ```
-export TF_VAR_kube_version="v1.5.4"
+export TF_VAR_kube_version="v1.5.5"
 ```
 
 * Update systemd install-kubernetes unit
@@ -125,7 +125,7 @@ $ /opt/bin/kubectl version
 
 ```
 # Vault release: restart vault service if changed
-export TF_VAR_vault_release=0.6.4
+export TF_VAR_vault_release=0.7.0
 ```
 
 * Change vault's configuration and restart vault

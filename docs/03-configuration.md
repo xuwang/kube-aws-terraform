@@ -5,7 +5,7 @@ The complete configurations:
 
 ```
 ###############################
-# Environments for the cluster. 
+# Environments for the cluster.
 ###############################
 
 export AWS_PROFILE=<undefined>
@@ -48,7 +48,7 @@ export TF_VAR_cluster_internal_zone="cluster.internal"
 export TF_VAR_kube_api_dnsname=${KUBE_API_DNSNAME}
 
 # Terraform remote state bucket name, defined as ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform
-# in /resources/common/common.mk. 
+# in /resources/common/common.mk.
 export TF_VAR_remote_state_bucket=${TF_REMOTE_STATE_BUCKET}
 
 # Auto-unseal vault after built/reboot
@@ -59,7 +59,7 @@ export TF_VAR_vault_ca={country = "US", province = "California", \
 	organization = "IT Department", common_name = "${TF_VAR_route53_zone}"}
 
 # Vault release: restart vault service if changed
-export TF_VAR_vault_release=0.6.4
+export TF_VAR_vault_release=0.7.0
 
 # Default vault root ca common name, for cert signing
 export TF_VAR_vault_rootca_cn=vault.${TF_VAR_route53_zone}
