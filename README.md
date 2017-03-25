@@ -1,10 +1,10 @@
 # Kubernetes on AWS with Terraform (KAT)
 
-This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. The goals of this implementation are:
+This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. 
 
-* Automate Kubernetes cluster build process
-* Design with production quality (.e.g., HA, secure communications) in mind
-* Provide flexibility to allow each cluster component to be changed, expanded, and updated after build
+Although there are many quick ways to start a Kubernetes cluster, ongoing management and support does require deep understanding of the platform itself, unless the cluster is supported by a vendor product, such as GKE.
+
+This implementation presents one of the ways for anyone who wants to rolling up sleeves and learn how to build a cluster by doing it youself. This gives you the opportunity to understand the techinical stacks (Kubernetes, AWS, Terraform, CoreOS, Vault) and let you change, expande and update cluster safely. 
 
 ## Table of Contents ##
 
@@ -22,16 +22,21 @@ This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/la
 * Kubernetes 1.5.5, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
 * Terraform 0.9.1, with remote state on S3 storage
-* Autoscaling group for each etcd2, controller, worker, and vault cluster
+* Autoscaling group for each etcd2, controller, worker, and vault cluster for hight availabilty
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
-* Separated CA/Certs for secure communications between Kubernetes components
+* Using separated CA/Certs for secure communications between Kubernetes components
 * Add-ons installed:
   * kubedns
   * kubernetes-dashboard
   * monitoring-grafana
+ * Example app deployment
+   * GitLab
+* Operation run book to cover common tasks
 
 ## Prerequisite
+
+Basic knowlege about Kubernetes, AWS, Terraform, CoreOS, Vault and Make.
 
 ### Setup AWS credentials
 
