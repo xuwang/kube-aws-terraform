@@ -14,7 +14,6 @@ kube-config:
 
 do-config:
 	@echo Download vault generated ca cert from the api server
-	@ssh-add -D
 	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-controller.pem
 	@scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem ${KUBE_APISERVER_CA}
@@ -54,19 +53,39 @@ dashboard: kube-config ## Start dashboard
 
 ui: dashboard ## kubectl proxy and open dashboard ui
 	kubectl proxy -p 8001 &> /dev/null &
+	@while ! kubectl get pods -n kube-system -o json -l app=kubernetes-dashboard  | grep ready | grep -q true ; \
+	do \
+		echo Waitting for UI ; \
+		sleep 3 ; \
+	done
+	echo "Connecting to ui..."
 	open "http://127.0.0.1:8001/ui/#/workload?namespace=kube-system"
 	echo "Please 'make kill-ui' to close kube proxy connection"
 
 kill-ui:  ## close Kube console connection
-	kill $(shell ps | grep '[kubectl] proxy -p 8001' | cut -f 1 -d' ')
+	@if pgrep -f 8001 &> /dev/null ; \
+	then \
+	  echo Killed Proxy on port 8001 ; \
+		kill $(shell pgrep -f 8001) ; \
+	fi
 
 metrics: monitor ## open metrics ui
 	kubectl proxy -p 8002 &> /dev/null &
+	@while ! kubectl get pods -n kube-system -o json -l k8s-app=grafana | grep ready | grep -q true ; \
+	do \
+		echo Waitting for granfana ; \
+		sleep 3 ; \
+	done
+	echo "Connecting to Grafana"
 	open "http://127.0.0.1:8002/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana/dashboard/db/pods"
-	echo "Please 'make kill-merics' to close kube proxy connection"
+	echo "Please 'make kill-metrics' to close kube proxy connection"
 
 kill-metrics:  ## Close monitor console connection
-	kill $(shell ps | grep '[kubectl] proxy -p 8002' | cut -f 1 -d' ')
+	@if pgrep -f 8002 &> /dev/null ; \
+	then \
+	  echo Killed proxy on port 8002 ; \
+		kill $(shell pgrep -f 8002) ; \
+	fi
 
 delete-dashboard:
 	kubectl delete -f dashboard/
@@ -83,8 +102,12 @@ delete-monitor:
 	kubectl delete -f monitor/
 
 kube-cleanup:
-	$(MAKE) delete-dashboard
-	$(MAKE) delete-monitor
-	$(MAKE) delete-kubedns
+	@-$(MAKE) delete-dashboard
+	@-$(MAKE) delete-monitor
+	@-$(MAKE) delete-kubedns
+	@if kubectl config get-contexts | grep default-context | grep ${CLUSTER_NAME} &> /dev/null ; \
+	then \
+		kubectl config delete-context default-context ${CLUSTR_NAME}; \
+	fi
 
 .PHONY: add-ons kube-config kubedns delete-kubedns dashboard delete-dashboard kill-ui monitor delete-monitor

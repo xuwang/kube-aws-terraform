@@ -1,13 +1,12 @@
 # Kubernetes on AWS with Terraform (KAT)
 
-This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform. 
+This is a Kubernetes implementation using [CoreOS](https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services) on AWS platform.
 
-Although there are many quick ways to start a Kubernetes cluster, ongoing management and support does require deep understanding of the platform itself, unless the cluster is supported by a vendor product, such as GKE.
+There are many quick ways to start a Kubernetes cluster, but the ongoing management and support does require deep understanding of the platform itself, unless the cluster is supported by a vendor product, such as GKE.
 
-This implementation presents one of the ways for anyone who wants to rolling up sleeves and learn how to build a cluster by doing it yourself. This gives you the opportunity to understand the techinical stacks (Kubernetes, AWS, Terraform, CoreOS, Vault) and let you change, expande and update cluster safely. 
+This implementation presents one of the opportunities for anyone who are interested in understanding some of the infrastructure-as-code technical stacks (Kubernetes, AWS, Terraform, CoreOS, Vault) and managing a cluster that can be upgraded safely. The design goal is to make both the cluster and the code highly flexible and customizable to adapt for fast changing technology and environments.
 
 ## Table of Contents ##
-
 - [Features](#features)
 - [Prerequisite](#prerequisite)
 - [Quick Start](#quick-start)
@@ -22,7 +21,7 @@ This implementation presents one of the ways for anyone who wants to rolling up 
 * Kubernetes 1.5.5, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
 * Terraform 0.9.1, with remote state on S3 storage
-* Autoscaling group for each etcd2, controller, worker, and vault cluster for hight availabilty
+* Autoscaling group for each etcd2, controller, worker, and vault cluster for hight availability
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
 * Using separated CA/Certs for secure communications between Kubernetes components
@@ -31,12 +30,12 @@ This implementation presents one of the ways for anyone who wants to rolling up 
   * kubernetes-dashboard
   * monitoring-grafana
  * Example app deployment
-   * GitLab
+   * GitLab - demonstrate AWS load balancer integration
 * Operation run book to cover common tasks
 
 ## Prerequisite
 
-Basic knowlege about Kubernetes, AWS, Terraform, CoreOS, Vault and Make.
+Basic knowledge about Kubernetes, AWS, Terraform, CoreOS, Vault and Make.
 
 ### Setup AWS credentials
 
@@ -117,8 +116,8 @@ The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (h
 ```
 $ make cluster | tee /tmp/build.log
 ```
-It takes about 15 minutes for the cluster to be ready. 
-If you want to plan and build step-by-step, see Makefile `cluster` target. 
+It takes about 20 minutes for the cluster to be ready.
+If you want to plan and build step-by-step, see Makefile `cluster` target.
 
 The default cluster contain total of 5 EC2 instances, S3 buckets, necessary AWS IAM roles/polices, keypairs, and SSL certs. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
 
@@ -208,7 +207,7 @@ $ make teardown
 
 ## Limitations
 
-* Route53 zone will be created as new. You  can change Route53 Terraform to use existing route53 data.
+* Route53 zone will be created as new. You can change Route53 Terraform to use existing route53 data.
 
 ## Major references
 

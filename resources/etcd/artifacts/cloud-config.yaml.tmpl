@@ -29,14 +29,14 @@ coreos:
             Environment="LOCKSMITHD_REBOOT_WINDOW_START=05:30"
             Environment="LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h"
     - name: etcd2.service
-      command: reload-or-restart
+      command: start
       drop-ins:
         - name: 60-etcd-peers.conf
           content: |
               [Unit]
-              Requires=etcd-init.service
-              Wants=install-cert.service s3sync.service
-              After=etcd-init.service install-cert.service s3sync.service
+              Requires=install-cert.service etcd-init.service
+              Wants=install-cert.service
+              After=install-cert.service etcd-init.service
               [Service]
               EnvironmentFile=/etc/sysconfig/etcd-peers
               EnvironmentFile=/etc/etcd/cert-envs
@@ -220,8 +220,7 @@ write_files:
               s3command="aws s3 sync --exact-timestamps $source $destination"
           fi
           # sync s3 apps to destination
-          docker rm s3sync
-          docker run --rm --name s3sync -v $destination:$destination --env-file=$AWS_CONFIG_ENV $IMAGE /bin/bash -c "$s3command"
+          docker run --rm -v $destination:$destination --env-file=$AWS_CONFIG_ENV $IMAGE /bin/bash -c "$s3command"
           # Kind of a hack work to fix excuteble permissions
           if [ -d $destination/bin ];
           then
@@ -280,10 +279,10 @@ write_files:
       # dyamically create/join the etcd cluster by querying autoscaling group
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
-      /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
+      /usr/bin/docker run --rm  -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
 
       # upload etcd initial-cluster urls to s3 bucket for worker cluster's etcd_proxy
-      /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https --env S3BUCKET="s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit" --entrypoint /etcd-aws-proxy $image
+      /usr/bin/docker run --rm -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https --env S3BUCKET="s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit" --entrypoint /etcd-aws-proxy $image
 
   - path: /etc/etcd/cert-envs
     permissions: 0644

@@ -5,6 +5,11 @@ if ! which -s kubectl; then
   exit 1
 fi
 
+while ! kubectl get pods -o json -l name=gitlab   |grep ready | grep -q true ;
+do
+  echo "Waiting for GitLab to be ready..."
+  sleep 2
+done
 elb_dns=""
 while [ "X$elb_dns" = "X" ];
 do
