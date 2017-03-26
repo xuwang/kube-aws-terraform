@@ -172,7 +172,6 @@ There is a GitLab deployment example that contains redis, postgres, and gitlab c
 ```
 $ cd apps/gitlab
 $ ./deploy.sh
-$ ./get-load-balancer.sh
 Waiting for loadBanlancer...
 connect to GitLab at: http://af47deebaefef11e6b21c069e4a1413d-1227612122.us-west-2.elb.amazonaws.com
 ```
