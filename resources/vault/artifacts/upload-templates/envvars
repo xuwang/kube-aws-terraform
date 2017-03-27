@@ -1,0 +1,2 @@
+VAULT_IMAGE=vault:${VAULT_RELEASE}
+VAULT_LOCAL_CONFIG=/opt/etc/vault/vault.hcl

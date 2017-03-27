@@ -1,0 +1,28 @@
+[ req ]
+default_bits       = 2048
+default_md         = sha512
+default_keyfile    = vault.key
+distinguished_name = req_distinguished_name
+x509_extensions    = v3_req
+prompt             = no
+encrypt_key        = no
+
+[req_distinguished_name]
+C = US
+ST = CA
+L =  city
+O = company
+CN = *
+
+[v3_req]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints = CA:TRUE
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = vault.${CLUSTER_INTERNAL_ZONE}
+DNS.2 = vault.${CLUSTER_NAME}.local
+IP.1 = $private_ipv4
+IP.2 = $public_ipv4
+IP.3 = 127.0.0.1
