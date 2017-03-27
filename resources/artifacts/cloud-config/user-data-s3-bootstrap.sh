@@ -9,6 +9,7 @@ init_vars() {
 
 	# config bucket and file path
   	bucket=${CONFIG_BUCKET}
+	s3_path=${MODULE_NAME}
 }
 
 install_bash_s3() {
@@ -31,7 +32,7 @@ do_setup() {
 	cd $work_dir
 	mkdir -p setup
 	cd setup
-	$GET $bucket $config_tarball $config_tarball
+	$GET $bucket $s3_path/$config_tarball $config_tarball
 
 	if [ -s "$config_tarball" ]; then
 		tar zxvf $config_tarball
@@ -49,7 +50,7 @@ do_cloudinit() {
 	mkdir -p $work_dir/config
 	cd $work_dir/config
 
-	$GET $bucket $config_tarball cloud-config.yaml
+	$GET $bucket $s3_path/cloud-config.yaml cloud-config.yaml
 
 	if [ -s "cloud-config.yaml" ]; then
 		# Create /etc/environment file so the cloud-init can get IP addresses

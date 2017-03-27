@@ -6,7 +6,7 @@ chmod 755 /opt/etc/vault/scripts/*.sh
 
 source /etc/aws/account.envvars
 source /root/.aws/config
-GET=/opt/etc/vault/scripts/s3-get
+GET=/opt/bin/s3-get
 pki_bucket=${AWS_ACCOUNT}-${CLUSTER_NAME}-config
 
 # downlaod vault configuration files
@@ -23,3 +23,8 @@ $GET  $pki_bucket pki/ca.pem /opt/etc/vault/ca/ca.pem
 mkdir -p /opt/etc/vault/certs
 cd /opt/etc/vault/certs
 /opt/etc/vault/scripts/gen-vault-cert.sh
+
+# install vault binary
+source /opt/etc/vault/envvars
+docker run --rm -v /opt/bin:/tmp ${VAULT_IMAGE} 
+cp /bin/vault /tmp/vault

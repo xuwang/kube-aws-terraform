@@ -51,9 +51,6 @@ coreos:
         After=docker.service
         [Service]
         # Install vault binary
-        ExecStartPre=/bin/bash -c "docker run --rm -v /opt/bin:/tmp vault:${VAULT_RELEASE} cp /bin/vault /tmp/vault"
-        # Download vault config and generate cert
-        ExecStartPre=/bin/bash -c "/opt/bin/s3sync.sh"
         EnvironmentFile=/etc/environment
         EnvironmentFile=/opt/etc/vault/envvars
         TimeoutStartSec=0
