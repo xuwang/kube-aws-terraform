@@ -100,6 +100,20 @@ upload-artifacts: check-profile
 		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
 	fi
 
+# Call this explicitly to upload scripts to s3 
+upload-config: check-profile
+	@if [ -d "$(PWD)/artifacts/upload" ]; \
+	then \
+		mkdir -p $(PWD)/tmp ; \
+		COPYFILE_DISABLE=1 tar zcvhf tmp/${MODULE}.tar.gz -C $(PWD)/artifacts/upload . ; \
+		aws s3 --profile ${AWS_PROFILE} cp tmp/${MODULE}.tar.gz \
+			s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/vault/config.tar.gz; \
+		rm -rf $(PWD)/tmp ; \
+	else \
+		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
+	fi
+
+
 remote: update-profile
 	@echo set remote state to s3://${TF_REMOTE_STATE_BUCKET}/${TF_REMOTE_STATE_PATH}
 
