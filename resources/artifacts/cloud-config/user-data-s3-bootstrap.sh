@@ -4,7 +4,9 @@
 init_vars() {
 	# utilities
 	bash_s3_repo="https://github.com/xuwang/bash-s3.git"
-	work_dir=/root
+	work_dir=/root/bootstrap
+	rm -rf $work_dir
+	mkdir $work_dir
 	install_dir=/opt/bin
 	mkdir -p $install_dir
 
@@ -13,15 +15,6 @@ init_vars() {
 	export CLUSTER_NAME=${CLUSTER_NAME}
 	export MODULE_NAME=${MODULE_NAME}
 	export CONFIG_BUCKET=${CONFIG_BUCKET}
-
-	# Create /etc/environment file so the cloud-init can get IP addresses
-	coreos_env='/etc/environment'
-	if [ ! -f $coreos_env ];
-	then
-	    echo "COREOS_PRIVATE_IPV4=$private_ipv4" > $coreos_env
-	    echo "COREOS_PUBLIC_IPV4=$public_ipv4" >> $coreos_env
-	    echo "INSTANCE_PROFILE=$instanceProfile" >> $coreos_env
-	fi
 }
 
 install_bash_s3() {
@@ -31,19 +24,15 @@ install_bash_s3() {
 
 	GET=/opt/bin/s3get.sh
 	PUT=/opt/bin/s3put.sh
-
-	# cleanup
-	# rm -rf bash_s3
 }
 
 do_setup() {
-  	config_tarball=config.tar.gz
-  	setup_cmd=setup.sh
+	config_tarball=config.tar.gz
+	setup_cmd=setup.sh
 
 	# get config and do setup
-	cd $work_dir
-	mkdir -p setup
-	cd setup
+	mkdir -p $work_dir/setup
+	cd $work_dir/setup
 	$GET ${CONFIG_BUCKET} ${MODULE_NAME}/$config_tarball $config_tarball
 
 	if [ -s "$config_tarball" ]; then
@@ -52,13 +41,9 @@ do_setup() {
 			bash $setup_cmd
 		fi
 	fi
-	# cleanup
-	cd $work_dir
-	# rm -rf setup
-
 }
 
-do_cloudinit() {
+get_cloudinit() {
 	mkdir -p $work_dir/config
 	cd $work_dir/config
 
@@ -68,12 +53,18 @@ do_cloudinit() {
 		# Run cloud-init
 		coreos-cloudinit --from-file=cloud-config.yaml
 	fi
-	# cleanup
-	cd $work_dir
-	# rm -rf config
+}
+
+do_cloudinit() {
+	cd $work_dir/config
+	if [ -s "cloud-config.yaml" ]; then
+		# Run cloud-init
+		coreos-cloudinit --from-file=cloud-config.yaml
+	fi
 }
 
 init_vars
 install_bash_s3
+get_cloudinit
 do_setup
 do_cloudinit
