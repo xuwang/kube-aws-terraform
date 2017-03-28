@@ -115,27 +115,28 @@ write_files:
       image=dockerage/etcd-aws-cluster
       /usr/bin/docker run -v /etc/sysconfig/:/etc/sysconfig/ $image
 
-  - path: /opt/bin/s3sync.sh
+  - path: /opt/bin/s.sh
     permissions: 0755
     owner: root
     content: |
         #!/bin/bash
-        # Sync files from s3 bucket
-        AWS_CONFIG_ENV=/root/.aws/envvars
-        [[ ! -f $AWS_CONFIG_ENV ]] && echo "$AWS_CONFIG_ENV doesn't exit." && exit 0
-        IMAGE=suet/awscli:latest
-        s3command="aws s3 sync --exact-timestamps $source $destination"
-        source="s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/artifacts/${MODULE_NAME}/upload"
-        destination=/root/s3sync
-        command=setup.sh
-        docker run --rm -v $destination:$destination --env-file=$AWS_CONFIG_ENV $IMAGE /bin/bash -c "$s3command"
-        tarballs=$(ls -1 $destination/*.tar.gz $destination/*.tar 2> /dev/null)
-        if [ -s "$tarballs" ]; then
-          tar zxvf $tarballs -C $destination
-          if [ -s "$command" ]; then
-            bash $command
+
+        config_tarball=config.tar.gz
+
+        # get config and do setup
+        mkdir -p /root/setup
+        cd /root/setup
+        /opt/bin/s3get.sh ${CONFIG_BUCKET} ${MODULE_NAME}/$config_tarball $config_tarball
+
+        if [ -s "$config_tarball" ]; then
+          tar zxvf $config_tarball
+          if [ -s "setup.sh" ]; then
+            bash setup.sh
           fi
         fi
+        # cleanup
+        cd /root
+        # rm -rf setup
 
   - path: /etc/aws/account.envvars
     permissions: 0644
