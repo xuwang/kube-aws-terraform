@@ -1,7 +1,7 @@
 
 # Reference: https://github.com/hashicorp/vault/tree/master/terraform/aws
 module "vault" {
-  source = "../modules/cluster"
+  source = "../modules/cluster-no-opt-data"
 
   # cluster varaiables
   asg_name = "${var.cluster_name}-vault"
@@ -23,11 +23,9 @@ module "vault" {
   # See https://github.com/hashicorp/terraform/issues/2910
   # Instance disks
   root_volume_type = "gp2"
-  root_volume_size = 12
+  root_volume_size = 100
   docker_volume_type = "gp2"
   docker_volume_size = 12
-  data_volume_type = "gp2"
-  data_volume_size = 100
 
   user_data = "${data.template_file.user_data.rendered}"
   iam_role_policy = "${data.template_file.vault_policy_json.rendered}"
