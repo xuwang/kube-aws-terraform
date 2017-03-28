@@ -4,7 +4,7 @@
 resource "aws_s3_bucket_object" "vault_cnf" {
     bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
     key = "vault/vault.cnf"
-    content = "${data.template_file.vault-cnf.rendered}"
+    content = "${data.template_file.vault_cnf.rendered}"
 }
 data "template_file" "vault_cnf" {
     template = "${file("./artifacts/upload-templates/vault.cnf")}"
@@ -17,7 +17,7 @@ data "template_file" "vault_cnf" {
 resource "aws_s3_bucket_object" "vault_hcl" {
     bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
     key = "vault/vault.hcl"
-    content = "${data.template_file.vault-hcl.rendered}"
+    content = "${data.template_file.vault_hcl.rendered}"
 }
 data "template_file" "vault_hcl" {
     template = "${file("./artifacts/upload-templates/vault.hcl")}"
@@ -31,7 +31,7 @@ data "template_file" "vault_hcl" {
 resource "aws_s3_bucket_object" "vault_sh" {
     bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
     key = "vault/vault.sh"
-    content = "${data.template_file.vault-sh.rendered}"
+    content = "${data.template_file.vault_sh.rendered}"
 }
 data "template_file" "vault_sh" {
     template = "${file("./artifacts/upload-templates/vault.sh")}"
