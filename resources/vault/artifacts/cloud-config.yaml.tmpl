@@ -6,9 +6,9 @@ coreos:
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     listen-peer-urls: http://$private_ipv4:2380
   update:
-    reboot-strategy: etcd
+    reboot-strategy: etcd-lock
   locksmith:
-    group: etcd-lock
+    group: etcd
   units:
     - name: locksmithd.service
       command: start
