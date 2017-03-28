@@ -58,7 +58,7 @@ output:
 
 destroy-plan: remote
 	@-${TF_DESTROY_PLAN} -out ${ROOT_DIR}/tmp/destroy-${MODULE}.plan
-	
+
 destroy: remote
 	${TF_DESTROY}
 	$(MAKE) clean
@@ -82,12 +82,7 @@ destroy-key:
 get-ips:
 	@echo "${MODULE}; public ips: " `$(SCRIPTS)/get-ec2-public-id.sh $(CLUSTER_NAME)-${MODULE}`
 
-# Call this explicitly to re-load user_data
-update-user-data:
-	${TF_PLAN} -target=data.template_file.${MODULE}_cloud_config; \
-	${TF_APPLY}
-	
-# Call this explicitly to upload scripts to s3 
+# Call this explicitly to upload scripts to s3
 upload-artifacts: check-profile
 	@if [ -d "$(PWD)/artifacts/upload" ]; \
 	then \
@@ -100,7 +95,7 @@ upload-artifacts: check-profile
 		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
 	fi
 
-# Call this explicitly to upload scripts to s3 
+# Call this explicitly to upload scripts to s3
 upload-config: check-profile
 	@if [ -d "$(PWD)/artifacts/upload" ]; \
 	then \
@@ -160,7 +155,7 @@ check-profile:
 upgrade-kube:
 	@echo "Will upgrade ${MODULE}'s Kubernetes to ${TF_VAR_kube_version}."
 	@$(MAKE) confirm
-	@$(MAKE) 
+	@$(MAKE)
 	@echo "Don't forget to reboot ${MODULE}s."
 
 confirm:
