@@ -5,7 +5,7 @@ backend "s3" {
 /* If use etcd backend
 backend "etcd" {
   address = "http://127.0.0.1:2379"
-   advertise_addr = "https://$public_ipv4:8200"
+   advertise_addr = "https://$COREOS_PUBLIC_IPV4:8200"
    path = "vault"
    sync = "yes"
   ha_enabled = "true"
