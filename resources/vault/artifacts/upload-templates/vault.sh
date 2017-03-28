@@ -8,4 +8,5 @@ export VAULT_CLIENT_CERT=/opt/etc/vault/certs/vault.crt
 export VAULT_CLIENT_KEY=/opt/etc/vault/certs/vault.key
 export VAULT_ROOTCA_CN=${VAULT_ROOTCA_CN}
 export VAULT_TOKEN_BUCKET=${AWS_ACCOUNT}-${CLUSTER_NAME}-config
+export CONFIG_BUCKET=${AWS_ACCOUNT}-${CLUSTER_NAME}-config
 export PATH=$PATH:/opt/bin
