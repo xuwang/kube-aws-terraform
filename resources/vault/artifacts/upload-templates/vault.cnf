@@ -23,6 +23,6 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = vault.${CLUSTER_INTERNAL_ZONE}
 DNS.2 = vault.${CLUSTER_NAME}.local
-IP.1 = $private_ipv4
-IP.2 = $public_ipv4
+IP.1 = $COREOS_PRIVATE_IPV4
+IP.2 = $COREOS_PUBLIC_IPV4
 IP.3 = 127.0.0.1
