@@ -1,6 +1,5 @@
 #!/bin/bash -e
 
-
 # Initilize variables
 init_vars() {
 	# utilities
@@ -14,6 +13,15 @@ init_vars() {
 	export CLUSTER_NAME=${CLUSTER_NAME}
 	export MODULE_NAME=${MODULE_NAME}
 	export CONFIG_BUCKET=${CONFIG_BUCKET}
+
+	# Create /etc/environment file so the cloud-init can get IP addresses
+	coreos_env='/etc/environment'
+	if [ ! -f $coreos_env ];
+	then
+	    echo "COREOS_PRIVATE_IPV4=$private_ipv4" > $coreos_env
+	    echo "COREOS_PUBLIC_IPV4=$public_ipv4" >> $coreos_env
+	    echo "INSTANCE_PROFILE=$instanceProfile" >> $coreos_env
+	fi
 }
 
 install_bash_s3() {
@@ -57,15 +65,6 @@ do_cloudinit() {
 	$GET ${CONFIG_BUCKET} ${MODULE_NAME}/cloud-config.yaml cloud-config.yaml
 
 	if [ -s "cloud-config.yaml" ]; then
-		# Create /etc/environment file so the cloud-init can get IP addresses
-		coreos_env='/etc/environment'
-		if [ ! -f $coreos_env ];
-		then
-		    echo "COREOS_PRIVATE_IPV4=$private_ipv4" > /etc/environment
-		    echo "COREOS_PUBLIC_IPV4=$public_ipv4" >> /etc/environment
-		    echo "INSTANCE_PROFILE=$instanceProfile" >> /etc/environment
-		fi
-
 		# Run cloud-init
 		coreos-cloudinit --from-file=cloud-config.yaml
 	fi
