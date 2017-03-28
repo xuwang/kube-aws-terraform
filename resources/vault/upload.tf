@@ -22,7 +22,7 @@ resource "aws_s3_bucket_object" "vault_hcl" {
 data "template_file" "vault_hcl" {
     template = "${file("./artifacts/upload-templates/vault.hcl")}"
     vars {
-        "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+        "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "AWS_DEFAULT_REGION" = "${var.aws_account["default_region"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
     }
@@ -36,6 +36,7 @@ resource "aws_s3_bucket_object" "vault_sh" {
 data "template_file" "vault_sh" {
     template = "${file("./artifacts/upload-templates/vault.sh")}"
     vars {
+        "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "ROUTE53_ZONE_NAME" = "${var.route53_zone_name}"
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
@@ -58,8 +59,8 @@ data "template_file" "envvars" {
     }
 }
 
-# Upload CoreOS cloud-config to a s3 bucket; s3-cloudconfig-bootstrap script in user-data will download 
-# the cloud-config upon reboot to configure the system. This avoids rebuilding machines when 
+# Upload CoreOS cloud-config to a s3 bucket; s3-cloudconfig-bootstrap script in user-data will download
+# the cloud-config upon reboot to configure the system. This avoids rebuilding machines when
 # changing cloud-config.
 resource "aws_s3_bucket_object" "vault_cloud_config" {
   bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
@@ -69,7 +70,7 @@ resource "aws_s3_bucket_object" "vault_cloud_config" {
 data "template_file" "vault_cloud_config" {
     template = "${file("./artifacts/cloud-config.yaml.tmpl")}"
     vars {
-        "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+        "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "AWS_USER" = "${data.terraform_remote_state.iam.deployment_user}"
         "AWS_ACCESS_KEY_ID" = "${data.terraform_remote_state.iam.deployment_key_id}"
         "AWS_SECRET_ACCESS_KEY" =  "${data.terraform_remote_state.iam.deployment_key_secret}"
@@ -77,6 +78,7 @@ data "template_file" "vault_cloud_config" {
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
         "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
+        "MODULE_NAME" = "${var.module_name}"
     }
 }
 
@@ -89,8 +91,7 @@ resource "aws_s3_bucket_object" "vault_pki_tokens" {
 data "template_file" "vault_policy_json" {
     template = "${file("./artifacts/policy.json")}"
     vars {
-        "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
+        "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
     }
 }
-

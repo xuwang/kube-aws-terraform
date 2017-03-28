@@ -7,7 +7,8 @@ init_vars() {
 	bash_s3_repo="https://github.com/xuwang/bash-s3.git"
 	work_dir=/root
 	install_dir=/opt/bin
-	
+	mkdir -p $install_dir
+
 	# config bucket and file path
 	export AWS_ACCOUNT=${AWS_ACCOUNT}
 	export CLUSTER_NAME=${CLUSTER_NAME}
@@ -17,14 +18,14 @@ init_vars() {
 
 install_bash_s3() {
 	cd $work_dir
-	git clone --depth 1 $bash-s3-repo bash-s3
-	install -m 0755 bash-s3/s3get.sh bash-s3/s3put.sh $install_dir
+	git clone --depth 1 $bash_s3_repo bash_s3
+	install -m 0755 bash_s3/s3get.sh bash_s3/s3put.sh $install_dir
 
 	GET=/opt/bin/s3get.sh
 	PUT=/opt/bin/s3put.sh
 
 	# cleanup
-	# rm -rf bash-s3
+	# rm -rf bash_s3
 }
 
 do_setup() {

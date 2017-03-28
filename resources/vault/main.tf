@@ -25,7 +25,7 @@ module "vault" {
   root_volume_type = "gp2"
   root_volume_size = 12
   docker_volume_type = "gp2"
-  docker_volume_size = 12 
+  docker_volume_size = 12
   data_volume_type = "gp2"
   data_volume_size = 100
 
@@ -42,9 +42,10 @@ resource "aws_autoscaling_attachment" "asg_attachment_vault" {
 data "template_file" "user_data" {
     template = "${file("${var.artifacts_dir}/cloud-config/user-data-s3-bootstrap.sh")}"
     vars {
+        "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
-        "MODULE_NAME" = "${var.module_name}" 
+        "MODULE_NAME" = "${var.module_name}"
     }
 }
 
