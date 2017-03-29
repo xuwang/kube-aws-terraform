@@ -20,8 +20,8 @@ init_vars() {
 	echo export CLUSTER_NAME=${CLUSTER_NAME}	>> envs.sh
 	echo export MODULE_NAME=${MODULE_NAME}		>> envs.sh
 	echo export CONFIG_BUCKET=${CONFIG_BUCKET}	>> envs.sh
-	echo export COREOS_PRIVATE_IPV4=$(curl -s ${META_DATA}/local-ipv4) >> envs.sh
-	echo export COREOS_PUBLIC_IPV4=$(curl -s ${META_DATA}/public-ipv4) >> envs.sh
+	echo export COREOS_PRIVATE_IPV4=$(curl -s $META_DATA/local-ipv4) >> envs.sh
+	echo export COREOS_PUBLIC_IPV4=$(curl -s $META_DATA/public-ipv4) >> envs.sh
 	
 	source envs.sh
 }
