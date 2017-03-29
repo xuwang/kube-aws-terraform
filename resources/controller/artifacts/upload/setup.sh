@@ -14,5 +14,14 @@ docker run --rm -v /opt/bin:/tmp ${VAULT_IMAGE} cp /bin/vault /tmp/vault
 # Install kubernetes
 docker run --env VERSION="${KUBE_VERSION}" --rm -v /opt/bin:/shared xueshanf/install-kubernetes
 
-# generate certs for etcd and kube-apiserver 
+# Generate certs for etcd and kube-apiserver 
+mkdir -p /var/lib/kubernetes/
 bash get-kube-certs.sh kube-apiserver etcd-member
+
+# Copy kube policy.jsonl and token.csv to /var/lib/kubernetes/
+# Note: token.csv will be copied to upload by "make upload-config"
+cp policy.jsonl token.csv /var/lib/kubernetes/
+
+# TODO: after install cp ${VAULT_RELEASE} and ${KUBE_VERSION} to local disk.
+# On rebooting compare ${VAULT_RELEASE} and ${KUBE_VERSION} with local copy
+# if matches do NOT install again
