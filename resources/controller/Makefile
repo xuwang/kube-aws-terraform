@@ -1,6 +1,6 @@
 include ../common/common.mk
 
-init: create-key copy-token upload-artifacts
+init: create-key copy-token upload-config
 copy-token:
 	@cp ../${SEC_PATH}/api-server/token.csv ./artifacts/upload/token.csv
 get-apiserver-elb:
