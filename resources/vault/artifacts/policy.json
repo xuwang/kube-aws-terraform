@@ -7,14 +7,13 @@
         "s3:*"
       ],
       "Resource": [
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit/*",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-cloudinit",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-cloudinit/*",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-s3-backend",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-s3-backend/*",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/*"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/vault"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/vault/*"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki/*"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens/*"
       ]
     },
     {
