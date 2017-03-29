@@ -11,7 +11,7 @@ coreos:
     group: etcd
   units:
     - name: locksmithd.service
-      command: reload-or-restart
+      command: start
       drop-ins:
         - name: 30-cloudinit.conf
           content: |
@@ -19,12 +19,7 @@ coreos:
             Requires=etcd2.service
             After=etcd2.service
             [Service]
-            Environment="LOCKSMITHD_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem"
-            Environment="LOCKSMITHD_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem"
-            Environment="LOCKSMITHD_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem"
-            Environment="LOCKSMITHD_ENDPOINT=https://127.0.0.1:2379"
-            Environment="LOCKSMITHD_REBOOT_WINDOW_START=05:30"
-            Environment="LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h"
+            EnvironmentFile=/etc/locksmithd/locksmithd-envs
     - name: etcd2.service
       command: start
       drop-ins:
@@ -160,32 +155,18 @@ write_files:
     content: |
         ETCD_CERT_FILE=/etc/etcd/certs/etcd-member.pem
         ETCD_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
+        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
         ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-member.pem
         ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
-        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
         ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
 
-  - path: /etc/aws/account.envvars
+  - path: /etc/locksmithd/locksmithd-envs
     permissions: 0644
     owner: root
     content: |
-        AWS_ACCOUNT=${AWS_ACCOUNT}
-        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-        CLUSTER_NAME=${CLUSTER_NAME}
-  - path: /root/.aws/envvars
-    permissions: 0600
-    owner: root
-    content: |
-        AWS_ACCOUNT=${AWS_ACCOUNT}
-        AWS_USER=${AWS_USER}
-        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-  - path: /root/.aws/config
-    permissions: 0600
-    owner: root
-    content: |
-        [default]
-        aws_access_key_id=${AWS_ACCESS_KEY_ID}
-        aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
-        region=${AWS_DEFAULT_REGION}
+        LOCKSMITHD_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem
+        LOCKSMITHD_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem
+        LOCKSMITHD_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem
+        LOCKSMITHD_ENDPOINT=https://127.0.0.1:2379
+        LOCKSMITHD_REBOOT_WINDOW_START=05:30
+        LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h
