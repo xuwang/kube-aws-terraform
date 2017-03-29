@@ -71,9 +71,6 @@ data "template_file" "vault_cloud_config" {
     template = "${file("./artifacts/cloud-config.yaml.tmpl")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
-        "AWS_USER" = "${data.terraform_remote_state.iam.deployment_user}"
-        "AWS_ACCESS_KEY_ID" = "${data.terraform_remote_state.iam.deployment_key_id}"
-        "AWS_SECRET_ACCESS_KEY" =  "${data.terraform_remote_state.iam.deployment_key_secret}"
         "AWS_DEFAULT_REGION" = "${var.aws_account["default_region"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"

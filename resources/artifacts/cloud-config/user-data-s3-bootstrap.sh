@@ -9,12 +9,17 @@ init_vars() {
 	mkdir $work_dir
 	install_dir=/opt/bin
 	mkdir -p $install_dir
+	cd $work_dir
 
-	# config bucket and file path
-	export AWS_ACCOUNT=${AWS_ACCOUNT}
-	export CLUSTER_NAME=${CLUSTER_NAME}
-	export MODULE_NAME=${MODULE_NAME}
-	export CONFIG_BUCKET=${CONFIG_BUCKET}
+	# config bucket,file path, and ips
+	echo export AWS_ACCOUNT=${AWS_ACCOUNT}		> $work_dir/env.sh
+	echo export CLUSTER_NAME=${CLUSTER_NAME}	>> $work_dir/env.sh
+	echo export MODULE_NAME=${MODULE_NAME}		>> $work_dir/env.sh
+	echo export CONFIG_BUCKET=${CONFIG_BUCKET}	>> $work_dir/env.sh
+	echo export COREOS_PRIVATE_IPV4=$(curl -s 169.254.169.254/latest/meta-data/local-ipv4) >> $work_dir/env.sh
+	echo export COREOS_PUBLIC_IPV4=$(curl -s 169.254.169.254/latest/meta-data/public-ipv4) >> $work_dir/env.sh
+	
+	source $work_dir/env.sh
 }
 
 install_bash_s3() {
