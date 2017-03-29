@@ -58,12 +58,13 @@
         "s3:Get*"
       ],
       "Resource": [
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit/etcd/initial-cluster",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit/${CLUSTER_NAME}-worker",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit/${CLUSTER_NAME}-worker/*",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/*"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/worker",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/worker/*"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki/ca.pem"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens/kube-apiserver"
       ]
     }
   ]

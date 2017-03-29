@@ -59,7 +59,6 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=true
-        ExecStartPre=/opt/bin/s3sync.sh
         ExecStart=/usr/bin/docker run --rm -v /opt/bin:/tmp vault:${VAULT_RELEASE} cp /bin/vault /tmp/vault
         ExecStart=/bin/bash -c "[ -x /opt/bin/vault ] &&  /opt/bin/get-kube-certs.sh "
 write_files:
@@ -78,7 +77,8 @@ write_files:
         export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
         export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
         export PATH=/opt/bin/:$PATH
-        /opt/bin/s3sync.sh
+        /opt/bin/s3get.sh ${CONFIG_BUCKET} pki/ca.pem /opt/etc/vault/ca/ca.pem
+        /opt/bin/s3get.sh ${CONFIG_BUCKET} pki-tokens/etcd-member /opt/etc/pki-tokens/etcd-member
 
         # Wait for vault service
         retry=5
