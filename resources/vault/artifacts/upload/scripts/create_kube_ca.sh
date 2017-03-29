@@ -66,8 +66,8 @@ create_auth_token() {
   token_path=$1
   token_name=$2
   # check if the token already created and uploaded to the bucket
-  echo "$DIR/s3get.sh ${VAULT_TOKEN_BUCKET} pki-tokens/$token_name $TMPDIR/$token_name"
-  $DIR/s3get.sh ${VAULT_TOKEN_BUCKET} pki-tokens/$token_name $TMPDIR/$token_name
+  echo "s3get.sh ${VAULT_TOKEN_BUCKET} pki-tokens/$token_name $TMPDIR/$token_name"
+  s3get.sh ${VAULT_TOKEN_BUCKET} pki-tokens/$token_name $TMPDIR/$token_name
   if [[ -s "$TMPDIR/$token_name" ]] && vault token-lookup $(cat $TMPDIR/$token_name) > /dev/null 2>&1 ; then
     echo "Token $token already exist. Renew token"
     vault token-renew $(cat $TMPDIR/$token_name)
@@ -76,7 +76,7 @@ create_auth_token() {
       -policy="$CLUSTER_ID/$token_path" \
       -role="kube-$CLUSTER_ID" | egrep -o -E "token(\s+.*)" | cut -f2 | tee $TMPDIR/$token_name)
     if [ -n "$token" ]; then
-        $DIR/s3put.sh ${VAULT_TOKEN_BUCKET} pki-tokens $TMPDIR/$token_name
+        s3put.sh ${VAULT_TOKEN_BUCKET} pki-tokens $TMPDIR/$token_name
     fi
   fi
   #shred -z $TMPDIR/token
