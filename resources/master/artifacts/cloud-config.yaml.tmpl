@@ -7,7 +7,7 @@ coreos:
   update:
     reboot-strategy: etcd-lock
   locksmith:
-    group: controller
+    group: master
   units:
     - name: locksmithd.service
       command: start
@@ -28,14 +28,14 @@ coreos:
             EnvironmentFile=/etc/sysconfig/initial-cluster
             EnvironmentFile=/etc/etcd/cert-envs
 
-    - name: kube-controller-manager.service
+    - name: kube-master-manager.service
       command: start
       content: |
         [Unit]
-        Description=Kubernetes Controller Manager
+        Description=Kubernetes master Manager
         Documentation=https://github.com/GoogleCloudPlatform/kubernetes
         [Service]
-        ExecStart=/opt/bin/kube-controller-manager \
+        ExecStart=/opt/bin/kube-master-manager \
           --allocate-node-cidrs=true \
           --cloud-provider=aws \
           --cluster-cidr=${KUBE_CLUSTER_CIDR} \
@@ -83,9 +83,9 @@ coreos:
           --cloud-provider=aws \
           --enable-swagger-ui=true \
           --etcd-servers=https://127.0.0.1:2379 \
-          --etcd-cafile=/var/lib/kubernetes/etcd-member-ca.pem \
-          --etcd-certfile=/var/lib/kubernetes/etcd-member.pem \
-          --etcd-keyfile=/var/lib/kubernetes/etcd-member-key.pem \
+          --etcd-cafile=/var/lib/kubernetes/etcd-client-ca.pem \
+          --etcd-certfile=/var/lib/kubernetes/etcd-client.pem \
+          --etcd-keyfile=/var/lib/kubernetes/etcd-client-key.pem \
           --insecure-bind-address=0.0.0.0 \
           --kubelet-certificate-authority=/var/lib/kubernetes/kube-apiserver-ca.pem \
           --kubelet-client-certificate=/var/lib/kubernetes/kube-apiserver.pem \
@@ -111,30 +111,30 @@ write_files:
     permissions: 0644
     owner: root
     content: |
-        ETCD_CERT_FILE=/etc/etcd/certs/etcd-member.pem
-        ETCD_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
-        ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-member.pem
-        ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
-        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
-        ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
+        ETCD_CERT_FILE=/etc/etcd/certs/etcd-client.pem
+        ETCD_KEY_FILE=/etc/etcd/certs/etcd-client-key.pem
+        ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-client.pem
+        ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-client-key.pem
+        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-client-ca.pem
+        ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-client-ca.pem
 
   - path: /etc/profile.d/locksmithctl.sh
     permissions: 0644
     owner: root
     content: |
       # For locksmothclt client to connect etcd cluster through TLS
-      export LOCKSMITHCTL_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem
-      export LOCKSMITHCTL_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem
-      export LOCKSMITHCTL_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem
+      export LOCKSMITHCTL_ETCD_CERTFILE=/etc/etcd/certs/etcd-client.pem
+      export LOCKSMITHCTL_ETCD_KEYFILE=/etc/etcd/certs/etcd-client-key.pem
+      export LOCKSMITHCTL_ETCD_CAFILE=/etc/etcd/certs/etcd-client-ca.pem
       export LOCKSMITHCTL_ENDPOINT=https://127.0.0.1:2379
 
   - path: /etc/locksmithd/locksmithd-envs
     permissions: 0644
     owner: root
     content: |
-      LOCKSMITHD_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem
-      LOCKSMITHD_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem
-      LOCKSMITHD_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem
+      LOCKSMITHD_ETCD_CERTFILE=/etc/etcd/certs/etcd-client.pem
+      LOCKSMITHD_ETCD_KEYFILE=/etc/etcd/certs/etcd-client-key.pem
+      LOCKSMITHD_ETCD_CAFILE=/etc/etcd/certs/etcd-client-ca.pem
       LOCKSMITHD_ENDPOINT=https://127.0.0.1:2379
       LOCKSMITHD_REBOOT_WINDOW_START=05:30
       LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h
@@ -144,11 +144,11 @@ write_files:
     owner: root
     content: |
       # For etcdctl client to connect server through TLS
-      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-member.pem
-      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
-      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
+      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-client.pem
+      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-client-key.pem
+      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-client-ca.pem
       export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
-      
+
   - path: /etc/profile.d/vault.sh
     permissions: 0644
     owner: root

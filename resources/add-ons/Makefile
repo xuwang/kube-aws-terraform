@@ -14,7 +14,7 @@ kube-config:
 
 do-config:
 	@echo Download vault generated ca cert from the api server
-	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-controller.pem
+	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
 	@scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem ${KUBE_APISERVER_CA}
 	@echo kubectl config set-cluster kubernetes...

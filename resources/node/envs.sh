@@ -1,8 +1,8 @@
-# Env for Worker
+# Env for node
 
-export MODULE=worker
+export MODULE=node
 
-# Workers ASG override
+# nodes ASG override
 export TF_VAR_instance_type="t2.medium"
 export TF_VAR_cluster_min_size=1
 export TF_VAR_cluster_max_size=5

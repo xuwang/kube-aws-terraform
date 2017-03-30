@@ -68,7 +68,7 @@
     ├── common
     │   ├── common.mk
     │   └── common.tf
-    ├── controller
+    ├── master
     │   ├── Makefile
     │   ├── artifacts
     │   │   ├── cloud-config.yaml.tmpl
@@ -154,13 +154,13 @@
     │   ├── Makefile -> ../common/common.mk
     │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
-    │   ├── vpc-subnet-controller.tf
+    │   ├── vpc-subnet-master.tf
     │   ├── vpc-subnet-elb.tf
     │   ├── vpc-subnet-etcd.tf
     │   ├── vpc-subnet-vault.tf
-    │   ├── vpc-subnet-worker.tf
+    │   ├── vpc-subnet-node.tf
     │   └── vpc.tf
-    └── worker
+    └── node
         ├── Makefile
         ├── artifacts
         │   ├── cloud-config.yaml.tmpl

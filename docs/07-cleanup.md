@@ -1,10 +1,10 @@
 # Destroy the cluster
 
 During development phase, you might want to destroy some resources, but keep others. 
-For example, you want to shutdown workers, but keep controller, etcd, vpc:
+For example, you want to shutdown nodes, but keep master, etcd, vpc:
 
 ```
-$ cd resources/worker
+$ cd resources/node
 $ make plan-destroy
 $ make destroy
 ```

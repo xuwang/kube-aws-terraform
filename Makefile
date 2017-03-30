@@ -8,7 +8,7 @@ SHELL := /bin/bash
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # When destroy-all runs, the resources on this list will be destroyed, in this order.
-ALL_RESOURCES := worker controller etcd iam pki vault route53 s3 vpc
+ALL_RESOURCES := node master etcd iam pki vault route53 s3 vpc
 
 export
 
@@ -19,16 +19,16 @@ help:
 	@echo '-----------------'
 	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-cluster: core controller worker  ## Create or update a kubernetes cluster (include core, controllers and workers)
+cluster: core master node  ## Create or update a kubernetes cluster (include core, masters and nodes)
 
 core: vpc s3 route53 iam pki vault etcd  ## Create or update vpc, s3, route 53, iam, pki, vault, and etcd.
 
-controller: etcd  ## Create or update controllers
-	cd resources/controller; make
-show-controller: ## Show controller resources
-	cd resources/controller; make show
-destroy-controller:  ## Destroy controllers
-	cd resources/controller; make destroy
+master: etcd  ## Create or update masters
+	cd resources/master; make
+show-master: ## Show master resources
+	cd resources/master; make show
+destroy-master:  ## Destroy masters
+	cd resources/master; make destroy
 
 etcd: iam vault vpc ## Create or update etcd cluster
 	cd resources/etcd; make
@@ -36,7 +36,7 @@ plan-etcd: ## Generate etcd cluster Terraform plan (dry-run)
 	cd resources/etcd; make plan
 show-etcd: ## Show etcd cluster resources
 	cd resources/etcd; make show
-destroy-etcd: destroy-worker ## Destroy worker and etcd cluster
+destroy-etcd: destroy-node ## Destroy node and etcd cluster
 	cd resources/etcd; make destroy
 
 iam: s3 ## Create or update IAM and S3 buckets
@@ -61,7 +61,7 @@ s3: ## Create or update S3 buckets
 destroy-s3: ## Destroy S3 buckets
 	cd resources/s3; make destroy
 
-vault: iam pki route53 vpc ## Create or updat Vault server
+vault: vpc iam pki route53 ## Create or updat Vault server
 	cd resources/vault; make
 plan-vault: ## Generate Vault Terraform plan
 	cd resources/vault; make plan
@@ -79,14 +79,14 @@ show-vpc:	## Show VPC and subnets resources
 destroy-vpc: destroy-s3	## Destroy VPC
 	cd resources/vpc; make destroy
 
-worker: etcd   	## Create or udpate workers
-	cd resources/worker; make
-show-worker:	## Show worker resource
-	cd resources/worker; make show
-plan-worker:	## Generate worker Terraform plan
-	cd resources/worker; make plan
-destroy-worker: ## Destroy worker
-	cd resources/worker; make destroy
+node: etcd   	## Create or udpate nodes
+	cd resources/node; make
+show-node:	## Show node resource
+	cd resources/node; make show
+plan-node:	## Generate node Terraform plan
+	cd resources/node; make plan
+destroy-node: ## Destroy node
+	cd resources/node; make destroy
 
 plan-destroy-all:	## Generate destroy plan of all resources
 	@rm -rf ${ROOT_DIR}/tmp; mkdir -p ${ROOT_DIR}/tmp
@@ -123,8 +123,8 @@ show-all:	## Show all resources
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) show 2> /tmp/destroy.err;)
 
 upgrade-kube:	## Upgrade Kubernetes version
-	@cd resources/worker; make upgrade-kube
-	@cd resources/controller; make upgrade-kube
+	@cd resources/node; make upgrade-kube
+	@cd resources/master; make upgrade-kube
 
 # Extras
 add-ons:	## Kubernetes add-ons, e.g. dns, dashboard
@@ -143,13 +143,13 @@ kill-metrics: ## Close Granfana UI connection
 	cd resources/add-ons; make kill-metrics
 
 smoke-test:
-	cd resources/worker; make smoke-test
+	cd resources/node; make smoke-test
 
 get-apiserver-elb: ## Get API server ELB address
-	cd resources/controller; make get-apiserver-elb
+	cd resources/master; make get-apiserver-elb
 
 destroy-add-ons: ## Delete all add-ons, ie. kubedns, dashboard, and monitor
 	cd resources/add-ons; make kube-cleanup
 
-.PHONY: all help vpc s3 iam etcd worker add-ons destroy-add-ons
-.PHONY: destroy destroy-vpc destroy-s3 destroy-iam destroy-etcd destroy-worker smoke-test
+.PHONY: all help vpc s3 iam etcd node add-ons destroy-add-ons
+.PHONY: destroy destroy-vpc destroy-s3 destroy-iam destroy-etcd destroy-node smoke-test

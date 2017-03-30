@@ -8,10 +8,10 @@ Default VPC prefix __10.240__ is defined in top level envs.sh. You can change th
 |------------------|-------------------------|------------------------------|
 | VPC              | 10.240.0.0/16           | vpc/vpc.tf                   |
 | Etcd             | 10.240.1.0/[subs in 3AZ]| vpc/vpc-subnet-etcd.tf       |
-| Controller       | 10.240.2.0/[subs in 3AZ]| vpc/vpc-subnet-controller.tf |
+| Controller       | 10.240.2.0/[subs in 3AZ]| vpc/vpc-subnet-master.tf |
 | Loadbalancer     | 10.240.3.0/[subs in 3AZ]| vpc/vpc-subnet-elb.tf        |
 | Vault            | 10.240.4.0/[subs in 3AZ]| vpc/vpc-subnet-vault.tf      |
-| Worker           | 10.240.5.0/[subs in 3AZ}| vpc/vpc-subnet-worker.tf     |
+| Worker           | 10.240.5.0/[subs in 3AZ}| vpc/vpc-subnet-node.tf     |
 | Kube Service     | 10.32.0.0/24            | variables.tf                 |
 | Kube API Service | 10.32.0.1               | variales.tf                  |
 | Containers Net   | 10.200.0.0/16           | variables.tf                 |
@@ -25,12 +25,12 @@ All resources are managed by [Terraform](https://github.com/hashicorp/terraform)
 | Service           |# Node| Size         | Description                                                   | Resource   |   
 |-------------------|------|--------------|---------------------------------------------------------------|------------|
 | Etcd              | 1    | t2.medium    | Etcd storage backend for Kubernetes                           | etcd       |
-| Master controller | 1    | t2.medium    | Kubernetes master(api, scheduler, controller)                 | controller |
+| Master master | 1    | t2.medium    | Kubernetes master(api, scheduler, master)                 | master |
 | Vault             | 1    | t2.medium    | Support Kubernetes PKI needs, S3 storage backend              | vault      |
-| Worker            | 2    | t2.medium    | Run Pods, default 2 machines                                  | worker     |
+| Worker            | 2    | t2.medium    | Run Pods, default 2 machines                                  | node     |
 | Vault ELB         | N/A  | t2.medium    | Internal vault endpoint, https://vault.cluster.internal       | vault      |
-| API ELB, public   | N/A  | N/A          | Public API server endpoint, https://api-server.example.com    | controller |
-| API ELB, private  | N/A  | N/A          | Private API server endpoint, https://api-server.cluster.internal | controller |
+| API ELB, public   | N/A  | N/A          | Public API server endpoint, https://api-server.example.com    | master |
+| API ELB, private  | N/A  | N/A          | Private API server endpoint, https://api-server.cluster.internal | master |
 
 The default capacity is defined in envs.sh:
 ```
@@ -45,13 +45,13 @@ export TF_VAR_instance_type=t2.medium
 ...
 ```
 
-To override, for example, worker nodes:
+To override, for example, node nodes:
 ```
-$cd resources/worker
+$cd resources/node
 $cat envs.sh
 # Env for Worker
 
-export MODULE=worker
+export MODULE=node
 
 # Workers ASG override
 export TF_VAR_instance_type="t2.medium"
@@ -77,7 +77,7 @@ S3 Buckets are used to store various cluster data. All buckets are prefixed with
 ###  Storage - EBS disks
 
 /var/lib/docker and /opt are on their own partitions and can be tuned in each resource's main.tf file. For example,
-worker node has this as default:
+node node has this as default:
 
 ```
 # Instance disks
@@ -93,9 +93,9 @@ worker node has this as default:
 
 | Resource         | Naming                                        | Description                                      |
 |------------------|-----------------------------------------------|--------------------------------------------------|
-| Keypairs         | ${CLUSTER_NAME}-[etcd,controller,worker,vault]| Saved in SSHKEY_DIR, ${HOME}/.ssh by default     |
+| Keypairs         | ${CLUSTER_NAME}-[etcd,master,node,vault]| Saved in SSHKEY_DIR, ${HOME}/.ssh by default     |
 | Profiles         | instances profile, with polices               |                                                  |
-| Roles            |                                               | vpc/vpc-subnet-controller.tf                     |
+| Roles            |                                               | vpc/vpc-subnet-master.tf                     |
 | Route53          | TF_VAR_route53_zone=example.com               | api server endpoint: api-server.example.com      | 
 
 

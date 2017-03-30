@@ -21,7 +21,7 @@ This implementation presents one of the opportunities for anyone who are interes
 * Kubernetes 1.5.5, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
 * Terraform 0.9.1, with remote state on S3 storage
-* Autoscaling group for each etcd2, controller, worker, and vault cluster for hight availability
+* Autoscaling group for each etcd2, master, node, and vault cluster for hight availability
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
 * Using separated CA/Certs for secure communications between Kubernetes components
@@ -184,7 +184,7 @@ cd apps/gitlab
 ## Teardown
 
 This will delete all Kubernetes deployments provisioned and destroy all AWS resources. You will be asked to confirm when
-AWS resources are to be destroyed. This includes vault data, remote terraform state. You rarely do this unless you are doing development work.
+AWS resources are to be destroyed. This includes vault data, remote terraform state. You rarely do this unless you are doing development node.
 
 ```
 $ make teardown
