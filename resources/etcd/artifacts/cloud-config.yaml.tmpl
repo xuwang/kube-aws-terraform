@@ -2,9 +2,9 @@
 coreos:
   etcd2:
     advertise-client-urls: https://$private_ipv4:2379
-    initial-advertise-peer-urls: http://$private_ipv4:2380
+    initial-advertise-peer-urls: https://$private_ipv4:2380
     # http only on loopback interface.
-    listen-client-urls: http://127.0.0.1:2379,https://0.0.0.0:2379
+    listen-client-urls: http://127.0.0.1:4001,https://0.0.0.0:2379
     listen-peer-urls: https://$private_ipv4:2380
   update:
     reboot-strategy: etcd-lock
@@ -82,10 +82,10 @@ write_files:
         /opt/bin/s3get.sh ${CONFIG_BUCKET} pki-tokens/etcd-server /opt/etc/pki-tokens/etcd-server
 
         # Wait for vault service
-        retry=5
+        retry=20
         until vault status || [[ $retry -eq 0 ]];
         do
-          sleep 3
+          sleep 5
           let "retry--"
         done
         if [ $retry -eq 0 ];
@@ -113,17 +113,17 @@ write_files:
     owner: root
     content: |
       # For locksmothclt client to connect etcd cluster through TLS
-      export LOCKSMITHCTL_ENDPOINT=http://127.0.0.1:2379
+      export LOCKSMITHCTL_ENDPOINT=http://127.0.0.1:4001
 
   - path: /etc/profile.d/etcdctl.sh
     permissions: 0644
     owner: root
     content: |
       # For etcdctl client to connect server through TLS
-      # export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-      # export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
-      # export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
-      export ETCDCTL_ENDPOINTS=http://127.0.0.1:2379
+      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
+      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
+      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+      export ETCDCTL_ENDPOINTS=http://127.0.0.1:4001
 
   - path: /etc/profile.d/vault.sh
     permissions: 0644
@@ -142,11 +142,12 @@ write_files:
       # dyamically create/join the etcd cluster by querying autoscaling group
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
-      /usr/bin/docker run --rm  -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=http --env ETCD_CLIENT_SCHEME=https $image
+      /usr/bin/docker run --rm  -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
 
       # upload etcd initial-cluster urls to s3 bucket for kube peers.
-      if  etcd_initial_cluster=$(grep ETCD_INITIAL_CLUSTER= /etc/sysconfig/initial-cluster)
+      if  etcd_initial_cluster=$(grep ETCD_INITIAL_CLUSTER= /etc/sysconfig/etcd-peers)
       then
+        cat $etcd_initial_cluster > /etc/sysconfig/initial-cluster
         /opt/bin/s3put.sh ${CONFIG_BUCKET} etc/sysconfig/initial-cluster /etc/sysconfig/initial-cluster
       else
         echo "ERROR: /etc/sysconfig/initial-cluster doesn't have ETCD_INITIAL_CLUSTER."
@@ -163,12 +164,12 @@ write_files:
         ETCD_CERT_FILE=/etc/etcd/certs/etcd-server.pem
         ETCD_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
         ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
-        # ETCD_CLIENT_CERT_AUTH=true
+        ETCD_CLIENT_CERT_AUTH=true
 
   - path: /etc/locksmithd/locksmithd-envs
     permissions: 0644
     owner: root
     content: |
-        LOCKSMITHD_ENDPOINT=http://127.0.0.1:2379
+        LOCKSMITHD_ENDPOINT=http://127.0.0.1:4001
         LOCKSMITHD_REBOOT_WINDOW_START=05:30
         LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h

@@ -3,7 +3,7 @@
 coreos:
   etcd2:
     proxy: on
-    listen-client-urls: http://127.0.0.1:2379,https://0.0.0.0:2379
+    listen-client-urls: http://127.0.0.1:2379
   update:
     reboot-strategy: etcd-lock
   locksmith:
@@ -144,9 +144,9 @@ write_files:
     owner: root
     content: |
       # For etcdctl client to connect server through TLS
-      # export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-      # export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
-      # export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
+      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
+      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
       export ETCDCTL_ENDPOINTS=http://127.0.0.1:2379
 
   - path: /etc/profile.d/vault.sh
