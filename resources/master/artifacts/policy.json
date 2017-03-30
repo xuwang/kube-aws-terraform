@@ -26,13 +26,17 @@
     {
       "Effect": "Allow",
       "Action": [
-        "s3:*"
+        "s3:List*",
+        "s3:Get*"
       ],
       "Resource": [
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit/*",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/*"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etc",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etc/*",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/master",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/master/*",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki/ca.pem",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens/kube-apiserver",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens/etcd-server"
       ]
     },
     {

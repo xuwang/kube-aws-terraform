@@ -10,7 +10,7 @@ export PATH=/opt/bin:/opt/etc/vault/scripts:$PATH
 export PATH=/opt/bin:/opt/etc/vault/scripts:$PATH
 
 CLUSTER_ID=$1
-COMPONENTS="etcd-client kube-apiserver"
+COMPONENTS="etcd-server kube-apiserver"
 
 if [ -z "$CLUSTER_ID" ];
 then
@@ -23,12 +23,12 @@ create_pki() {
     $DIR/create_ca.sh $CLUSTER_ID/pki/$pki_name
 }
 create_pki_role_etcd_client() {
-    vault write $CLUSTER_ID/pki/etcd-client/roles/etcd-client \
+    vault write $CLUSTER_ID/pki/etcd-server/roles/etcd-server \
         allow_domains="cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
         allow_subdomains=true \
         allow_any_name=true \
         ttl=87600h0m0s
-    vault read $CLUSTER_ID/pki/etcd-client/roles/etcd-client
+    vault read $CLUSTER_ID/pki/etcd-server/roles/etcd-server
 }
 
 create_pki_role_kube_apiserver() {
@@ -60,7 +60,7 @@ create_auth_role() {
   vault write auth/token/roles/kube-$CLUSTER_ID \
   period="4200h" \
   orphan=true \
-  allowed_policies="$CLUSTER_ID/pki/etcd-client/etcd-client,$CLUSTER_ID/pki/kube-apiserver/kube-apiserver"
+  allowed_policies="$CLUSTER_ID/pki/etcd-server/etcd-server,$CLUSTER_ID/pki/kube-apiserver/kube-apiserver"
 }
 create_auth_token() {
   token_path=$1
@@ -82,14 +82,14 @@ create_auth_token() {
   #shred -z $TMPDIR/token
 }
 
-create_pki etcd-client
+create_pki etcd-server
 create_pki_role_etcd_client
-create_role_policy etcd-client etcd-client
+create_role_policy etcd-server etcd-server
 create_pki kube-apiserver
 create_pki_role_kube_apiserver
 create_role_policy kube-apiserver kube-apiserver
 
 # Create role and associated polices
 create_auth_role
-create_auth_token pki/etcd-client/etcd-client etcd-client
+create_auth_token pki/etcd-server/etcd-server etcd-server
 create_auth_token pki/kube-apiserver/kube-apiserver kube-apiserver

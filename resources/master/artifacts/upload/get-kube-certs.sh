@@ -1,7 +1,9 @@
 #!/bin/bash
 # Request Kubernetes certificates.
-export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
+source /etc/profile.d/vault.sh
+source /etc/environment
+source /opt/etc/master/envvars
+
 export PATH=/opt/bin/:$PATH
 cert_paths="/var/lib/kubernetes /etc/etcd/certs"
 /opt/bin/s3sync.sh > /dev/null 2>&1
@@ -26,9 +28,9 @@ do
     export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/$token_name)
     vault write -format=json \
       ${CLUSTER_NAME}/pki/$token_name/issue/$token_name common_name=$(hostname --fqdn) \
-      alt_names="kube-$private_ipv4.cluster.local,kubernetes.default,*.cluster.local,*.${CLUSTER_INTERNAL_ZONE},${KUBE_API_SERVICE},${KUBE_API_DNSNAME}" \
+      alt_names="kube-$COREOS_PRIVATE_IPV4.cluster.local,kubernetes.default,*.cluster.local,*.${CLUSTER_INTERNAL_ZONE},${KUBE_API_SERVICE},${KUBE_API_DNSNAME}" \
       ttl=43800h0m0s \
-      ip_sans="127.0.0.1,$private_ipv4" >  /tmp/ca-bundle.certs
+      ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4" >  /tmp/ca-bundle.certs
     if [ ! -s /tmp/ca-bundle.certs ]; then
       echo "/tmp/ca-bundle.certs doesn't exist or has zero size."
       exit 1

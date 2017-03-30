@@ -79,6 +79,7 @@ resource "aws_security_group" "etcd"  {
     from_port = 2380
     to_port = 2380
     protocol = "tcp"
+    security_groups = ["${data.terraform_remote_state.master.security_group_kubernetes}"]
     self = true
   }
 

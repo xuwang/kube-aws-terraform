@@ -62,7 +62,7 @@
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/node",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/node/*"
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki/ca.pem"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki/ca.pem",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens/kube-apiserver"
       ]
