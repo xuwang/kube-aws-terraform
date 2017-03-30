@@ -2,9 +2,9 @@
 coreos:
   etcd2:
     advertise-client-urls: https://$private_ipv4:2379
-    initial-advertise-peer-urls: https://$private_ipv4:2380
+    initial-advertise-peer-urls: http://$private_ipv4:2380
     listen-client-urls: https://0.0.0.0:2379
-    listen-peer-urls: https://$private_ipv4:2380
+    listen-peer-urls: http://$private_ipv4:2380
   update:
     reboot-strategy: etcd-lock
   locksmith:
@@ -78,7 +78,7 @@ write_files:
         export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
         export PATH=/opt/bin/:$PATH
         /opt/bin/s3get.sh ${CONFIG_BUCKET} pki/ca.pem /opt/etc/vault/ca/ca.pem
-        /opt/bin/s3get.sh ${CONFIG_BUCKET} pki-tokens/etcd-member /opt/etc/pki-tokens/etcd-member
+        /opt/bin/s3get.sh ${CONFIG_BUCKET} pki-tokens/etcd-client /opt/etc/pki-tokens/etcd-client
 
         # Wait for vault service
         retry=5
@@ -93,16 +93,16 @@ write_files:
           exit 1
         fi
         # Vault PKI Token
-        export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/etcd-member)
+        export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/etcd-client)
         mkdir -p /etc/etcd/certs && cd /etc/etcd/certs
-        vault write -format=json ${CLUSTER_NAME}/pki/etcd-member/issue/etcd-member common_name=$(hostname --fqdn) \
+        vault write -format=json ${CLUSTER_NAME}/pki/etcd-client/issue/etcd-client common_name=$(hostname --fqdn) \
           alt_names="kube-$private_ipv4.cluster.local,*.cluster.local" \
           ttl=43800h0m0s \
           ip_sans="127.0.0.1,$private_ipv4" >  kube-bundle.certs
         if [ -s kube-bundle.certs ]; then
-            cat kube-bundle.certs | jq -r ".data.certificate" > /etc/etcd/certs/etcd-member.pem
-            cat kube-bundle.certs | jq -r ".data.private_key" > /etc/etcd/certs/etcd-member-key.pem
-            cat kube-bundle.certs | jq -r ".data.issuing_ca" > /etc/etcd/certs/etcd-member-ca.pem
+            cat kube-bundle.certs | jq -r ".data.certificate" > /etc/etcd/certs/etcd-client.pem
+            cat kube-bundle.certs | jq -r ".data.private_key" > /etc/etcd/certs/etcd-client-key.pem
+            cat kube-bundle.certs | jq -r ".data.issuing_ca" > /etc/etcd/certs/etcd-client-ca.pem
         else
             echo "kube-bundle.certs doesn't exist."
             exit 1
@@ -112,9 +112,9 @@ write_files:
     owner: root
     content: |
       # For locksmothclt client to connect etcd cluster through TLS
-      export LOCKSMITHCTL_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem
-      export LOCKSMITHCTL_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem
-      export LOCKSMITHCTL_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem
+      export LOCKSMITHCTL_ETCD_CERTFILE=/etc/etcd/certs/etcd-client.pem
+      export LOCKSMITHCTL_ETCD_KEYFILE=/etc/etcd/certs/etcd-client-key.pem
+      export LOCKSMITHCTL_ETCD_CAFILE=/etc/etcd/certs/etcd-client-ca.pem
       export LOCKSMITHCTL_ENDPOINT=https://127.0.0.1:2379
 
   - path: /etc/profile.d/etcdctl.sh
@@ -122,9 +122,9 @@ write_files:
     owner: root
     content: |
       # For etcdctl client to connect server through TLS
-      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-member.pem
-      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
-      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
+      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-client.pem
+      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-client-key.pem
+      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-client-ca.pem
       export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
 
   - path: /etc/profile.d/vault.sh
@@ -144,29 +144,26 @@ write_files:
       # dyamically create/join the etcd cluster by querying autoscaling group
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
-      /usr/bin/docker run --rm  -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
+      /usr/bin/docker run --rm  -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=http --env ETCD_CLIENT_SCHEME=https $image
 
-      # upload etcd initial-cluster urls to s3 bucket for worker cluster's etcd_proxy
-      /usr/bin/docker run --rm -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https --env S3BUCKET="s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit" --entrypoint /etcd-aws-proxy $image
+      # upload etcd initial-cluster urls to s3 bucket for kube master.
+      /usr/bin/docker run --rm -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=http --env ETCD_CLIENT_SCHEME=https --env S3BUCKET="s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit" --entrypoint /etcd-aws-proxy $image
 
   - path: /etc/etcd/cert-envs
     permissions: 0644
     owner: root
     content: |
-        ETCD_CERT_FILE=/etc/etcd/certs/etcd-member.pem
-        ETCD_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
-        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
-        ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-member.pem
-        ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-member-key.pem
-        ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-member-ca.pem
+        ETCD_CERT_FILE=/etc/etcd/certs/etcd-client.pem
+        ETCD_KEY_FILE=/etc/etcd/certs/etcd-client-key.pem
+        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-client-ca.pem
 
   - path: /etc/locksmithd/locksmithd-envs
     permissions: 0644
     owner: root
     content: |
-        LOCKSMITHD_ETCD_CERTFILE=/etc/etcd/certs/etcd-member.pem
-        LOCKSMITHD_ETCD_KEYFILE=/etc/etcd/certs/etcd-member-key.pem
-        LOCKSMITHD_ETCD_CAFILE=/etc/etcd/certs/etcd-member-ca.pem
+        LOCKSMITHD_ETCD_CERTFILE=/etc/etcd/certs/etcd-client.pem
+        LOCKSMITHD_ETCD_KEYFILE=/etc/etcd/certs/etcd-client-key.pem
+        LOCKSMITHD_ETCD_CAFILE=/etc/etcd/certs/etcd-client-ca.pem
         LOCKSMITHD_ENDPOINT=https://127.0.0.1:2379
         LOCKSMITHD_REBOOT_WINDOW_START=05:30
         LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h

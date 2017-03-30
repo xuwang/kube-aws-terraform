@@ -1,7 +1,7 @@
 module "etcd" {
   source = "../modules/cluster-no-opt-data"
 
-  # cluster varaiables
+  # cluster variables
   asg_name = "${var.cluster_name}-etcd"
   cluster_name = "${var.cluster_name}"
 
@@ -9,7 +9,7 @@ module "etcd" {
   cluster_vpc_zone_identifiers =
     [ "${data.terraform_remote_state.vpc.etcd_zone_ids}" ]
 
-  # for etcd, cluster_min_size = cluster_max_size = cluster_desired_capacity = <odd number> 
+  # for etcd, cluster_min_size = cluster_max_size = cluster_desired_capacity = <odd number>
   cluster_min_size = "${var.cluster_min_size}"
   cluster_max_size = "${var.cluster_max_size}"
   cluster_desired_capacity = "${var.cluster_desired_capacity}"
@@ -34,17 +34,17 @@ module "etcd" {
 
 
 data "template_file" "user_data" {
-    template = "${file("${var.artifacts_dir}/cloud-config/user-data-s3-bootstrap.sh")}"
+    template = "${file("${var.artifacts_dir}/user-data-s3-bootstrap.sh")}"
 
     # explicitly wait for these configurations to be uploaded to s3 buckets
-    depends_on = ["aws_s3_bucket_object.envvars",
-                  "aws_s3_bucket_object.etcd_cloud_config"]
+    depends_on = [ "aws_s3_bucket_object.etcd_cloud_config" ]
 
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
         "MODULE_NAME" = "${var.module_name}"
+        "CUSTOM_TAG" = "${var.module_name}"
     }
 }
 
@@ -61,7 +61,7 @@ resource "aws_security_group" "etcd"  {
   vpc_id = "${data.terraform_remote_state.vpc.cluster_vpc_id}"
   description = "etcd"
   # Hacker's note: the cloud_config has to be uploaded to s3 before instances fireup
-  # but module can't have 'depends_on', so we have to make 
+  # but module can't have 'depends_on', so we have to make
   # this indrect dependency through security group
   #depends_on = ["aws_s3_bucket_object.etcd_cloud_config"]
   lifecycle { create_before_destroy = true }
@@ -79,7 +79,7 @@ resource "aws_security_group" "etcd"  {
     from_port = 2380
     to_port = 2380
     protocol = "tcp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.cluster_vpc_cidr}"]
+    self = true
   }
 
   # Allow etcd clients to communicate

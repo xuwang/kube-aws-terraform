@@ -38,7 +38,7 @@ resource "aws_autoscaling_attachment" "asg_attachment_vault" {
 }
 
 data "template_file" "user_data" {
-    template = "${file("${var.artifacts_dir}/cloud-config/user-data-s3-bootstrap.sh")}"
+    template = "${file("${var.artifacts_dir}/user-data-s3-bootstrap.sh")}"
 
     # explicitly wait for these configurations to be uploaded to s3 buckets
     depends_on = ["aws_s3_bucket_object.vault_cnf",
@@ -51,6 +51,7 @@ data "template_file" "user_data" {
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
         "MODULE_NAME" = "${var.module_name}"
+        "CUSTOM_TAG" = "${var.module_name}"
     }
 }
 

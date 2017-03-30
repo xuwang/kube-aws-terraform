@@ -8,10 +8,21 @@
       ],
       "Resource": [
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit/*",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-cloudinit/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:List*",
+        "s3:Get*"
+      ],
+      "Resource": [
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etcd",
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etcd/*"
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etcd/*",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki/ca.pem",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens/etcd-client"
       ]
     },
     {
