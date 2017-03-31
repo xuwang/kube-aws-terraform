@@ -83,9 +83,9 @@ coreos:
           --cloud-provider=aws \
           --enable-swagger-ui=true \
           --etcd-servers=http://127.0.0.1:2379 \
-          --etcd-cafile=/var/lib/kubernetes/etcd-server-ca.pem \
-          --etcd-certfile=/var/lib/kubernetes/etcd-server.pem \
-          --etcd-keyfile=/var/lib/kubernetes/etcd-server-key.pem \
+          --etcd-cafile=/etc/etcd/certs/etcd-server-ca.pem \
+          --etcd-certfile=/etc/etcd/certs/etcd-server.pem \
+          --etcd-keyfile=/etc/etcd/certs/etcd-server-key.pem \
           --insecure-bind-address=0.0.0.0 \
           --kubelet-certificate-authority=/var/lib/kubernetes/kube-apiserver-ca.pem \
           --kubelet-client-certificate=/var/lib/kubernetes/kube-apiserver.pem \
@@ -144,8 +144,8 @@ write_files:
     owner: root
     content: |
       # For etcdctl client to connect server through TLS
-      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
+      #export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
+      #export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
       export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
       export ETCDCTL_ENDPOINTS=http://127.0.0.1:2379
 

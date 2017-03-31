@@ -120,8 +120,8 @@ write_files:
     owner: root
     content: |
       # For etcdctl client to connect server through TLS
-      export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-      export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
+      #export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
+      #export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
       export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
       export ETCDCTL_ENDPOINTS=http://127.0.0.1:4001
 
@@ -142,16 +142,22 @@ write_files:
       # dyamically create/join the etcd cluster by querying autoscaling group
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
-      /usr/bin/docker run --rm  -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
-
-      # upload etcd initial-cluster urls to s3 bucket for kube peers.
-      if  etcd_initial_cluster=$(grep ETCD_INITIAL_CLUSTER= /etc/sysconfig/etcd-peers)
+      /usr/bin/docker run --rm --name=etcd-init -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
+      # Upload etcd initial-cluster urls to s3 bucket for kube peers. Wait a bit for the etcd-peers file to be ready
+      mkdir -p /etc/sysconfig
+      retry=20
+      until etcd_initial_cluster=$(grep ETCD_INITIAL_CLUSTER= /etc/sysconfig/etcd-peers) || [[ $retry -eq 0 ]];
+      do
+        sleep 5
+        let "retry--"
+      done
+      if [ $retry -eq 0 ];
       then
-        cat $etcd_initial_cluster > /etc/sysconfig/initial-cluster
-        /opt/bin/s3put.sh ${CONFIG_BUCKET} etc/sysconfig/initial-cluster /etc/sysconfig/initial-cluster
-      else
         echo "ERROR: /etc/sysconfig/initial-cluster doesn't have ETCD_INITIAL_CLUSTER."
+        exit 1
       fi
+      echo $etcd_initial_cluster > /etc/sysconfig/initial-cluster
+      /opt/bin/s3put.sh ${CONFIG_BUCKET} etc/sysconfig /etc/sysconfig/initial-cluster
 
   - path: /etc/etcd/cert-envs
     permissions: 0644
@@ -164,7 +170,7 @@ write_files:
         ETCD_CERT_FILE=/etc/etcd/certs/etcd-server.pem
         ETCD_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
         ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
-        ETCD_CLIENT_CERT_AUTH=true
+        #ETCD_CLIENT_CERT_AUTH=true
 
   - path: /etc/locksmithd/locksmithd-envs
     permissions: 0644

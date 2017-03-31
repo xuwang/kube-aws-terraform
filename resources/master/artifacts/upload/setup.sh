@@ -5,7 +5,7 @@ GET=/opt/bin/s3get.sh
 $GET ${CONFIG_BUCKET} pki/ca.pem /opt/etc/vault/ca/ca.pem
 $GET ${CONFIG_BUCKET} pki-tokens/kube-apiserver /opt/etc/pki-tokens/kube-apiserver
 $GET ${CONFIG_BUCKET} pki-tokens/etcd-server /opt/etc/pki-tokens/etcd-server
-$GET ${CONFIG_BUCKET} etcd-init/initial-cluster /etc/sysconfig/initial-cluster
+$GET ${CONFIG_BUCKET} etc/sysconfig/initial-cluster /etc/sysconfig/initial-cluster
 
 $GET ${CONFIG_BUCKET} master/envvars /opt/etc/master/envvars
 source /opt/etc/master/envvars
@@ -23,9 +23,9 @@ then
   touch /opt/etc/master/kube-${KUBE_VERSION}
 fi
 
-# Generate certs for etcd and kube-apiserver
-mkdir -p /var/lib/kubernetes/
-bash get-kube-certs.sh kube-apiserver etcd-server
+# Generate certs from vualt pki for etcd and kube-apiserver
+bash get-certs.sh etcd-server $(cat /opt/etc/pki-tokens/etcd-server) /etc/etcd/certs
+bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
 
 # Copy kube policy.jsonl and token.csv to /var/lib/kubernetes/
 # Note: token.csv will be copied to upload by "make upload-config"
