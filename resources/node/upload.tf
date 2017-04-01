@@ -36,6 +36,7 @@ data "template_file" "envvars" {
         "ROUTE53_ZONE_NAME" = "${var.route53_zone_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
+        "CNI_PLUGIN_URL" = "${var.cni_plugin_url}"
         "KUBE_VERSION" = "${var.kube_version}"
         "KUBE_API_DNSNAME" = "${var.kube_api_dnsname}"
         "KUBE_API_SERVICE" = "${var.kube_api_service}"
@@ -52,7 +53,7 @@ resource "aws_s3_bucket_object" "kubeconfig" {
 data "template_file" "kubeconfig" {
     template = "${file("./artifacts/upload-templates/kubeconfig")}"
     vars {
-        "CLUSTER_INTERNAL_ZONE" = ${var.cluster_internal_zone}
+        "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
         "KUBELET_TOKEN" = "${var.kubelet_token}"
     }
 }

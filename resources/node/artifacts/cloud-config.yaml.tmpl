@@ -70,8 +70,8 @@ coreos:
         [Unit]
         Description=Kubernetes Kubelet
         Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-        After=docker.service install-cert.service
-        Requires=docker.service install-cert.service
+        After=docker.service
+        Requires=docker.service
         ConditionPathExists=/var/lib/kubelet/kubeconfig
         [Service]
         ExecStart=/opt/bin/kubelet \
@@ -100,8 +100,6 @@ coreos:
         [Unit]
         Description=Kubernetes Kube Proxy
         Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-        After=install-cert.service
-        Requires=install-cert.service
         [Service]
         ExecStart=/opt/bin/kube-proxy \
           --master=https://api-server.${CLUSTER_INTERNAL_ZONE}:6443 \
@@ -130,7 +128,7 @@ write_files:
       # For vault client to connect server through TLS
       export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
       export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-      
+
   - path: /etc/systemd/system/docker.service.d/50-iptables.conf
     content: |
         [Service]

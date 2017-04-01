@@ -1,6 +1,7 @@
 # Env for node
 
 export MODULE=node
+export TF_VAR_module_name=${MODULE}
 
 # nodes ASG override
 export TF_VAR_instance_type="t2.medium"

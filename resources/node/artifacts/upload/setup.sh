@@ -14,14 +14,24 @@ then
   docker run --rm -v /opt/bin:/tmp ${VAULT_IMAGE} cp /bin/vault /tmp/vault
   touch  /opt/etc/${MODULE_NAME}/${VAULT_IMAGE}
 fi
-# Install kubernetes
+s
+# Install CNI plugin and kubernetes
+if [ ! -f /opt/etc/${MODULE_NAME}/${CNI_PLUGIN_URL} ];
+then
+  mkdir -p /opt/cni
+  wget ${CNI_PLUGIN_URL}
+  tar -xvf $(basename ${CNI_PLUGIN_URL}) -C /opt/cni
+fi
 if [ ! -f /opt/etc/${MODULE_NAME}/kube-${KUBE_VERSION} ]
 then
-  docker run --env VERSION="${KUBE_VERSION}" --net=host --env COMPONENTS='kube-proxy kubelet kubectl' --rm -v /opt/bin:/shared xueshanf/install-kubernetes"
+  docker run --env VERSION="${KUBE_VERSION}" --net=host --env COMPONENTS='kube-proxy kubelet kubectl' --rm -v /opt/bin:/shared xueshanf/install-kubernetes
   touch /opt/etc/${MODULE_NAME}/kube-${KUBE_VERSION}
 fi
 
-# Generate certs from vualt pki: <issuer endpoint> <auth token> <install path> 
+$GET ${CONFIG_BUCKET} ${MODULE_NAME}/kubeconfig /var/lib/kubelet/kubeconfig
+echo "export KUBECONFIG=/var/lib/kubelet/kubeconfig" > /etc/profile.d/kubeconfig.sh
+
+# Generate certs from vualt pki: <issuer endpoint> <auth token> <install path>
 bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
 
 # Copy kube policy.jsonl and token.csv to /var/lib/kubernetes/
