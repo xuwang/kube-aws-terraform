@@ -63,37 +63,7 @@ coreos:
               [Service]
               Restart=always
               RestartSec=5
-    - name: s3sync.service
-      command: start
-      content: |
-        [Unit]
-        Description=Sync files from S3
-        Wants=docker.service
-        After=docker.service
-        ConditionPathExists=/opt/bin/s3sync.json
-        [Service]
-        EnvironmentFile=/etc/environment
-        TimeoutStartSec=10min
-        ExecStartPre=-/usr/bin/docker rm s3sync
-        ExecStart=/opt/bin/s3sync.sh
-        [Install]
-        WantedBy=multi-user.target
-    - name: install-kubernetes.service
-      command: start
-      content: |
-        [Unit]
-        Description=Install Kubenetes binaries
-        Requires=docker.service opt-data.mount
-        After=docker.service opt-data.mount
-        [Service]
-        Type=oneshot
-        RemainAfterExit=true
-        ExecStartPre=/bin/bash -c "mkdir -p /opt/cni; \
-              wget ${CNI_PLUGIN_URL} ; \
-              tar -xvf $(basename ${CNI_PLUGIN_URL}) -C /opt/cni "
-        ExecStart=/bin/bash -c "docker run  --env VERSION="${KUBE_VERSION}" --net=host --env COMPONENTS='kube-proxy kubelet kubectl' --rm -v /opt/bin:/shared xueshanf/install-kubernetes"
-        [Install]
-        WantedBy=multi-user.target
+
     - name: kubelet.service
       command: start
       content: |
@@ -143,30 +113,7 @@ coreos:
         RestartSec=5
         [Install]
         WantedBy=multi-user.target
-    - name: install-vault.service
-      command: start
-      enable: true
-      content: |
-        [Unit]
-        Description=Install Vault binary
-        Wants=s3sync.service
-        After=s3sync.service
-        [Service]
-        Type=oneshot
-        RemainAfterExit=true
-        ExecStart=/usr/bin/docker run --net=host --rm -v /opt/bin:/tmp vault:${VAULT_RELEASE} cp /bin/vault /tmp/vault
-    - name: install-cert.service
-      command: start
-      enable: true
-      content: |
-        [Unit]
-        Description=Install Kubernetes cert from Vault
-        Wants=install-vault.service s3sync.service
-        After=install-vault.service s3sync.service
-        [Service]
-        Type=oneshot
-        RemainAfterExit=true
-        ExecStart=/bin/bash -c "[ -x /opt/bin/vault ] &&  /opt/bin/get-kube-certs.sh "
+
 write_files:
   - path: /etc/profile.d/alias.sh
     permissions: 0755
@@ -175,97 +122,7 @@ write_files:
       role=$(curl 169.254.169.254/latest/meta-data/iam/info -s | \
               jq --raw-output '.InstanceProfileArn' | sed 's%.*instance-profile/%%')
       PS1="\[\033[01;32m\]\u@\h\[\033[01;34m\]-$role \w \$\[\033[00m\] "
-  - path: /opt/bin/s3sync.sh
-    permissions: 0755
-    owner: root
-    content: |
-        #!/bin/bash
-        AWS_CONFIG_ENV=/root/.aws/envvars
-        S3SYNC_CONF=/opt/bin/s3sync.json
-        [[ ! -f $AWS_CONFIG_ENV ]] && echo "$AWS_CONFIG_ENV doesn't exit." && exit 0
-        IMAGE=suet/awscli:latest
-        if [[ ! -f $S3SYNC_CONF ]];
-        then
-          echo "$S3SYNC_CONF doesn't exist."
-          exit 1
-        fi
-        arr=( $(jq 'keys[]' $S3SYNC_CONF) )
-        for i in $${arr[@]}
-        do
-          source=$(cat $S3SYNC_CONF | jq -r ".$i.source")
-          destination=$(cat $S3SYNC_CONF | jq -r ".$i.destination")
-          excludes=$(cat $S3SYNC_CONF | jq -r ".$i.excludes")
-          if [ "$excludes" = "null" ];
-          then
-              s3command="aws s3 sync --exact-timestamps --delete $source $destination"
-          fi
-          # sync s3 apps to destination
-          docker run --net=host --rm --name s3sync -v $destination:$destination --env-file=$AWS_CONFIG_ENV $IMAGE /bin/bash -c "$s3command"
-          # Kind of a hack
-          if [ -d $destination/bin ];
-          then
-            chmod 755 $destination/bin/*
-          fi
-        done
-  - path: /opt/bin/s3sync.json
-    permissions: 0644
-    owner: root
-    content: |
-      {
-          "cACerts": {
-            "source":   "s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki",
-            "destination": "/opt/etc/vault/ca"
-          },
-          "artifactsUpload": {
-            "source":   "s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/artifacts/${MODULE_NAME}/upload",
-            "destination": "/root/upload",
-            "command": "/root/upload/install.sh"
-          },
-          "caVaultToken": {
-            "source":   "s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki-tokens",
-            "destination": "/opt/etc/pki-tokens"
-          }
-      }
-  - path: /opt/bin/get-kube-certs.sh
-    permissions: 0755
-    owner: root
-    content: |
-        #!/bin/bash
-        export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-        export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
-        export PATH=/opt/bin/:$PATH
 
-        # Wait for vault service
-        retry=5
-        until vault status || [[ $retry -eq 0 ]];
-        do
-          sleep 3
-          let "retry--"
-        done
-        if [ $retry -eq 0 ];
-          then
-          echo "Vault service is not ready."
-          exit 1
-        fi
-        # Vault PKI Token
-        export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/kube-apiserver)
-        cert_path=/var/lib/kubernetes
-        vault write -format=json ${CLUSTER_NAME}/pki/kube-apiserver/issue/kube-apiserver common_name=$(hostname --fqdn) \
-            alt_names="kube-$private_ipv4.cluster.local,*.cluster.local,kubernetes.default" \
-            ttl=43800h0m0s \
-            ip_sans="127.0.0.1,$private_ipv4,${KUBE_API_SERVICE}" >  /tmp/kube-bundle.certs
-        cert_paths="/var/lib/kubernetes"
-        if [ ! -s /tmp/kube-bundle.certs ]; then
-          echo "/tmp/kube-bundle.certs doesn't exist or has zero size."
-          exit 1
-        fi
-        for i in $cert_paths
-        do
-          mkdir -p $i
-          cat /tmp/kube-bundle.certs | jq -r ".data.certificate" > $i/kube-apiserver.pem
-          cat /tmp/kube-bundle.certs | jq -r ".data.private_key" > $i/kube-apiserver-key.pem
-          cat /tmp/kube-bundle.certs | jq -r ".data.issuing_ca" > $i/kube-apiserver-ca.pem
-        done
   - path: /etc/profile.d/vault.sh
     permissions: 0644
     owner: root
@@ -273,53 +130,8 @@ write_files:
       # For vault client to connect server through TLS
       export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
       export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-
-  - path: /var/lib/kubelet/kubeconfig
-    permissions: 0644
-    owner: root
-    content: |
-        apiVersion: v1
-        kind: Config
-        clusters:
-          - name: kubernetes
-            cluster:
-              certificate-authority: /var/lib/kubernetes/kube-apiserver-ca.pem
-              server: https://api-server.${CLUSTER_INTERNAL_ZONE}:6443
-        contexts:
-          - name: kubelet
-            context:
-              cluster: kubernetes
-              user: kubelet
-        current-context: kubelet
-        users:
-          - name: kubelet
-            user:
-              token: ${KUBELET_TOKEN}
-  - path: /etc/systemd/system/docker.service.d/50-insecure-registry.conf
+      
+  - path: /etc/systemd/system/docker.service.d/50-iptables.conf
     content: |
         [Service]
-        Environment='DOCKER_OPTS=--insecure-registry=10.240.0.0/16 --iptables=false --ip-masq=false'
-  - path: /etc/aws/account.envvars
-    permissions: 0644
-    owner: root
-    content: |
-        AWS_ACCOUNT=${AWS_ACCOUNT}
-        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-        CLUSTER_NAME=${CLUSTER_NAME}
-  - path: /root/.aws/envvars
-    permissions: 0600
-    owner: root
-    content: |
-        AWS_ACCOUNT=${AWS_ACCOUNT}
-        AWS_USER=${AWS_USER}
-        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-  - path: /root/.aws/config
-    permissions: 0600
-    owner: root
-    content: |
-        [default]
-        aws_access_key_id=${AWS_ACCESS_KEY_ID}
-        aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
-        region=${AWS_DEFAULT_REGION}
+        Environment='DOCKER_OPTS=--iptables=false --ip-masq=false'

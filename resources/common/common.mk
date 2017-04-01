@@ -118,12 +118,12 @@ remote: update-profile
 		aws s3 --profile ${AWS_PROFILE} \
 			mb s3://${TF_REMOTE_STATE_BUCKET} --region ${TF_REMOTE_STATE_REGION}; \
 		sleep 30; \
-		if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
-		then \
-			echo Enable versioning... ; \
-			aws s3api --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} put-bucket-versioning \
-				--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
-    fi ; \
+	fi
+	if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
+	then \
+		echo Enable versioning... ; \
+		aws s3api --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} put-bucket-versioning \
+			--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
 	fi
 	# Terraform remote S3 backend init
 	terraform init

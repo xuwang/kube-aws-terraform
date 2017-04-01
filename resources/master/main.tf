@@ -1,7 +1,7 @@
 module "master" {
   source = "../modules/cluster-no-opt-data"
 
-  # cluster varaiable
+  # cluster variables
   asg_name = "${var.cluster_name}-master"
   cluster_name = "${var.cluster_name}"
 
@@ -9,7 +9,7 @@ module "master" {
   cluster_vpc_zone_identifiers =
     [ "${data.terraform_remote_state.vpc.master_zone_ids}" ]
 
-  # Cluster specifications
+  # Instance specifications
   cluster_min_size = "${var.cluster_min_size}"
   cluster_max_size = "${var.cluster_max_size}"
   cluster_desired_capacity = "${var.cluster_desired_capacity}"
@@ -20,7 +20,7 @@ module "master" {
   image_type = "${var.instance_type}"
   keypair = "${var.cluster_name}-master"
 
-  # Note: currently master launch_configuration devices can NOT be changed after master cluster is up
+  # Note: currently launch_configuration devices can NOT be changed after the ASG is up
   # See https://github.com/hashicorp/terraform/issues/2910
   # Instance disks
   root_volume_type = "gp2"

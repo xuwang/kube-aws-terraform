@@ -1,7 +1,7 @@
 module "node" {
   source = "../modules/cluster"
 
-  # cluster varaiables
+  # cluster variables
   cluster_name = "${var.cluster_name}"
   asg_name = "${var.cluster_name}-node"
   # a list of subnet IDs to launch resources in.
@@ -17,13 +17,13 @@ module "node" {
   image_type = "${var.instance_type}"
   keypair = "${var.cluster_name}-node"
 
-  # Note: currently node launch_configuration devices can NOT be changed after node cluster is up
+  # Note: currently launch_configuration devices can NOT be changed after the ASG is up
   # See https://github.com/hashicorp/terraform/issues/2910
   # Instance disks
   root_volume_type = "gp2"
-  root_volume_size = 12
+  root_volume_size = 50
   docker_volume_type = "gp2"
-  docker_volume_size = 12
+  docker_volume_size = 50
   data_volume_type = "gp2"
   data_volume_size = 100
 
@@ -32,44 +32,18 @@ module "node" {
 }
 
 data "template_file" "user_data" {
-    template = "${file("${var.artifacts_dir}/cloud-config/s3-cloudconfig-bootstrap.sh.tmpl")}"
-    vars {
-        "CLUSTER_NAME" = "${var.cluster_name}"
-    }
-}
+    template = "${file("${var.artifacts_dir}/user-data-s3-bootstrap.sh")}"
 
-# Upload CoreOS cloud-config to a s3 bucket; s3-cloudconfig-bootstrap script in user-data will download
-# the cloud-config upon reboot to configure the system. This avoids rebuilding machines when
-# changing cloud-config.
-resource "aws_s3_bucket_object" "node_cloud_config" {
-  bucket = "${data.terraform_remote_state.s3.s3_cloudinit_bucket}"
-  key = "${var.cluster_name}-node/cloud-config.yaml"
-  content = "${data.template_file.node_cloud_config.rendered}"
-}
-data "template_file" "node_cloud_config" {
-    template = "${file("./artifacts/cloud-config.yaml.tmpl")}"
+    # explicitly wait for these configurations to be uploaded to s3 buckets
+    depends_on = [ "aws_s3_bucket_object.envvars",
+                   "aws_s3_bucket_object.node_cloud_config",
+                   "aws_s3_bucket_object.kubeconfig" ]
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
-        "AWS_USER" =
-          "${data.terraform_remote_state.iam.deployment_user}"
-        "AWS_ACCESS_KEY_ID" =
-          "${data.terraform_remote_state.iam.deployment_key_id}"
-        "AWS_SECRET_ACCESS_KEY" =
-          "${data.terraform_remote_state.iam.deployment_key_secret}"
-        "AWS_DEFAULT_REGION" = "${var.aws_account["default_region"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
-        "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
-        "APP_REPOSITORY" = "${var.app_repository}"
-        "GIT_SSH_COMMAND" = "\"${var.git_ssh_command}\""
-        "CNI_PLUGIN_URL" = "${var.cni_plugin_url}"
+        "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
         "MODULE_NAME" = "${var.module_name}"
         "CUSTOM_TAG" = "${var.module_name}"
-        "VAULT_RELEASE" = "${var.vault_release}"
-        "KUBE_API_SERVICE" = "${var.kube_api_service}"
-        "KUBE_DNS_SERVICE" = "${var.kube_dns_service}"
-        "KUBE_CLUSTER_CIDR" = "${var.kube_cluster_cidr}"
-        "KUBE_VERSION" = "${var.kube_version}"
-        "KUBELET_TOKEN" = "${var.kubelet_token}"
     }
 }
 
@@ -85,10 +59,7 @@ resource "aws_security_group" "node"  {
   name = "${var.cluster_name}-node"
   vpc_id = "${data.terraform_remote_state.vpc.cluster_vpc_id}"
   description = "node"
-  # Hacker's note: the cloud_config has to be uploaded to s3 before instances fireup
-  # but module can't have 'depends_on', so we have to make
-  # this indrect dependency through security group
-  depends_on = ["aws_s3_bucket_object.node_cloud_config"]
+  lifecycle { create_before_destroy = true }
 
   # Allow all outbound traffic
   egress {
@@ -106,15 +77,7 @@ resource "aws_security_group" "node"  {
     cidr_blocks = ["${data.terraform_remote_state.vpc.cluster_vpc_cidr}"]
   }
 
-  # Allow access from vpc
-  ingress {
-    from_port = 10
-    to_port = 65535
-    protocol = "udp"
-    cidr_blocks = ["${data.terraform_remote_state.vpc.cluster_vpc_cidr}"]
-  }
-
-  # Allow SSH from my hosts
+  # Allow SSH from pre-defined IP addresses
   ingress {
     from_port = 22
     to_port = 22

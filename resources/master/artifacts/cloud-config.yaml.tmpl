@@ -99,6 +99,7 @@ coreos:
           --v=2
         Restart=on-failure
         RestartSec=5
+        
 write_files:
   - path: /etc/profile.d/alias.sh
     permissions: 0755

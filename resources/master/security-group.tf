@@ -2,10 +2,6 @@ resource "aws_security_group" "kubernetes"  {
   name = "${var.cluster_name}-kubernetes"
   vpc_id = "${data.terraform_remote_state.vpc.cluster_vpc_id}"
   description = "${var.cluster_name} Kubernetes Security Group"
-  # Hacker's note: the cloud_config has to be uploaded to s3 before instances fireup
-  # but module can't have 'depends_on', so we have to make
-  # this indrect dependency through security group
-  #depends_on = ["aws_s3_bucket_object.etcd_cloud_config"]
   lifecycle { create_before_destroy = true }
 
   # Allow all outbound traffic

@@ -43,8 +43,8 @@ fi
 # Vault PKI Token. We store them in both /etc/etcd/certs and /var/lib/kubernetes directories
 export VAULT_TOKEN=$token
 vault write -format=json \
-  ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=kube-apiserver \
-  alt_names="kube-$COREOS_PRIVATE_IPV4.cluster.local,kubernetes.default,*.cluster.local,*.${CLUSTER_INTERNAL_ZONE},${KUBE_API_SERVICE},${KUBE_API_DNSNAME}" \
+  ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=kubelet \
+  alt_names="kubernetes.default,*.cluster.local" \
   ttl=43800h0m0s \
   ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4" >  $issuer_name-bundle.certs
 
