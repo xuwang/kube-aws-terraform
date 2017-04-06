@@ -119,7 +119,7 @@ remote: update-profile
 			mb s3://${TF_REMOTE_STATE_BUCKET} --region ${TF_REMOTE_STATE_REGION}; \
 		sleep 30; \
 	fi
-	if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
+	@if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
 	then \
 		echo Enable versioning... ; \
 		aws s3api --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} put-bucket-versioning \
