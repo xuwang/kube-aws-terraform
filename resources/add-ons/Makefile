@@ -56,7 +56,7 @@ ui: dashboard ## kubectl proxy and open dashboard ui
 	@while ! kubectl get pods -n kube-system -o json -l app=kubernetes-dashboard  | grep ready | grep -q true ; \
 	do \
 		echo Waitting for UI ; \
-		sleep 3 ; \
+		sleep 10 ; \
 	done
 	echo "Connecting to ui..."
 	open "http://127.0.0.1:8001/ui/#/workload?namespace=kube-system"
@@ -74,7 +74,7 @@ metrics: monitor ## open metrics ui
 	@while ! kubectl get pods -n kube-system -o json -l k8s-app=grafana | grep ready | grep -q true ; \
 	do \
 		echo Waitting for granfana ; \
-		sleep 3 ; \
+		sleep 10 ; \
 	done
 	echo "Connecting to Grafana"
 	open "http://127.0.0.1:8002/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana/dashboard/db/pods"
