@@ -75,22 +75,23 @@ write_files:
     owner: root
     content: |
         #!/bin/bash
+        pkg=$(basename $0)
         export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
         export VAULT_CACERT=/opt/etc/vault/ca/ca.pem # cert to communicate with vault server.
         export PATH=/opt/bin/:$PATH
-        /opt/bin/s3get.sh ${CONFIG_BUCKET} pki/ca.pem /opt/etc/vault/ca/ca.pem
-        /opt/bin/s3get.sh ${CONFIG_BUCKET} pki-tokens/etcd-server /opt/etc/pki-tokens/etcd-server
 
-        # Wait for vault service
-        retry=20
-        until vault status || [[ $retry -eq 0 ]];
+        # Wait for vault service for auth token
+        retry=10
+        until [[ -s /opt/etc/pki-tokens/etcd-server ]] || [[ $retry -eq 0 ]];
         do
-          sleep 5
+          /opt/bin/s3get.sh ${CONFIG_BUCKET} pki/ca.pem /opt/etc/vault/ca/ca.pem
+          /opt/bin/s3get.sh ${CONFIG_BUCKET} pki-tokens/etcd-server /opt/etc/pki-tokens/etcd-server
           let "retry--"
+          sleep 10
         done
         if [ $retry -eq 0 ];
           then
-          echo "Vault service is not ready."
+          echo "$pkg: Vault service is not ready."
           exit 1
         fi
         # Vault PKI Token
