@@ -62,7 +62,7 @@ ui: dashboard ## kubectl proxy and open dashboard ui
 	open "http://127.0.0.1:8001/ui/#/workload?namespace=kube-system"
 	echo "Please 'make kill-ui' to close kube proxy connection"
 
-kill-ui:  ## close Kube console connection
+kill-ui:  kill-metrics ## close Kube console connection
 	@if pgrep -f 8001 &> /dev/null ; \
 	then \
 	  echo Killed Proxy on port 8001 ; \
@@ -87,7 +87,7 @@ kill-metrics:  ## Close monitor console connection
 		kill $(shell pgrep -f 8002) ; \
 	fi
 
-delete-dashboard:
+delete-dashboard: kill-ui
 	kubectl delete -f dashboard/
 
 monitor:
@@ -107,7 +107,7 @@ kube-cleanup:
 	@-$(MAKE) delete-kubedns
 	@if kubectl config get-contexts | grep default-context | grep ${CLUSTER_NAME} &> /dev/null ; \
 	then \
-		kubectl config delete-context default-context ${CLUSTR_NAME}; \
+		kubectl config delete-context default-context ; \
 	fi
 
 .PHONY: add-ons kube-config kubedns delete-kubedns dashboard delete-dashboard kill-ui monitor delete-monitor
