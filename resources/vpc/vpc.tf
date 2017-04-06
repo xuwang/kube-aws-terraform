@@ -4,6 +4,9 @@ resource "aws_vpc" "cluster_vpc" {
 
     enable_dns_support = true
     enable_dns_hostnames = true
+    lifecycle {
+        ignore_changes = ["tags"]
+    }
 
     tags {
          KubernetesCluster = "${var.cluster_name}"

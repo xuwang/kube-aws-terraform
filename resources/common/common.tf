@@ -3,7 +3,8 @@ data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" { }
 
 data "aws_ami" "coreos_ami" {
- most_recent = true
+  most_recent = true
+  owners = ["${var.coreos_ami_ownerid}"]
   name_regex = "^CoreOS-${var.coreos_update_channel}-\\d{4}.\\d{1}.\\d{1}-hvm$"
 }
 
@@ -11,8 +12,8 @@ variable "cluster_name" {
     default = "NODEFAULT"
 }
 
-# Default cluster size. Each cluster is in an autoscaling group, e.g. worker, etcd, controller.
-# You can overide for each autoscaling group under etcd, worker, controller resource with envs.sh.
+# Default cluster size. Each cluster is in an autoscaling group, e.g. node, etcd, master.
+# You can overide for each autoscaling group under etcd, node, master resource with envs.sh.
 variable "instance_type" {
 }
 variable "cluster_az_max_size" {
@@ -25,7 +26,10 @@ variable "cluster_max_size" {
 variable "cluster_desired_capacity" {
 }
 variable "coreos_update_channel" {
-    default = "NODEFAULT"
+    default = "stable"
+}
+variable "coreos_ami_ownerid" {
+    default = "595879546273"
 }
 
 variable "allow_ssh_cidr" {
@@ -151,6 +155,15 @@ data "terraform_remote_state" "etcd" {
     }
 }
 
+data "terraform_remote_state" "master" {
+    backend = "s3"
+    config {
+        bucket = "${var.remote_state_bucket}"
+        key = "master.tfstate"
+        region = "${var.remote_state_region}"
+    }
+}
+
 data "terraform_remote_state" "iam" {
     backend = "s3"
     config {
@@ -183,15 +196,6 @@ data "terraform_remote_state" "s3" {
     config {
         bucket = "${var.remote_state_bucket}"
         key = "s3.tfstate"
-        region = "${var.remote_state_region}"
-    }
-}
-
-data "terraform_remote_state" "worker" {
-    backend = "s3"
-    config {
-        bucket = "${var.remote_state_bucket}"
-        key = "worker.tfstate"
         region = "${var.remote_state_region}"
     }
 }

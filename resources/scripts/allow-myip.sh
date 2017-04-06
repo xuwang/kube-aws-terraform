@@ -2,7 +2,7 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 AWS_PROFILE=${AWS_PROFILE:-authnz-platform-dev}
 AWS_REGION=${AWS_REGION:-us-west-2}
-SGNAME=${1:-worker}
+SGNAME=${1:-node}
 PORT=${2:-22}
 
 myip=$(curl -s  --retry 5 --retry-delay 3 ipecho.net/plain)

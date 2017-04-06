@@ -11,52 +11,52 @@
 
 ## Login
 
-For trouble-shooting, you can login to etcd, controller, and workers. First make sure the AWS instance key pairs are already added to ssh agent:
+For trouble-shooting, you can login to etcd, master, and nodes. First make sure the AWS instance key pairs are already added to ssh agent:
 ```
 $ ssh-add -l
 2048 SHA256:h9ps0iAK8QeptEzNcvLEQRIZVl7kam7gTD5InP2Sqbk /Users/xxxxx/.ssh/kubev1-vault.pem (RSA)
 2048 SHA256:7rzk7bd6AZU7cW+vkfi0Nr79FIZfb7O0jRxfLXCmXUM /Users/xxxxx/.ssh/kubev1-etcd.pem (RSA)
-2048 SHA256:FLveXZTsgOrmCp9iwJiNVK6suYeN/ARkk5snY4We/q8 /Users/xxxxx/.ssh/kubev1-controller.pem (RSA)
-2048 SHA256:z6YWKb75hb3BLaxtVWQFAXg3Lgfm1kqg/KBSCitAJpk /Users/xxxxx/.ssh/kubev1-worker.pem (RSA)
+2048 SHA256:FLveXZTsgOrmCp9iwJiNVK6suYeN/ARkk5snY4We/q8 /Users/xxxxx/.ssh/kubev1-master.pem (RSA)
+2048 SHA256:z6YWKb75hb3BLaxtVWQFAXg3Lgfm1kqg/KBSCitAJpk /Users/xxxxx/.ssh/kubev1-node.pem (RSA)
 ```
 
 If not, add necessary key to ssh agent:
 
 ```
-$ ssh-add /Users/xxxxx/.ssh/kubev1-controller.pem
-$ cd resources/controller
+$ ssh-add /Users/xxxxx/.ssh/kubev1-master.pem
+$ cd resources/master
 $ make get-ips
-controller; public ips:  <aws-profile-name> 52.36.180.132
+master; public ips:  <aws-profile-name> 52.36.180.132
 $ ssh core@52.36.180.132
-core@ip-10-240-10-80-kubev1-controller ~ $
+core@ip-10-240-10-80-kubev1-master ~ $
 ```
 
-Same for worker, etcd nodes.
+Same for node, etcd nodes.
 
 ## Update Cloud Config
 
 All machines use the same script ('user-data') to bootstrap. The bootstrap uses role-based IAM policy to download the
 machine's own cloud-config.yaml and run cloud-init to setup the machine. This second stage bootstrapping gives us the flexibilty of changing cloud-config without having to re-provisioned the machine. All you need to do is to reboot the machine.
 
-Cloud config contains system units and post-installation scripts. Per resource **cloud-config.yaml.tmpl** file is located at resources/\<controller|worker|etcd|vault\>/artifacts/cloug-config.yaml.tmpl. The generated cloud-config.yaml file is uploaded to the resource's specific s3 bucket and will be picked up at each reboot.
+Cloud config contains system units and post-installation scripts. Per resource **cloud-config.yaml.tmpl** file is located at resources/\<master|node|etcd|vault\>/artifacts/cloug-config.yaml.tmpl. The generated cloud-config.yaml file is uploaded to the resource's specific s3 bucket and will be picked up at each reboot.
 
 To upload a new file after modifying the **cloud-config.yaml.tmpl**:
 
 ```
-$ cd resources/<controller|worker|etcd|vault>
+$ cd resources/<master|node|etcd|vault>
 $ make update-user-data
 ```
-When you reboot etcd, controllers, wait the cluster has elected new leaders before rebooting another one.
+When you reboot etcd, masters, wait the cluster has elected new leaders before rebooting another one.
 
 ## Scaling the Cluster
 
-You re-size controller, worker, vault, and etcd autoscaling group by overriding the default vaules defined in **enva.sh**.
+You re-size master, node, vault, and etcd autoscaling group by overriding the default vaules defined in **enva.sh**.
 
 NOTE: For etcd autoscaling group, use 1,3,5,7.. odd number and make min=max=desired. For production, use at least 3 to begin with for high availability.
 
-Here is an example of adding more workers:
+Here is an example of adding more nodes:
 
-In **resources/worker/envs.sh** file, change the capacity you want:
+In **resources/node/envs.sh** file, change the capacity you want:
 
 ```
 # Workers ASG override
@@ -69,21 +69,21 @@ export TF_VAR_cluster_desired_capacity=5
 Updating the autoscaling group
 
 ```
-$ cd resources/worker
+$ cd resources/node
 $ make
 ```
 
 ## Service Verification
 
-This verifies controller installation status.
+This verifies master installation status.
 ```
-$ cd resources/controller
+$ cd resources/master
 $ make get-ips
 $ ssh core@52.36.180.132 "cd /etc/systemd/system; systemctl status kube-*" | less
 ```
-This verifies worker's installation status.
+This verifies node's installation status.
 ```
-$ cd resources/worker
+$ cd resources/node
 $ make get-ips
 $ ssh core@52.36.180.132 "cd /etc/systemd/system; systemctl status kube*" | less
 ```
@@ -104,7 +104,7 @@ export TF_VAR_kube_version="v1.5.5"
 $ make upgrade-kube
 ```
 
-* Reboot each controller and workers to pickup new configurations. To validate:
+* Reboot each master and nodes to pickup new configurations. To validate:
 
 ```
 $ /opt/bin/kubectl version

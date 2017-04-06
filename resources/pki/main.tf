@@ -20,13 +20,13 @@ resource "tls_self_signed_cert" "ca-cert" {
     allowed_uses = [
         "key_encipherment",
         "digital_signature",
-        "server_auth",        
+        "server_auth",
         "client_auth",
         "cert_signing",
     ]
 }
 
-# Save pki credetials to config bucket
+# Save pki credentials to config bucket
 resource "aws_s3_bucket_object" "ca-key" {
     bucket = "${data.terraform_remote_state.s3.s3_config_bucket}"
     depends_on = ["tls_private_key.ca-key"]
@@ -34,7 +34,7 @@ resource "aws_s3_bucket_object" "ca-key" {
     content = "${tls_private_key.ca-key.private_key_pem}"
 }
 
-# Save deployment credetials to config bucket
+# Save deployment credentials to config bucket
 # TODO: add encryption
 resource "aws_s3_bucket_object" "ca-cert" {
     bucket = "${data.terraform_remote_state.s3.s3_config_bucket}"

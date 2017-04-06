@@ -14,7 +14,7 @@ kube-config:
 
 do-config:
 	@echo Download vault generated ca cert from the api server
-	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-controller.pem
+	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
 	@scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem ${KUBE_APISERVER_CA}
 	@echo kubectl config set-cluster kubernetes...
@@ -56,13 +56,13 @@ ui: dashboard ## kubectl proxy and open dashboard ui
 	@while ! kubectl get pods -n kube-system -o json -l app=kubernetes-dashboard  | grep ready | grep -q true ; \
 	do \
 		echo Waitting for UI ; \
-		sleep 3 ; \
+		sleep 10 ; \
 	done
 	echo "Connecting to ui..."
 	open "http://127.0.0.1:8001/ui/#/workload?namespace=kube-system"
 	echo "Please 'make kill-ui' to close kube proxy connection"
 
-kill-ui:  ## close Kube console connection
+kill-ui:  kill-metrics ## close Kube console connection
 	@if pgrep -f 8001 &> /dev/null ; \
 	then \
 	  echo Killed Proxy on port 8001 ; \
@@ -74,7 +74,7 @@ metrics: monitor ## open metrics ui
 	@while ! kubectl get pods -n kube-system -o json -l k8s-app=grafana | grep ready | grep -q true ; \
 	do \
 		echo Waitting for granfana ; \
-		sleep 3 ; \
+		sleep 10 ; \
 	done
 	echo "Connecting to Grafana"
 	open "http://127.0.0.1:8002/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana/dashboard/db/pods"
@@ -87,7 +87,7 @@ kill-metrics:  ## Close monitor console connection
 		kill $(shell pgrep -f 8002) ; \
 	fi
 
-delete-dashboard:
+delete-dashboard: kill-ui
 	kubectl delete -f dashboard/
 
 monitor:
@@ -107,7 +107,7 @@ kube-cleanup:
 	@-$(MAKE) delete-kubedns
 	@if kubectl config get-contexts | grep default-context | grep ${CLUSTER_NAME} &> /dev/null ; \
 	then \
-		kubectl config delete-context default-context ${CLUSTR_NAME}; \
+		kubectl config delete-context default-context ; \
 	fi
 
 .PHONY: add-ons kube-config kubedns delete-kubedns dashboard delete-dashboard kill-ui monitor delete-monitor

@@ -1,6 +1,6 @@
 include ../common/common.mk
 
-init: create-key upload-artifacts
+init: create-key upload-config
 
 destroy: destroy-key empty-vault-bucket
 empty-vault-bucket:

@@ -1,0 +1,160 @@
+#cloud-config
+
+coreos:
+  etcd2:
+    proxy: on
+    listen-client-urls: http://127.0.0.1:2379
+  update:
+    reboot-strategy: etcd-lock
+  locksmith:
+    group: master
+  units:
+    - name: locksmithd.service
+      command: start
+      drop-ins:
+        - name: 30-cloudinit.conf
+          content: |
+            [Unit]
+            Requires=etcd2.service
+            After=etcd2.service
+            [Service]
+            EnvironmentFile=/etc/locksmithd/locksmithd-envs
+    - name: etcd2.service
+      command: reload-or-restart
+      drop-ins:
+        - name: 60-initial-cluster.conf
+          content: |
+            [Service]
+            EnvironmentFile=/etc/sysconfig/initial-cluster
+            EnvironmentFile=/etc/etcd/cert-envs
+
+    - name: kube-controller-manager.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes master Manager
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        [Service]
+        ExecStart=/opt/bin/kube-controller-manager \
+          --allocate-node-cidrs=true \
+          --cloud-provider=aws \
+          --cluster-cidr=${KUBE_CLUSTER_CIDR} \
+          --cluster-name=${CLUSTER_NAME} \
+          --leader-elect=true \
+          --master=http://$private_ipv4:8080 \
+          --root-ca-file=/var/lib/kubernetes/kube-apiserver-ca.pem \
+          --service-account-private-key-file=/var/lib/kubernetes/service-account-private-key.pem \
+          --service-cluster-ip-range=${KUBE_SERVICE_CIDR} \
+          --v=2
+        Restart=on-failure
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target
+    - name: kube-scheduler.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes Scheduler
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        [Service]
+        ExecStart=/opt/bin/kube-scheduler \
+          --leader-elect=true \
+          --master=http://$private_ipv4:8080 \
+          --v=2
+        Restart=on-failure
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target
+    - name:  kube-apiserver.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes API Server
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        [Service]
+        ExecStart=/opt/bin/kube-apiserver \
+          --admission-control=NamespaceLifecycle,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota \
+          --advertise-address=$private_ipv4 \
+          --allow-privileged=true \
+          --apiserver-count=3 \
+          --authorization-mode=ABAC \
+          --authorization-policy-file=/var/lib/kubernetes/policy.jsonl \
+          --bind-address=0.0.0.0 \
+          --cloud-provider=aws \
+          --enable-swagger-ui=true \
+          --etcd-servers=http://127.0.0.1:2379 \
+          --etcd-cafile=/etc/etcd/certs/etcd-server-ca.pem \
+          --etcd-certfile=/etc/etcd/certs/etcd-server.pem \
+          --etcd-keyfile=/etc/etcd/certs/etcd-server-key.pem \
+          --insecure-bind-address=0.0.0.0 \
+          --kubelet-certificate-authority=/var/lib/kubernetes/kube-apiserver-ca.pem \
+          --kubelet-client-certificate=/var/lib/kubernetes/kube-apiserver.pem \
+          --kubelet-client-key=/var/lib/kubernetes/kube-apiserver-key.pem  \
+          --service-account-key-file=/var/lib/kubernetes/kube-apiserver-key.pem \
+          --service-cluster-ip-range=${KUBE_SERVICE_CIDR} \
+          --service-node-port-range=${KUBE_SERVICE_NODE_PORTS} \
+          --tls-cert-file=/var/lib/kubernetes/kube-apiserver.pem \
+          --tls-private-key-file=/var/lib/kubernetes/kube-apiserver-key.pem \
+          --token-auth-file=/var/lib/kubernetes/token.csv \
+          --v=2
+        Restart=on-failure
+        RestartSec=5
+
+write_files:
+  - path: /etc/profile.d/alias.sh
+    permissions: 0755
+    owner: root
+    content: |
+      role=$(curl 169.254.169.254/latest/meta-data/iam/info -s | \
+              jq --raw-output '.InstanceProfileArn' | sed 's%.*instance-profile/%%')
+      PS1="\[\033[01;32m\]\u@\h\[\033[01;34m\]-$role \w \$\[\033[00m\] "
+
+  - path: /etc/etcd/cert-envs
+    permissions: 0644
+    owner: root
+    content: |
+        ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-server.pem
+        ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
+        ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+        ETCD_PEER_CLIENT_CERT_AUTH=true
+        ETCD_CERT_FILE=/etc/etcd/certs/etcd-server.pem
+        ETCD_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
+        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+        # ETCD_CLIENT_CERT_AUTH=true
+
+  - path: /etc/profile.d/locksmithctl.sh
+    permissions: 0644
+    owner: root
+    content: |
+      # For locksmothclt client to connect etcd cluster through TLS
+      # export LOCKSMITHCTL_ETCD_CERTFILE=/etc/etcd/certs/etcd-server.pem
+      # export LOCKSMITHCTL_ETCD_KEYFILE=/etc/etcd/certs/etcd-server-key.pem
+      # export LOCKSMITHCTL_ETCD_CAFILE=/etc/etcd/certs/etcd-server-ca.pem
+      export LOCKSMITHCTL_ENDPOINT=http://127.0.0.1:2379
+
+  - path: /etc/locksmithd/locksmithd-envs
+    permissions: 0644
+    owner: root
+    content: |
+      LOCKSMITHD_ENDPOINT=http://127.0.0.1:2379
+      LOCKSMITHD_REBOOT_WINDOW_START=05:30
+      LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h
+
+  - path: /etc/profile.d/etcdctl.sh
+    permissions: 0644
+    owner: root
+    content: |
+      # For etcdctl client to connect server through TLS
+      #export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
+      #export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
+      export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+      export ETCDCTL_ENDPOINTS=http://127.0.0.1:2379
+
+  - path: /etc/profile.d/vault.sh
+    permissions: 0644
+    owner: root
+    content: |
+      # For vault client to connect server through TLS
+      export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
+      export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
+      export PATH=$PATH:/opt/bin

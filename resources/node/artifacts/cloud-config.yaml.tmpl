@@ -1,0 +1,135 @@
+#cloud-config
+
+# Nodes cloud-config
+coreos:
+  update:
+    reboot-strategy: reboot
+  units:
+# coreos.units.* components
+    - name: format-disk.service
+      command: start
+      content: |
+        [Unit]
+        Description=Formats the disk drive
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        Environment="LABEL=var-lib-docker"
+        Environment="DEV=/dev/xvdb"
+        # Do not wipe the disk if it's already being used, so the docker images persistent cross reboot.
+        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then wipefs -a -f $DEV && mkfs.ext4 -T news -F -L $LABEL $DEV && echo wiped; fi"
+    - name: format-opt-data.service
+      command: start
+      content: |
+        [Unit]
+        Description=Formats opt data drive
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        Environment="LABEL=opt-data"
+        Environment="DEV=/dev/xvdc"
+        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then  wipefs -a -f $DEV && mkfs.ext4 -F -L $LABEL $DEV && echo wiped; fi"
+    - name: opt-data.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Mount data to /opt/data
+        Requires=format-opt-data.service
+        After=format-opt-data.service
+        [Mount]
+        What=/dev/xvdc
+        Where=/opt/data
+        Type=ext4
+    - name: var-lib-docker.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Mount disk to /var/lib/docker
+        Requires=format-disk.service
+        After=format-disk.service
+        Before=docker.service
+        [Mount]
+        What=/dev/xvdb
+        Where=/var/lib/docker
+        Type=ext4
+    - name: docker.service
+      command: start
+      drop-ins:
+        - name: 60-docker-wait-for-var-lib.conf
+          content: |
+              [Unit]
+              Requires=var-lib-docker.mount
+              After=var-lib-docker.mount
+              [Service]
+              Restart=always
+              RestartSec=5
+
+    - name: kubelet.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes Kubelet
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        After=docker.service
+        Requires=docker.service
+        ConditionPathExists=/var/lib/kubelet/kubeconfig
+        [Service]
+        ExecStart=/opt/bin/kubelet \
+          --allow-privileged=true \
+          --cloud-provider=aws \
+          --cluster-dns=${KUBE_DNS_SERVICE} \
+          --non-masquerade-cidr=${KUBE_CLUSTER_CIDR} \
+          --cluster-domain=cluster.local \
+          --container-runtime=docker \
+          --docker=unix:///var/run/docker.sock \
+          --network-plugin=kubenet \
+          --kubeconfig=/var/lib/kubelet/kubeconfig \
+          --reconcile-cidr=true \
+          --require-kubeconfig=true \
+          --serialize-image-pulls=false \
+          --tls-cert-file=/var/lib/kubernetes/kube-apiserver.pem \
+          --tls-private-key-file=/var/lib/kubernetes/kube-apiserver-key.pem \
+          --v=2
+        Restart=on-failure
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target
+    - name: kube-proxy.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes Kube Proxy
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        [Service]
+        ExecStart=/opt/bin/kube-proxy \
+          --master=https://api-server.${CLUSTER_INTERNAL_ZONE}:6443 \
+          --kubeconfig=/var/lib/kubelet/kubeconfig \
+          --proxy-mode=iptables \
+          --cluster-cidr=${KUBE_CLUSTER_CIDR} \
+          --v=2
+        Restart=on-failure
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target
+
+write_files:
+  - path: /etc/profile.d/alias.sh
+    permissions: 0755
+    owner: root
+    content: |
+      role=$(curl 169.254.169.254/latest/meta-data/iam/info -s | \
+              jq --raw-output '.InstanceProfileArn' | sed 's%.*instance-profile/%%')
+      PS1="\[\033[01;32m\]\u@\h\[\033[01;34m\]-$role \w \$\[\033[00m\] "
+
+  - path: /etc/profile.d/vault.sh
+    permissions: 0644
+    owner: root
+    content: |
+      # For vault client to connect server through TLS
+      export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
+      export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
+
+  - path: /etc/systemd/system/docker.service.d/50-iptables.conf
+    content: |
+        [Service]
+        Environment='DOCKER_OPTS=--iptables=false --ip-masq=false'

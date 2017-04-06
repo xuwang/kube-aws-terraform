@@ -1,4 +1,4 @@
-## File tree
+## Files 
 
 ```
 .
@@ -51,36 +51,17 @@
     │       ├── influxdb-deployment.yaml
     │       └── influxdb-service.yaml
     ├── artifacts
-    │   ├── cloud-config
-    │   │   ├── common-files.yaml.tmpl
-    │   │   ├── files-vault.yaml
-    │   │   ├── s3-cloudconfig-bootstrap.sh
-    │   │   ├── s3-cloudconfig-bootstrap.sh.tmpl
-    │   │   ├── systemd-units-flannel.yaml
-    │   │   └── systemd-units.yaml
-    │   └── policies
-    │       ├── assume_role_policy.json
-    │       ├── deployment_policy.json
-    │       ├── kubernetes_policy.json
-    │       └── s3_remote_policy.json
+    │   ├── policies
+    │   │   ├── assume_role_policy.json
+    │   │   ├── deployment_policy.json
+    │   │   ├── kubernetes_policy.json
+    │   │   └── s3_remote_policy.json
+    │   └── user-data-s3-bootstrap.sh
     ├── cloudtrail
     │   └── cloudtrail.tf
     ├── common
     │   ├── common.mk
     │   └── common.tf
-    ├── controller
-    │   ├── Makefile
-    │   ├── artifacts
-    │   │   ├── cloud-config.yaml.tmpl
-    │   │   ├── policy.json
-    │   │   └── upload
-    │   │       ├── install.sh
-    │   │       └── policy.jsonl -> ../../../../artifacts/secrets/api-server/policy.jsonl
-    │   ├── common.tf -> ../common/common.tf
-    │   ├── elb.tf
-    │   ├── envs.sh
-    │   ├── main.tf
-    │   └── security-group.tf
     ├── etcd
     │   ├── Makefile
     │   ├── artifacts
@@ -88,20 +69,58 @@
     │   │   └── policy.json
     │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
-    │   └── main.tf
+    │   ├── main.tf
+    │   └── upload.tf
     ├── iam
     │   ├── Makefile -> ../common/common.mk
     │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
     │   ├── kubernetes.tf
     │   └── main.tf
+    ├── master
+    │   ├── Makefile
+    │   ├── artifacts
+    │   │   ├── cloud-config.yaml.tmpl
+    │   │   ├── policy.json
+    │   │   ├── upload
+    │   │   │   ├── get-certs.sh
+    │   │   │   ├── policy.jsonl -> ../../../../artifacts/secrets/api-server/policy.jsonl
+    │   │   │   └── setup.sh
+    │   │   └── upload-templates
+    │   │       └── envvars
+    │   ├── common.tf -> ../common/common.tf
+    │   ├── elb.tf
+    │   ├── envs.sh
+    │   ├── main.tf
+    │   ├── security-group.tf
+    │   ├── service-account-token.tf
+    │   └── upload.tf
     ├── modules
     │   ├── cloudtrail
     │   │   ├── main.tf
     │   │   └── variables.tf
-    │   └── cluster
+    │   ├── cluster
+    │   │   ├── main.tf
+    │   │   └── variables.tf
+    │   └── cluster-no-opt-data
     │       ├── main.tf
     │       └── variables.tf
+    ├── node
+    │   ├── Makefile
+    │   ├── artifacts
+    │   │   ├── cloud-config.yaml.tmpl
+    │   │   ├── policy.json
+    │   │   ├── upload
+    │   │   │   ├── get-certs.sh
+    │   │   │   ├── policy.jsonl -> ../../../../artifacts/secrets/api-server/policy.jsonl
+    │   │   │   └── setup.sh
+    │   │   └── upload-templates
+    │   │       ├── envvars
+    │   │       └── kubeconfig
+    │   ├── common.tf -> ../common/common.tf
+    │   ├── envs.sh
+    │   ├── main.tf
+    │   └── upload.tf
     ├── pki
     │   ├── Makefile -> ../common/common.mk
     │   ├── common.tf -> ../common/common.tf
@@ -134,41 +153,37 @@
     │   ├── artifacts
     │   │   ├── cloud-config.yaml.tmpl
     │   │   ├── policy.json
-    │   │   └── upload
-    │   │       ├── install.sh
-    │   │       └── scripts
-    │   │           ├── create_ca.sh
-    │   │           ├── create_kube_ca.sh
-    │   │           ├── init-unseal.sh
-    │   │           ├── s3get.sh
-    │   │           ├── s3put.sh
-    │   │           └── utils
-    │   │               ├── env_defaults
-    │   │               └── functions
+    │   │   ├── upload
+    │   │   │   ├── scripts
+    │   │   │   │   ├── create_ca.sh
+    │   │   │   │   ├── create_kube_ca.sh
+    │   │   │   │   ├── gen-vault-cert.sh
+    │   │   │   │   ├── init-unseal.sh
+    │   │   │   │   └── utils
+    │   │   │   │       ├── env_defaults
+    │   │   │   │       └── functions
+    │   │   │   └── setup.sh
+    │   │   └── upload-templates
+    │   │       ├── envvars
+    │   │       ├── vault.cnf
+    │   │       ├── vault.hcl
+    │   │       └── vault.sh
     │   ├── common.tf -> ../common/common.tf
     │   ├── elb.tf
     │   ├── envs.sh
     │   ├── main.tf
+    │   ├── upload.tf
     │   └── variables.tf
-    ├── vpc
-    │   ├── Makefile -> ../common/common.mk
-    │   ├── common.tf -> ../common/common.tf
-    │   ├── envs.sh
-    │   ├── vpc-subnet-controller.tf
-    │   ├── vpc-subnet-elb.tf
-    │   ├── vpc-subnet-etcd.tf
-    │   ├── vpc-subnet-vault.tf
-    │   ├── vpc-subnet-worker.tf
-    │   └── vpc.tf
-    └── worker
-        ├── Makefile
-        ├── artifacts
-        │   ├── cloud-config.yaml.tmpl
-        │   └── policy.json
+    └── vpc
+        ├── Makefile -> ../common/common.mk
         ├── common.tf -> ../common/common.tf
         ├── envs.sh
-        └── main.tf
+        ├── vpc-subnet-elb.tf
+        ├── vpc-subnet-etcd.tf
+        ├── vpc-subnet-master.tf
+        ├── vpc-subnet-node.tf
+        ├── vpc-subnet-vault.tf
+        └── vpc.tf
 
-38 directories, 128 files
-
+42 directories, 140 files
 ```

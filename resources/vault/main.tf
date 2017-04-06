@@ -1,7 +1,7 @@
 
 # Reference: https://github.com/hashicorp/vault/tree/master/terraform/aws
 module "vault" {
-  source = "../modules/cluster"
+  source = "../modules/cluster-no-opt-data"
 
   # cluster varaiables
   asg_name = "${var.cluster_name}-vault"
@@ -23,11 +23,9 @@ module "vault" {
   # See https://github.com/hashicorp/terraform/issues/2910
   # Instance disks
   root_volume_type = "gp2"
-  root_volume_size = 12
+  root_volume_size = 100
   docker_volume_type = "gp2"
-  docker_volume_size = 12 
-  data_volume_type = "gp2"
-  data_volume_size = 100
+  docker_volume_size = 12
 
   user_data = "${data.template_file.user_data.rendered}"
   iam_role_policy = "${data.template_file.vault_policy_json.rendered}"
@@ -40,54 +38,20 @@ resource "aws_autoscaling_attachment" "asg_attachment_vault" {
 }
 
 data "template_file" "user_data" {
-    template = "${file("${var.artifacts_dir}/cloud-config/s3-cloudconfig-bootstrap.sh.tmpl")}"
+    template = "${file("${var.artifacts_dir}/user-data-s3-bootstrap.sh")}"
+
+    # explicitly wait for these configurations to be uploaded to s3 buckets
+    depends_on = ["aws_s3_bucket_object.vault_cnf",
+                  "aws_s3_bucket_object.vault_hcl",
+                  "aws_s3_bucket_object.vault_sh",
+                  "aws_s3_bucket_object.envvars",
+                  "aws_s3_bucket_object.vault_cloud_config"]
     vars {
+        "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
-    }
-}
-
-# Upload CoreOS cloud-config to a s3 bucket; s3-cloudconfig-bootstrap script in user-data will download 
-# the cloud-config upon reboot to configure the system. This avoids rebuilding machines when 
-# changing cloud-config.
-resource "aws_s3_bucket_object" "vault_cloud_config" {
-  bucket = "${data.terraform_remote_state.s3.s3_cloudinit_bucket}"
-  key = "${var.cluster_name}-vault/cloud-config.yaml"
-  content = "${data.template_file.vault_cloud_config.rendered}"
-}
-
-# Create pki-tokens path to store issued pki tokens
-resource "aws_s3_bucket_object" "vault_pki_tokens" {
-  bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
-  key = "pki-tokens/created-timestamp"
-  content = "place-holder"
-}
-
-data "template_file" "vault_cloud_config" {
-    template = "${file("./artifacts/cloud-config.yaml.tmpl")}"
-    vars {
-        "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
-        "AWS_USER" = "${data.terraform_remote_state.iam.deployment_user}"
-        "AWS_ACCESS_KEY_ID" = "${data.terraform_remote_state.iam.deployment_key_id}"
-        "AWS_SECRET_ACCESS_KEY" =  "${data.terraform_remote_state.iam.deployment_key_secret}"
-        "AWS_DEFAULT_REGION" = "${var.aws_account["default_region"]}"
-        "CLUSTER_NAME" = "${var.cluster_name}"
-        "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
-        "APP_REPOSITORY" = "${var.app_repository}"
-        "GIT_SSH_COMMAND" = "\"${var.git_ssh_command}\""
-        "VAULT_RELEASE" = "${var.vault_release}"
-        "VAULT_AUTO_UNSEAL" = "${var.vault_auto_unseal}"
-        "VAULT_ROOTCA_CN" = "${var.vault_rootca_cn}"
-        "ROUTE53_ZONE_NAME" = "${var.route53_zone_name}"
-        "MODULE_NAME" = "${var.module_name}" 
-        "VAULT_TOKEN_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
-    }
-}
-
-data "template_file" "vault_policy_json" {
-    template = "${file("./artifacts/policy.json")}"
-    vars {
-        "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
-        "CLUSTER_NAME" = "${var.cluster_name}"
+        "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
+        "MODULE_NAME" = "${var.module_name}"
+        "CUSTOM_TAG" = "${var.module_name}"
     }
 }
 

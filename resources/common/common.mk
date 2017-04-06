@@ -58,7 +58,7 @@ output:
 
 destroy-plan: remote
 	@-${TF_DESTROY_PLAN} -out ${ROOT_DIR}/tmp/destroy-${MODULE}.plan
-	
+
 destroy: remote
 	${TF_DESTROY}
 	$(MAKE) clean
@@ -82,12 +82,7 @@ destroy-key:
 get-ips:
 	@echo "${MODULE}; public ips: " `$(SCRIPTS)/get-ec2-public-id.sh $(CLUSTER_NAME)-${MODULE}`
 
-# Call this explicitly to re-load user_data
-update-user-data:
-	${TF_PLAN} -target=data.template_file.${MODULE}_cloud_config; \
-	${TF_APPLY}
-	
-# Call this explicitly to upload scripts to s3 
+# Call this explicitly to upload scripts to s3
 upload-artifacts: check-profile
 	@if [ -d "$(PWD)/artifacts/upload" ]; \
 	then \
@@ -100,6 +95,20 @@ upload-artifacts: check-profile
 		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
 	fi
 
+# Call this explicitly to upload scripts to s3
+upload-config: check-profile
+	@if [ -d "$(PWD)/artifacts/upload" ]; \
+	then \
+		mkdir -p $(PWD)/tmp ; \
+		COPYFILE_DISABLE=1 tar zcvhf tmp/${MODULE}.tar.gz -C $(PWD)/artifacts/upload . ; \
+		aws s3 --profile ${AWS_PROFILE} cp tmp/${MODULE}.tar.gz \
+			s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/${MODULE}/config.tar.gz; \
+		rm -rf $(PWD)/tmp ; \
+	else \
+		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
+	fi
+
+
 remote: update-profile
 	@echo set remote state to s3://${TF_REMOTE_STATE_BUCKET}/${TF_REMOTE_STATE_PATH}
 
@@ -109,12 +118,12 @@ remote: update-profile
 		aws s3 --profile ${AWS_PROFILE} \
 			mb s3://${TF_REMOTE_STATE_BUCKET} --region ${TF_REMOTE_STATE_REGION}; \
 		sleep 30; \
-		if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
-		then \
-			echo Enable versioning... ; \
-			aws s3api --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} put-bucket-versioning \
-				--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
-    fi ; \
+	fi
+	@if [ "${ENABLE_REMOTE_VERSIONING}" = "true" ]; \
+	then \
+		echo Enable versioning... ; \
+		aws s3api --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} put-bucket-versioning \
+			--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
 	fi
 	# Terraform remote S3 backend init
 	terraform init
@@ -146,7 +155,7 @@ check-profile:
 upgrade-kube:
 	@echo "Will upgrade ${MODULE}'s Kubernetes to ${TF_VAR_kube_version}."
 	@$(MAKE) confirm
-	@$(MAKE) 
+	@$(MAKE)
 	@echo "Don't forget to reboot ${MODULE}s."
 
 confirm:

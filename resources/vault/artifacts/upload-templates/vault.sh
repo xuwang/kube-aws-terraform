@@ -1,0 +1,12 @@
+export ROUTE53_ZONE_NAME=${ROUTE53_ZONE_NAME}
+export CLUSTER_NAME=${CLUSTER_NAME}
+export CLUSTER_INTERNAL_ZONE=${CLUSTER_INTERNAL_ZONE}
+export VAULT_ADDR=http://localhost:8200
+export VAULT_AUTO_UNSEAL=${VAULT_AUTO_UNSEAL}
+export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
+export VAULT_CLIENT_CERT=/opt/etc/vault/certs/vault.crt
+export VAULT_CLIENT_KEY=/opt/etc/vault/certs/vault.key
+export VAULT_ROOTCA_CN=${VAULT_ROOTCA_CN}
+export VAULT_TOKEN_BUCKET=${AWS_ACCOUNT}-${CLUSTER_NAME}-config
+export CONFIG_BUCKET=${AWS_ACCOUNT}-${CLUSTER_NAME}-config
+export PATH=$PATH:/opt/bin
