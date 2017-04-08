@@ -37,7 +37,8 @@ data "template_file" "user_data" {
     # explicitly wait for these configurations to be uploaded to s3 buckets
     depends_on = [ "aws_s3_bucket_object.envvars",
                    "aws_s3_bucket_object.node_cloud_config",
-                   "aws_s3_bucket_object.kubeconfig" ]
+                   "aws_s3_bucket_object.kubelet-kubeconfig",
+                   "aws_s3_bucket_object.kube-proxy-kubeconfig" ]
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"

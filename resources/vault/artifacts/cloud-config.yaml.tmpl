@@ -82,7 +82,7 @@ coreos:
         RestartSec=20
         Restart=always
 
-    - name: create-kube-ca.service
+    - name: create-kube-config.service
       command: start
       content: |
         [Unit]
@@ -94,8 +94,10 @@ coreos:
         Type=oneshot
         RemainAfterExit=true
         EnvironmentFile=/etc/environment
-        ExecStart=/usr/bin/sh -c "/opt/etc/vault/scripts/create_kube_ca.sh ${CLUSTER_NAME}"
-
+        ExecStart=/usr/bin/sh -c "\
+          /opt/etc/vault/scripts/create_kube_ca.sh ${CLUSTER_NAME} ; \
+          /opt/etc/vault/scripts/create_kube_config.sh ${CLUSTER_NAME} ; \
+         "
 write_files:
   - path: /etc/profile.d/alias.sh
     permissions: 0755

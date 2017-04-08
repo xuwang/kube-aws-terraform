@@ -1,8 +1,6 @@
 include ../common/common.mk
 
-init: create-key copy-token upload-config
-copy-token:
-	@cp ../${SEC_PATH}/api-server/token.csv ./artifacts/upload/token.csv
+init: create-key upload-config
 get-apiserver-elb:
 	@elb_name=`make output | jq -r  '.elb_kube_apiserver_public_dns_name.value'`; \
 	elb_ip=`host $$elb_name | awk 'END {print $$NF}'`; \

@@ -45,15 +45,27 @@ data "template_file" "envvars" {
 }
 
 # Generate /var/lib/kubelet/kubeconfig
-resource "aws_s3_bucket_object" "kubeconfig" {
+resource "aws_s3_bucket_object" "kubelet-kubeconfig" {
     bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
-    key = "node/kubeconfig"
-    content = "${data.template_file.kubeconfig.rendered}"
+    key = "node/kubelet-kubeconfig"
+    content = "${data.template_file.kubelet-kubeconfig.rendered}"
 }
-data "template_file" "kubeconfig" {
-    template = "${file("./artifacts/upload-templates/kubeconfig")}"
+data "template_file" "kubelet-kubeconfig" {
+    template = "${file("./artifacts/upload-templates/kubelet-kubeconfig")}"
     vars {
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
-        "KUBELET_TOKEN" = "${var.kubelet_token}"
+    }
+}
+
+# Generate /var/lib/kube-proxy/kubeconfig
+resource "aws_s3_bucket_object" "kube-proxy-kubeconfig" {
+    bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
+    key = "node/kube-proxy-kubeconfig"
+    content = "${data.template_file.kube-proxy-kubeconfig.rendered}"
+}
+data "template_file" "kube-proxy-kubeconfig" {
+    template = "${file("./artifacts/upload-templates/kube-proxy-kubeconfig")}"
+    vars {
+        "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
     }
 }

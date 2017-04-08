@@ -43,7 +43,7 @@ coreos:
           --leader-elect=true \
           --master=http://$private_ipv4:8080 \
           --root-ca-file=/var/lib/kubernetes/kube-apiserver-ca.pem \
-          --service-account-private-key-file=/var/lib/kubernetes/service-account-private-key.pem \
+          --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \
           --service-cluster-ip-range=${KUBE_SERVICE_CIDR} \
           --v=2
         Restart=on-failure
@@ -72,14 +72,18 @@ coreos:
         Description=Kubernetes API Server
         Documentation=https://github.com/GoogleCloudPlatform/kubernetes
         [Service]
+        ExecStartPre=/bin/bash -c "source /etc/profile.d/vault.sh; \
+          vault read -field=value secret/${CLUSTER_NAME}/config/kubelet-bootstrap-token > /var/lib/kubernetes/token.csv; \
+          vault read -field=key secret/${CLUSTER_NAME}/config/service-account-key > /var/lib/kubernetes/service-account-key.pem \
+          "
         ExecStart=/opt/bin/kube-apiserver \
           --admission-control=NamespaceLifecycle,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota \
           --advertise-address=$private_ipv4 \
           --allow-privileged=true \
           --apiserver-count=3 \
-          --authorization-mode=ABAC \
-          --authorization-policy-file=/var/lib/kubernetes/policy.jsonl \
+          --authorization-mode=RBAC \
           --bind-address=0.0.0.0 \
+          --client-ca-file=/var/lib/kubernetes/kube-apiserver-ca.pem \
           --cloud-provider=aws \
           --enable-swagger-ui=true \
           --etcd-servers=http://127.0.0.1:2379 \
@@ -90,13 +94,21 @@ coreos:
           --kubelet-certificate-authority=/var/lib/kubernetes/kube-apiserver-ca.pem \
           --kubelet-client-certificate=/var/lib/kubernetes/kube-apiserver.pem \
           --kubelet-client-key=/var/lib/kubernetes/kube-apiserver-key.pem  \
-          --service-account-key-file=/var/lib/kubernetes/kube-apiserver-key.pem \
+          --kubelet-https=true \
+          --runtime-config=rbac.authorization.k8s.io/v1alpha1 \
+          --service-account-key-file=/var/lib/kubernetes/service-account-key.pem \
           --service-cluster-ip-range=${KUBE_SERVICE_CIDR} \
           --service-node-port-range=${KUBE_SERVICE_NODE_PORTS} \
+          --storage-backend=etcd2 \
           --tls-cert-file=/var/lib/kubernetes/kube-apiserver.pem \
           --tls-private-key-file=/var/lib/kubernetes/kube-apiserver-key.pem \
           --token-auth-file=/var/lib/kubernetes/token.csv \
           --v=2
+        ExecStartPost=/bin/bash -c "\
+          if ! /opt/bin/kubectl get clusterrolebinding kubelet-node-binding; \
+          then \
+            /opt/bin/kubectl create clusterrolebinding kubelet-node-binding --clusterrole=system:node --user=kubelet; \
+          fi "
         Restart=on-failure
         RestartSec=5
 
@@ -158,3 +170,4 @@ write_files:
       export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
       export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
       export PATH=$PATH:/opt/bin
+      export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/kube-apiserver)

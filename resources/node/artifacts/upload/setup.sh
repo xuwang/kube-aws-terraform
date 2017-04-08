@@ -28,12 +28,9 @@ then
   touch /opt/etc/${MODULE_NAME}/kube-${KUBE_VERSION}
 fi
 
-$GET ${CONFIG_BUCKET} ${MODULE_NAME}/kubeconfig /var/lib/kubelet/kubeconfig
-echo "export KUBECONFIG=/var/lib/kubelet/kubeconfig" > /etc/profile.d/kubeconfig.sh
+$GET ${CONFIG_BUCKET} ${MODULE_NAME}/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
+#echo "export KUBECONFIG=/var/lib/kubelet/kubeconfig" > /etc/profile.d/kubeconfig.sh
+$GET ${CONFIG_BUCKET} ${MODULE_NAME}/kube-proxy-kubeconfig /var/lib/kube-proxy/kubeconfig
 
 # Generate certs from vualt pki: <issuer endpoint> <auth token> <install path>
 bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
-
-# Copy kube policy.jsonl and token.csv to /var/lib/kubernetes/
-# Note: token.csv will be copied to upload by "make upload-config"
-cp policy.jsonl token.csv /var/lib/kubernetes/

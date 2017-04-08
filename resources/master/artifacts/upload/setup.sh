@@ -23,12 +23,6 @@ then
   touch /opt/etc/master/kube-${KUBE_VERSION}
 fi
 
-# Generate certs from vualt pki for etcd and kube-apiserver
+# Generate certs from vualt pki for etcd and kube-apiserver get-certs <issuer_name> <auth_token>
 bash get-certs.sh etcd-server $(cat /opt/etc/pki-tokens/etcd-server) /etc/etcd/certs
 bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
-
-# Install shared service-account token key
-$GET ${CONFIG_BUCKET} master/service-account-private-key.pem /var/lib/kubernetes/service-account-private-key.pem
-# Copy kube policy.jsonl and token.csv to /var/lib/kubernetes/
-# Note: token.csv will be copied to upload by "make upload-config"
-cp policy.jsonl token.csv /var/lib/kubernetes/

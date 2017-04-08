@@ -51,7 +51,7 @@ export TF_VAR_instance_type=t2.medium
 # clash with kubernetes "cluster.local"
 export TF_VAR_cluster_internal_zone="cluster.internal"
 export TF_VAR_kube_api_dnsname=${KUBE_API_DNSNAME}
-export TF_VAR_kube_version="v1.5.5"
+export TF_VAR_kube_version="v1.6.1"
 
 # Terraform remote state bucket name, defined as ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform
 # in /resources/common/common.mk.

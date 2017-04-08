@@ -84,7 +84,7 @@ coreos:
           --docker=unix:///var/run/docker.sock \
           --network-plugin=kubenet \
           --kubeconfig=/var/lib/kubelet/kubeconfig \
-          --reconcile-cidr=true \
+          --register-node=true \
           --require-kubeconfig=true \
           --serialize-image-pulls=false \
           --tls-cert-file=/var/lib/kubernetes/kube-apiserver.pem \

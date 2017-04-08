@@ -33,7 +33,7 @@ create_pki_role_etcd_client() {
 
 create_pki_role_kube_apiserver() {
     vault write $CLUSTER_ID/pki/kube-apiserver/roles/kube-apiserver \
-        allowed_domains="kubelet,kube-apiserver,kubernetes.default,cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
+        allowed_domains="kubelet,kube-proxy,kube-apiserver,kubernetes.default,cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
         allow_bare_domains=true \
         allow_subdomains=false \
         allow_any_name=true \
@@ -51,6 +51,9 @@ create_role_policy() {
 path "$CLUSTER_ID/pki/$pki_name/issue/$role_name" {
 policy = "write"
 }
+path "secret/$CLUSTER_ID/config/*" {
+policy = "read"
+}
 EOT
 }
 
@@ -60,7 +63,7 @@ create_auth_role() {
   vault write auth/token/roles/kube-$CLUSTER_ID \
   period="4200h" \
   orphan=true \
-  allowed_policies="$CLUSTER_ID/pki/etcd-server/etcd-server,$CLUSTER_ID/pki/kube-apiserver/kube-apiserver"
+  allowed_policies="$CLUSTER_ID/pki/etcd-server/etcd-server,$CLUSTER_ID/pki/kube-apiserver/kube-apiserver,secret/$CLUSTER_ID/config"
 }
 create_auth_token() {
   token_path=$1

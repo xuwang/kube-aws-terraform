@@ -110,7 +110,7 @@ variable "kube_service_node_ports" {
 }
 # Kubernetes network plugin binary path
 variable "cni_plugin_url" {
-  default = "https://storage.googleapis.com/kubernetes-release/network-plugins/cni-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz"
+  default = "https://storage.googleapis.com/kubernetes-release/network-plugins/cni-amd64-0799f5732f2a11b329d9e3d51b9c8f2e3759f2ff.tar.gz"
 }
 # Kubelet/apiserver ABAC token.
 variable "kubelet_token" {
@@ -118,7 +118,7 @@ variable "kubelet_token" {
 }
 # Kubernetes version
 variable "kube_version" {
-    default = "v1.5.5"
+    default = "v1.6.1"
 }
 
 # Sensitive data
