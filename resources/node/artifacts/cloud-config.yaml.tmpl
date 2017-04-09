@@ -87,8 +87,8 @@ coreos:
           --register-node=true \
           --require-kubeconfig=true \
           --serialize-image-pulls=false \
-          --tls-cert-file=/var/lib/kubernetes/kube-apiserver.pem \
-          --tls-private-key-file=/var/lib/kubernetes/kube-apiserver-key.pem \
+          --tls-cert-file=/var/lib/kubernetes/kubelet.pem \
+          --tls-private-key-file=/var/lib/kubernetes/kubelet-key.pem \
           --v=2
         Restart=on-failure
         RestartSec=5
@@ -103,7 +103,7 @@ coreos:
         [Service]
         ExecStart=/opt/bin/kube-proxy \
           --master=https://api-server.${CLUSTER_INTERNAL_ZONE}:6443 \
-          --kubeconfig=/var/lib/kubelet/kubeconfig \
+          --kubeconfig=/var/lib/kube-proxy/kubeconfig \
           --proxy-mode=iptables \
           --cluster-cidr=${KUBE_CLUSTER_CIDR} \
           --v=2
