@@ -18,12 +18,11 @@ fi
 # Request Kubernetes certificates.
 source /etc/profile.d/vault.sh
 source /etc/environment
-source /opt/etc/master/envvars
+source /opt/etc/node/envvars
 
 export PATH=/opt/bin/:$PATH
 issuer_name=$1
 token=$2
-install_path=$3
 work_idr=certs
 mkdir -p certs
 cd certs
@@ -40,15 +39,17 @@ if [ $retry -eq 0 ]; then
   exit 1
 fi
 
-# Vault PKI Token. We store them in both /etc/etcd/certs and /var/lib/kubernetes directories
+# Vault PKI Token. We store them in /var/lib/{cn=name} directories
 export VAULT_TOKEN=$token
-for i in kubelet kube-proxy
+fqdn=$(hostname -f)
+for i in kubelet kube-proxy serviceaccounts-cluster-admin
 do
+    install_path=/var/lib/${i}
     vault write -format=json \
       ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=$i \
-      alt_names="kubernetes.default,*.cluster.local" \
+      alt_names="kubernetes.default,*.cluster.local,$fqdn" \
       ttl=43800h0m0s \
-      ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4" >  $issuer_name-bundle.certs
+      ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4,${KUBE_API_SERVICE}" >  $issuer_name-bundle.certs
 
     if [ ! -s $issuer_name-bundle.certs ]; then
       echo "$issuer_name-bundle.certs doesn't exist or has zero size."
@@ -59,4 +60,4 @@ do
     cat $issuer_name-bundle.certs | jq -r ".data.certificate" > $install_path/${i}.pem
     cat $issuer_name-bundle.certs | jq -r ".data.private_key" > $install_path/${i}-key.pem
     cat $issuer_name-bundle.certs | jq -r ".data.issuing_ca" > $install_path/$issuer_name-ca.pem
-done
+  done

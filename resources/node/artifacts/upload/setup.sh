@@ -29,8 +29,8 @@ then
 fi
 
 $GET ${CONFIG_BUCKET} ${MODULE_NAME}/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
-#echo "export KUBECONFIG=/var/lib/kubelet/kubeconfig" > /etc/profile.d/kubeconfig.sh
 $GET ${CONFIG_BUCKET} ${MODULE_NAME}/kube-proxy-kubeconfig /var/lib/kube-proxy/kubeconfig
+$GET ${CONFIG_BUCKET} ${MODULE_NAME}/serviceaccounts-cluster-admin-kubeconfig /var/lib/serviceaccounts-cluster-admin/kubeconfig
 
-# Generate certs from vualt pki: <issuer endpoint> <auth token> <install path>
-bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
+# Generate certs from vualt pki: <issuer endpoint> <auth token>
+bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver)
