@@ -25,6 +25,7 @@ metadata:
   namespace: kube-system
 spec:
   replicas: 1
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: kubernetes-dashboard
@@ -46,7 +47,7 @@ spec:
     spec:
       containers:
       - name: kubernetes-dashboard
-        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.5.1
+        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.6.0
         imagePullPolicy: Always
         ports:
         - containerPort: 9090
@@ -57,7 +58,7 @@ spec:
           # to it. Uncomment only if the default does not work.
           #- --apiserver-host=https://api-server.cluster.local:6443
           #- --apiserver-host=https://10.240.10.136:6443
-          - --kubeconfig=/var/lib/kubelet/kubeconfig 
+          - --kubeconfig=/var/lib/serviceaccounts-cluster-admin/kubeconfig
         livenessProbe:
           httpGet:
             path: /
@@ -65,19 +66,13 @@ spec:
           initialDelaySeconds: 30
           timeoutSeconds: 30
         volumeMounts:
-        - mountPath: /var/lib/kubelet/kubeconfig
-          name: kubeconfig
-          readOnly: true
-        - mountPath: /var/lib/kubernetes/kube-apiserver-ca.pem
-          name: certificate-authority
+        - mountPath: /var/lib/serviceaccounts-cluster-admin
+          name: serviceaccounts-cluster-admin
           readOnly: true
       volumes:
-        - name: "kubeconfig"
+        - name: "serviceaccounts-cluster-admin"
           hostPath:
-            path: "/var/lib/kubelet/kubeconfig"
-        - name: "certificate-authority"
-          hostPath:
-            path: "/var/lib/kubernetes/kube-apiserver-ca.pem"
+            path: "/var/lib/serviceaccounts-cluster-admin"
 
 ---
 kind: Service
