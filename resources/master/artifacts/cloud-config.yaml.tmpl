@@ -119,6 +119,10 @@ coreos:
         Type=oneshot
         RemainAfterExit=true
         ExecStart=/usr/bin/sh -c "\
+          /opt/bin/kubectl get clusterrolebinding admin-binding &> /dev/null || \
+             /opt/bin/kubectl create clusterrolebinding admin-binding --clusterrole=cluster-admin --user=admin ; \
+         "
+        ExecStart=/usr/bin/sh -c "\
           /opt/bin/kubectl get clusterrolebinding kubelet-node-binding &> /dev/null || \
              /opt/bin/kubectl create clusterrolebinding kubelet-node-binding --clusterrole=system:node --user=kubelet ; \
          "
@@ -126,7 +130,6 @@ coreos:
            /opt/bin/kubectl get clusterrolebinding kube-proxy-node-binding &> /dev/null || \
               /opt/bin/kubectl create clusterrolebinding kube-proxy-node-binding --clusterrole=system:node-proxies --user=kube-proxy ; \
           "
-
 write_files:
   - path: /etc/profile.d/alias.sh
     permissions: 0755

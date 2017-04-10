@@ -42,18 +42,21 @@ fi
 
 # Vault PKI Token. We store them in both /etc/etcd/certs and /var/lib/kubernetes directories
 export VAULT_TOKEN=$token
-vault write -format=json \
-  ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=kube-apiserver \
-  alt_names="kube-$COREOS_PRIVATE_IPV4.cluster.local,kubernetes.default,*.cluster.local,*.${CLUSTER_INTERNAL_ZONE},${KUBE_API_SERVICE},${KUBE_API_DNSNAME}" \
-  ttl=43800h0m0s \
-  ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4" >  $issuer_name-bundle.certs
+for i in kube-apiserver admin
+do
+  vault write -format=json \
+    ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=$i \
+    alt_names="kube-$COREOS_PRIVATE_IPV4.cluster.local,kubernetes.default,*.cluster.local,*.${CLUSTER_INTERNAL_ZONE},${KUBE_API_DNSNAME}" \
+    ttl=43800h0m0s \
+    ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4,${KUBE_API_SERVICE}" >  $issuer_name-bundle.certs
 
-if [ ! -s $issuer_name-bundle.certs ]; then
-  echo "$issuer_name-bundle.certs doesn't exist or has zero size."
-  exit 1
-fi
+    if [ ! -s $issuer_name-bundle.certs ]; then
+      echo "$issuer_name-bundle.certs doesn't exist or has zero size."
+      exit 1
+    fi
 
-mkdir -p $install_path
-cat $issuer_name-bundle.certs | jq -r ".data.certificate" > $install_path/$issuer_name.pem
-cat $issuer_name-bundle.certs | jq -r ".data.private_key" > $install_path/$issuer_name-key.pem
-cat $issuer_name-bundle.certs | jq -r ".data.issuing_ca" > $install_path/$issuer_name-ca.pem
+    mkdir -p $install_path
+    cat $issuer_name-bundle.certs | jq -r ".data.certificate" > $install_path/${i}.pem
+    cat $issuer_name-bundle.certs | jq -r ".data.private_key" > $install_path/${i}-key.pem
+    cat $issuer_name-bundle.certs | jq -r ".data.issuing_ca" > $install_path/$issuer_name-ca.pem
+done
