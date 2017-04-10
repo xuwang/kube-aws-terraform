@@ -33,7 +33,7 @@ create_pki_role_etcd_client() {
 
 create_pki_role_kube_apiserver() {
     vault write $CLUSTER_ID/pki/kube-apiserver/roles/kube-apiserver \
-        allowed_domains="kubelet,kube-proxy,kube-apiserver,kubernetes.default,cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
+        allowed_domains="kubelet,serviceaccounts-cluster-admin,kube-proxy,admin,kube-apiserver,kubernetes.default,cluster.local,$ROUTE53_ZONE_NAME,$CLUSTER_INTERNAL_ZONE" \
         allow_bare_domains=true \
         allow_subdomains=false \
         allow_any_name=true \
