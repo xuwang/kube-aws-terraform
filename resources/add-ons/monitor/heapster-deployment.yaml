@@ -18,5 +18,4 @@ spec:
         command:
         - /heapster
         - --source=kubernetes:https://kubernetes.default
-        - --authorization-mode=RBAC
         - --sink=influxdb:http://monitoring-influxdb:8086
