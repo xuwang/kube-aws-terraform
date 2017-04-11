@@ -109,7 +109,7 @@ kill-metrics:  ## Close monitor console connection
 	fi
 
 delete-dashboard: kill-ui ## Delete dashboard
-	kubectl delete -f dashboard/
+	kubectl delete -f ${KUBERNETES_DASHBOARD}
 
 monitor: ## Deploy monitor
 	@if ! kubectl get pods -n kube-system | grep monitoring-grafana &> /dev/null ; \
