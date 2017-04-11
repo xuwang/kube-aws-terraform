@@ -1,5 +1,3 @@
-## Files 
-
 ```
 .
 ├── LICENSE
@@ -37,19 +35,20 @@
 └── resources
     ├── add-ons
     │   ├── Makefile
-    │   ├── dashboard
-    │   │   └── kubernetes-dashboard.yaml
     │   ├── envs.sh
     │   ├── kubedns
+    │   │   ├── kubedns-cm.yaml
     │   │   ├── kubedns-deployment.yaml
-    │   │   └── kubedns-service.yaml
-    │   └── monitor
-    │       ├── grafana-deployment.yaml
-    │       ├── grafana-service.yaml
-    │       ├── heapster-deployment.yaml
-    │       ├── heapster-service.yaml
-    │       ├── influxdb-deployment.yaml
-    │       └── influxdb-service.yaml
+    │   │   ├── kubedns-sa.yaml
+    │   │   └── kubedns-svc.yaml
+    │   ├── monitor
+    │   │   ├── grafana-deployment.yaml
+    │   │   ├── grafana-service.yaml
+    │   │   ├── heapster-deployment.yaml
+    │   │   ├── heapster-service.yaml
+    │   │   ├── influxdb-deployment.yaml
+    │   │   └── influxdb-service.yaml
+    │   └── sa-admin-binding.yaml
     ├── artifacts
     │   ├── policies
     │   │   ├── assume_role_policy.json
@@ -84,7 +83,6 @@
     │   │   ├── policy.json
     │   │   ├── upload
     │   │   │   ├── get-certs.sh
-    │   │   │   ├── policy.jsonl -> ../../../../artifacts/secrets/api-server/policy.jsonl
     │   │   │   └── setup.sh
     │   │   └── upload-templates
     │   │       └── envvars
@@ -93,7 +91,6 @@
     │   ├── envs.sh
     │   ├── main.tf
     │   ├── security-group.tf
-    │   ├── service-account-token.tf
     │   └── upload.tf
     ├── modules
     │   ├── cloudtrail
@@ -112,11 +109,11 @@
     │   │   ├── policy.json
     │   │   ├── upload
     │   │   │   ├── get-certs.sh
-    │   │   │   ├── policy.jsonl -> ../../../../artifacts/secrets/api-server/policy.jsonl
     │   │   │   └── setup.sh
     │   │   └── upload-templates
     │   │       ├── envvars
-    │   │       └── kubeconfig
+    │   │       ├── kube-proxy-kubeconfig
+    │   │       └── kubelet-kubeconfig
     │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
     │   ├── main.tf
@@ -157,6 +154,7 @@
     │   │   │   ├── scripts
     │   │   │   │   ├── create_ca.sh
     │   │   │   │   ├── create_kube_ca.sh
+    │   │   │   │   ├── create_kube_config.sh
     │   │   │   │   ├── gen-vault-cert.sh
     │   │   │   │   ├── init-unseal.sh
     │   │   │   │   └── utils
@@ -185,5 +183,5 @@
         ├── vpc-subnet-vault.tf
         └── vpc.tf
 
-42 directories, 140 files
+41 directories, 141 files
 ```
