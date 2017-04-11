@@ -4,13 +4,14 @@
 usage() {
   echo "Get ca/certs/key from vault pki backend"
   echo
-  echo "Usage: $0 <issuer_name> <vault_token> <install_dir>"
-  echo "cert will be in <install_dir>/<issuer_name>.pem"
-  echo "key will be in <install_pathdir>/<issuer_name>-key.pem"
+  echo "Usage: $0 <issuer_name>  <common_name> <vault_token> <install_dir>"
+  echo "cert will be in <install_dir>/<issuer_name>-<common_name>.pem"
+  echo "key will be in <install_dir>/<issuer_name>-<common_name>-key.pem"
   echo "ca cert will be in <install_dir>/<issuer_name>-ca.pem"
 }
 
-if [ "$#" -ne 3 ]; then
+pkg=$(basename $0)
+if [ "$#" -ne 4 ]; then
   usage
   exit
 fi
@@ -22,7 +23,9 @@ source /opt/etc/node/envvars
 
 export PATH=/opt/bin/:$PATH
 issuer_name=$1
-token=$2
+common_name=$2
+token=$3
+install_path=$4
 work_idr=certs
 mkdir -p certs
 cd certs
@@ -31,33 +34,30 @@ cd certs
 retry=5
 until vault status || [[ $retry -eq 0 ]];
 do
-  sleep 3
+  sleep 10
   let "retry--"
 done
 if [ $retry -eq 0 ]; then
-  echo "Vault service is not ready."
+  echo "$pkg: Vault service is not ready."
   exit 1
 fi
 
 # Vault PKI Token. We store them in /var/lib/{cn=name} directories
 export VAULT_TOKEN=$token
 fqdn=$(hostname -f)
-for i in kubelet kube-proxy serviceaccounts-cluster-admin
-do
-    install_path=/var/lib/${i}
-    vault write -format=json \
-      ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=$i \
-      alt_names="kubernetes.default,*.cluster.local,$fqdn" \
-      ttl=43800h0m0s \
-      ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4,${KUBE_API_SERVICE}" >  $issuer_name-bundle.certs
+ca_bundle=${ssuer_name}-${common_name}-bundle.pem
+vault write -format=json \
+  ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=$common_name \
+  alt_names="kubernetes.default,*.cluster.local,$fqdn" \
+  ttl=43800h0m0s \
+  ip_sans="127.0.0.1,$COREOS_PRIVATE_IPV4,${KUBE_API_SERVICE}" >  $ca_bundle
 
-    if [ ! -s $issuer_name-bundle.certs ]; then
-      echo "$issuer_name-bundle.certs doesn't exist or has zero size."
-      exit 1
-    fi
+if [ ! -s $ca_bundle ]; then
+  echo "$pkg: $ca_bundle doesn't exist or has zero size."
+  exit 1
+fi
 
-    mkdir -p $install_path
-    cat $issuer_name-bundle.certs | jq -r ".data.certificate" > $install_path/${i}.pem
-    cat $issuer_name-bundle.certs | jq -r ".data.private_key" > $install_path/${i}-key.pem
-    cat $issuer_name-bundle.certs | jq -r ".data.issuing_ca" > $install_path/$issuer_name-ca.pem
-  done
+mkdir -p $install_path
+cat $ca_bundle | jq -r ".data.certificate" > $install_path/${common_name}.pem
+cat $ca_bundle | jq -r ".data.private_key" > $install_path/${common_name}-key.pem
+cat $ca_bundle | jq -r ".data.issuing_ca" > $install_path/${issuer_name}-ca.pem
