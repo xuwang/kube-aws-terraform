@@ -1,0 +1,17 @@
+# serviceaccounts-cluster-admin rolebinding - if you need it. We are still using cluster token.
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: 2017-04-10T06:31:52Z
+  name: sa-admin-binding
+  resourceVersion: "143346"
+  selfLink: /apis/rbac.authorization.k8s.io/v1beta1/clusterrolebindingssa-admin-binding
+  uid: 626cc455-1db7-11e7-9e51-02b5216d0955
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: serviceaccounts-cluster-admin
