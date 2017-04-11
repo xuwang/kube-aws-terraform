@@ -1,7 +1,7 @@
 include ../common/common.mk
 
 KUBERNETES_WORKDIR := /tmp/kubernetes_workdir
-
+KUBERNETES_DASHBOARD := https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
 
 helpme:
 	@# adapted from https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -16,7 +16,7 @@ kube-config: ## If kubeconfig is not configured the this cluster, configure it
 	@if kubectl config get-contexts | grep default-context | grep ${CLUSTER_NAME} &> /dev/null ; \
 	then \
 		echo ${CLUSTER_NAME} is current context. Skip configuration. ; \
-		echo Run kubectl config delete-context default-context if you want to re-configure. ; \
+		echo Run "kubectl config delete-context default-context" if you want to re-configure. ; \
 	else \
 		$(MAKE) do-config ; \
 	fi
@@ -62,12 +62,12 @@ kubedns: sa-admin-binding ## Deploy kube-dns
 	fi
 
 delete-kubedns: ## Delete kube-dns
-	kubectl delete -f kubedns/
+	kubectl delete -f ${KUBERNETES_DASHBOARD}
 
 dashboard: sa-admin-binding ## Start dashboard
-	@if ! kubectl get pods -n kube-system  kubernetes-dashboard &> /dev/null ; \
+	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard &> /dev/null ; \
 	then \
-		kubectl create -f dashboard/ ; \
+		kubectl create -f ${KUBERNETES_DASHBOARD} ; \
 	else \
 		kubectl get svc,pods -n kube-system -l app=kubernetes-dashboard ; \
 	fi
