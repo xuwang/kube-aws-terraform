@@ -16,6 +16,7 @@ data "template_file" "master_cloud_config" {
         "KUBE_CLUSTER_CIDR" = "${var.kube_cluster_cidr}"
         "KUBE_SERVICE_CIDR" = "${var.kube_service_cidr}"
         "KUBE_SERVICE_NODE_PORTS" = "${var.kube_service_node_ports}"
+        "KUBE_APISERVER-COUNT" = "${var.cluster_desired_capacity}"
     }
 }
 

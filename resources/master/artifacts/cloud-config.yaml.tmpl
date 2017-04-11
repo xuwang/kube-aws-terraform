@@ -80,7 +80,7 @@ coreos:
           --admission-control=NamespaceLifecycle,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota \
           --advertise-address=$private_ipv4 \
           --allow-privileged=true \
-          --apiserver-count=3 \
+          --apiserver-count=${KUBE_APISERVER-COUNT} \
           --authorization-mode=RBAC \
           --bind-address=0.0.0.0 \
           --client-ca-file=/var/lib/kubernetes/kube-apiserver-ca.pem \
@@ -118,6 +118,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=true
+        Environment="HOME=/root"
         ExecStart=/usr/bin/sh -c "\
           /opt/bin/kubectl get clusterrolebinding admin-binding &> /dev/null || \
              /opt/bin/kubectl create clusterrolebinding admin-binding --clusterrole=cluster-admin --user=admin ; \

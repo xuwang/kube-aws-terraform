@@ -69,16 +69,3 @@ data "template_file" "kube-proxy-kubeconfig" {
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
     }
 }
-
-# Generate /var/lib/serviceaccounts-cluster-admin/kubeconfig
-resource "aws_s3_bucket_object" "serviceaccounts-cluster-admin-kubeconfig" {
-    bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
-    key = "node/kserviceaccounts-cluster-admin-kubeconfig"
-    content = "${data.template_file.serviceaccounts-cluster-admin-kubeconfig.rendered}"
-}
-data "template_file" "serviceaccounts-cluster-admin-kubeconfig" {
-    template = "${file("./artifacts/upload-templates/serviceaccounts-cluster-admin-kubeconfig")}"
-    vars {
-        "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
-    }
-}

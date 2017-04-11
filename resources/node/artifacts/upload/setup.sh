@@ -30,7 +30,11 @@ fi
 
 $GET ${CONFIG_BUCKET} ${MODULE_NAME}/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
 $GET ${CONFIG_BUCKET} ${MODULE_NAME}/kube-proxy-kubeconfig /var/lib/kube-proxy/kubeconfig
-$GET ${CONFIG_BUCKET} ${MODULE_NAME}/serviceaccounts-cluster-admin-kubeconfig /var/lib/serviceaccounts-cluster-admin/kubeconfig
 
-# Generate certs from vualt pki: <issuer endpoint> <auth token>
-bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver)
+# Generate certs from vualt pki: <issuer endpoint>  <common_name> <auth token> <install_path>
+bash get-certs.sh kube-apiserver kubelet $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubelet
+bash get-certs.sh kube-apiserver kube-proxy $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kube-proxy
+
+# If a service account is needed
+#$GET ${CONFIG_BUCKET} ${MODULE_NAME}/serviceaccounts-cluster-admin-kubeconfig /var/lib/serviceaccounts-cluster-admin/kubeconfig
+#bash get-certs.sh kube-apiserver erviceaccounts-cluster-admin  $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/erviceaccounts-cluster-admin

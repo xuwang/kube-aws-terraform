@@ -23,6 +23,8 @@ then
   touch /opt/etc/master/kube-${KUBE_VERSION}
 fi
 
-# Generate certs from vualt pki for etcd and kube-apiserver get-certs <issuer_name> <auth_token>
-bash get-certs.sh etcd-server $(cat /opt/etc/pki-tokens/etcd-server) /etc/etcd/certs
-bash get-certs.sh kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
+# Generate certs from vualt pki for etcd and kube-apiserver
+#  get-certs <issuer_name> <common_name> <auth_token> <install path>
+bash get-certs.sh etcd-server etcd-server $(cat /opt/etc/pki-tokens/etcd-server) /etc/etcd/certs
+bash get-certs.sh kube-apiserver admin $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
+bash get-certs.sh kube-apiserver kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
