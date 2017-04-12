@@ -118,19 +118,20 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=true
-        Environment="HOME=/root"
-        ExecStart=/usr/bin/sh -c "\
+        ExecStartPre=/bin/bash -c "while ! ncat --send-only localhost 8080  < /dev/null &> /dev/null; do sleep 10; done"
+        ExecStart=/usr/bin/sh -c "HOME=/root; \
           /opt/bin/kubectl get clusterrolebinding admin-binding &> /dev/null || \
              /opt/bin/kubectl create clusterrolebinding admin-binding --clusterrole=cluster-admin --user=admin ; \
          "
-        ExecStart=/usr/bin/sh -c "\
+        ExecStart=/usr/bin/sh -c "HOME=/root; \
           /opt/bin/kubectl get clusterrolebinding kubelet-node-binding &> /dev/null || \
              /opt/bin/kubectl create clusterrolebinding kubelet-node-binding --clusterrole=system:node --user=kubelet ; \
          "
-         ExecStart=/usr/bin/sh -c "\
+         ExecStart=/usr/bin/sh -c "HOME=/root; \
            /opt/bin/kubectl get clusterrolebinding kube-proxy-node-binding &> /dev/null || \
-              /opt/bin/kubectl create clusterrolebinding kube-proxy-node-binding --clusterrole=system:node-proxies --user=kube-proxy ; \
+              /opt/bin/kubectl create clusterrolebinding kube-proxy-node-binding --clusterrole=system:node-proxier --user=kube-proxy ; \
           "
+
 write_files:
   - path: /etc/profile.d/alias.sh
     permissions: 0755
@@ -180,13 +181,3 @@ write_files:
       #export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
       export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
       export ETCDCTL_ENDPOINTS=http://127.0.0.1:2379
-
-  - path: /etc/profile.d/vault.sh
-    permissions: 0644
-    owner: root
-    content: |
-      # For vault client to connect server through TLS
-      export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
-      export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-      export PATH=$PATH:/opt/bin
-      export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/kube-apiserver)

@@ -60,3 +60,4 @@ vault write -format=json \
   cat $ca_bundle | jq -r ".data.certificate" > $install_path/$common_name.pem
   cat $ca_bundle | jq -r ".data.private_key" > $install_path/$common_name-key.pem
   cat $ca_bundle | jq -r ".data.issuing_ca" > $install_path/$issuer_name-ca.pem
+  chmod 600 $install_path/*.pem
