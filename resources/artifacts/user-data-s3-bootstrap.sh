@@ -60,20 +60,14 @@ get_cloudinit() {
 	mkdir -p $WORK_DIR/config
 	cd $WORK_DIR/config
 	$GET ${CONFIG_BUCKET} ${MODULE_NAME}/cloud-config.yaml cloud-config.yaml
+}
 
-	if [ -s "cloud-config.yaml" ]; then
+do_cloudinit() {
+  if [ -s "cloud-config.yaml" ]; then
 		# Run cloud-init
 		coreos-cloudinit --from-file=cloud-config.yaml
 	else
 		echo "$pkg: failed to get ${MODULE_NAME}/cloud-config.yaml."
-	fi
-}
-
-do_cloudinit() {
-	cd $WORK_DIR/config
-	if [ -s "cloud-config.yaml" ]; then
-		# Run cloud-init
-		coreos-cloudinit --from-file=cloud-config.yaml
 	fi
 }
 
