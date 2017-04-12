@@ -115,6 +115,7 @@ coreos:
         Wants=kube-apiserver.service
         After=kube-apiserver.service
 
+        # Grant admin user, kubelet, and kube-proxy permission for RBAC authentication and authorization
         [Service]
         Type=oneshot
         RemainAfterExit=true
