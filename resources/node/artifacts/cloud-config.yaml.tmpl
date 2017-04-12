@@ -121,14 +121,6 @@ write_files:
               jq --raw-output '.InstanceProfileArn' | sed 's%.*instance-profile/%%')
       PS1="\[\033[01;32m\]\u@\h\[\033[01;34m\]-$role \w \$\[\033[00m\] "
 
-  - path: /etc/profile.d/vault.sh
-    permissions: 0644
-    owner: root
-    content: |
-      # For vault client to connect server through TLS
-      export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
-      export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
-
   - path: /etc/systemd/system/docker.service.d/50-iptables.conf
     content: |
         [Service]
