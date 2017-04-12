@@ -14,7 +14,16 @@ then
   docker run --rm -v /opt/bin:/tmp ${VAULT_IMAGE} cp /bin/vault /tmp/vault
   touch  /opt/etc/${MODULE_NAME}/${VAULT_IMAGE}
 fi
-s
+
+Generate vault.sh needed by bootstraping certs
+cat > /etc/profile.d/vault.sh <<EOF
+# For vault client to connect server through TLS
+export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
+export VAULT_ADDR=https://vault.${CLUSTER_INTERNAL_ZONE}
+export PATH=$PATH:/opt/bin
+export VAULT_TOKEN=$(cat /opt/etc/pki-tokens/kube-apiserver)
+EOF
+
 # Install CNI plugin and kubernetes
 if [ ! -f /opt/etc/${MODULE_NAME}/${CNI_PLUGIN_URL} ];
 then

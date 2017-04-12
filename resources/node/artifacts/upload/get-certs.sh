@@ -45,7 +45,7 @@ fi
 # Vault PKI Token. We store them in /var/lib/{cn=name} directories
 export VAULT_TOKEN=$token
 fqdn=$(hostname -f)
-ca_bundle=${ssuer_name}-${common_name}-bundle.pem
+ca_bundle=${issuer_name}-${common_name}-bundle.pem
 vault write -format=json \
   ${CLUSTER_NAME}/pki/$issuer_name/issue/$issuer_name common_name=$common_name \
   alt_names="kubernetes.default,*.cluster.local,$fqdn" \
