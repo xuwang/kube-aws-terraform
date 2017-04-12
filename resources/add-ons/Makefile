@@ -47,13 +47,13 @@ do-config: ## Create kubeconfig for kubectl
 	kubectl config use-context default-context
 	@echo rm -rf ${KUBERNETES_WORKDIR}
 
-sa-admin-binding: kube-config ## Create Service account admin binding
-	@if ! kubectl get clusterrolebinding sa-admin-binding &> /dev/null ; \
+kube-system-admin-role-binding: kube-config ## Create Service account admin binding
+	@if ! kubectl get clusterrolebinding kube-system-admin-role-binding &> /dev/null ; \
 	then \
-		kubectl create -f sa-admin-binding.yaml ; \
+		kubectl create -f kube-system-admin-role-binding.yaml ; \
 	fi
 
-kubedns: sa-admin-binding ## Deploy kube-dns
+kubedns: ## Deploy kube-dns
 	@if ! kubectl get svc -n kube-system kube-dns &> /dev/null ; \
 	then \
 		kubectl create -f kubedns/ ; \
@@ -64,7 +64,7 @@ kubedns: sa-admin-binding ## Deploy kube-dns
 delete-kubedns: ## Delete kube-dns
 	kubectl delete -f ${KUBERNETES_DASHBOARD}
 
-dashboard: sa-admin-binding ## Start dashboard
+dashboard: kube-system-admin-role-binding ## Start dashboard
 	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard &> /dev/null ; \
 	then \
 		kubectl create -f ${KUBERNETES_DASHBOARD} ; \
@@ -132,4 +132,4 @@ kube-cleanup: ## Delete all add-ons and delete the default-context
 	fi
 
 .PHONY: add-ons dashboard delete-dashboard delete-monitor delete-kubedns do-config helpme kill-metrics
-.PHONY: kill-ui kube-cleanup kube-config kubedns metrics monitor sa-admin-binding ui
+.PHONY: kill-ui kube-cleanup kube-config kubedns metrics monitor kube-system-admin-role-binding ui
