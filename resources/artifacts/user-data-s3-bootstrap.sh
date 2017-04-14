@@ -41,7 +41,7 @@ do_setup() {
 	config_tarball=config.tar.gz
 	setup_cmd=setup.sh
 
-	# get config and do setup
+	# get config and do setup if there is a setup command
 	mkdir -p $WORK_DIR/setup
 	cd $WORK_DIR/setup
 	$GET ${CONFIG_BUCKET} ${MODULE_NAME}/$config_tarball $config_tarball
@@ -51,8 +51,6 @@ do_setup() {
 		if [ -s "$setup_cmd" ]; then
 			bash $setup_cmd
 		fi
-	else
-		echo "$pkg: ${MODULE_NAME}/$config_tarball."
 	fi
 }
 
@@ -63,7 +61,8 @@ get_cloudinit() {
 }
 
 do_cloudinit() {
-  if [ -s "cloud-config.yaml" ]; then
+	cd $WORK_DIR/config
+	if [ -s "cloud-config.yaml" ]; then
 		# Run cloud-init
 		coreos-cloudinit --from-file=cloud-config.yaml
 	else
