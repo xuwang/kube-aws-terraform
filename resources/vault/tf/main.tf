@@ -1,7 +1,7 @@
 
 # Reference: https://github.com/hashicorp/vault/tree/master/terraform/aws
 module "vault" {
-  source = "../modules/cluster-no-opt-data"
+  source = "/build/modules/cluster-no-opt-data"
 
   # cluster varaiables
   asg_name = "${var.cluster_name}-vault"

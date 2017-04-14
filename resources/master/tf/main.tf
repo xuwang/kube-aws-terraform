@@ -1,5 +1,5 @@
 module "master" {
-  source = "../modules/cluster-no-opt-data"
+  source = "/build/modules/cluster-no-opt-data"
 
   # cluster variables
   asg_name = "${var.cluster_name}-master"
@@ -60,7 +60,7 @@ data "template_file" "user_data" {
 }
 
 data "template_file" "master_policy_json" {
-    template = "${file("./artifacts/policy.json")}"
+    template = "${file("${artifacts_dir}/policy.json")}"
     vars {
         "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
         "CLUSTER_NAME" = "${var.cluster_name}"

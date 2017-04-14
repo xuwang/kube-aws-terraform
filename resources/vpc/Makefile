@@ -1,1 +1,1 @@
-../common/common.mk
+include ../common/common.mk

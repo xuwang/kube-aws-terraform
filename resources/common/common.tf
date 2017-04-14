@@ -42,7 +42,7 @@ variable "cluster_internal_zone" {
 /*
 Well, module source can't be var: see https://github.com/hashicorp/terraform/issues/1439
 variable "module_dir" {
-    default = "../modules"
+    default = "/build/modules"
 }
 */
 
@@ -55,7 +55,7 @@ variable "app_repository"  {
 }
 
 variable "artifacts_dir" {
-    default = "../artifacts"
+    default = "/build/artifacts"
 }
 
 # Default vpc prefix
@@ -123,7 +123,7 @@ variable "kube_version" {
 
 # Sensitive data
 variable "secrets_path" {
-    default = "../artifacts/secrets"
+    default = "/build/artifacts/secrets"
 }
 
 variable "vault_ca" {

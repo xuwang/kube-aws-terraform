@@ -8,7 +8,7 @@ resource "aws_s3_bucket_object" "node_cloud_config" {
   content = "${data.template_file.node_cloud_config.rendered}"
 }
 data "template_file" "node_cloud_config" {
-    template = "${file("./artifacts/cloud-config.yaml.tmpl")}"
+    template = "${file("${var.artifacts_dir}/cloud-config.yaml.tmpl")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
@@ -27,7 +27,7 @@ resource "aws_s3_bucket_object" "envvars" {
     content = "${data.template_file.envvars.rendered}"
 }
 data "template_file" "envvars" {
-    template = "${file("./artifacts/upload-templates/envvars")}"
+    template = "${file("${var.artifacts_dir}/upload-templates/envvars")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
@@ -51,7 +51,7 @@ resource "aws_s3_bucket_object" "kubelet-kubeconfig" {
     content = "${data.template_file.kubelet-kubeconfig.rendered}"
 }
 data "template_file" "kubelet-kubeconfig" {
-    template = "${file("./artifacts/upload-templates/kubelet-kubeconfig")}"
+    template = "${file("${var.artifacts_dir}/upload-templates/kubelet-kubeconfig")}"
     vars {
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
     }
@@ -64,7 +64,7 @@ resource "aws_s3_bucket_object" "kube-proxy-kubeconfig" {
     content = "${data.template_file.kube-proxy-kubeconfig.rendered}"
 }
 data "template_file" "kube-proxy-kubeconfig" {
-    template = "${file("./artifacts/upload-templates/kube-proxy-kubeconfig")}"
+    template = "${file("${var.artifacts_dir}/upload-templates/kube-proxy-kubeconfig")}"
     vars {
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
     }

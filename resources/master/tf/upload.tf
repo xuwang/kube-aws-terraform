@@ -8,7 +8,7 @@ resource "aws_s3_bucket_object" "master_cloud_config" {
   content = "${data.template_file.master_cloud_config.rendered}"
 }
 data "template_file" "master_cloud_config" {
-    template = "${file("./artifacts/cloud-config.yaml.tmpl")}"
+    template = "${file("${artifacts_dir}/cloud-config.yaml.tmpl")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
@@ -19,14 +19,13 @@ data "template_file" "master_cloud_config" {
         "KUBE_APISERVER-COUNT" = "${var.cluster_desired_capacity}"
     }
 }
-
 resource "aws_s3_bucket_object" "envvars" {
     bucket = "${var.aws_account["id"]}-${var.cluster_name}-config"
     key = "master/envvars"
     content = "${data.template_file.envvars.rendered}"
 }
 data "template_file" "envvars" {
-    template = "${file("./artifacts/upload-templates/envvars")}"
+    template = "${file("${artifacts_dir}/upload-templates/envvars")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"

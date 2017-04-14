@@ -2,7 +2,7 @@
 
 resource "aws_iam_user" "deployment" {
     name = "${var.cluster_name}-deployment"
-    path = "/system/"   
+    path = "/system/"
 }
 resource "aws_iam_user_policy" "deployment" {
     name = "${aws_iam_user.deployment.name}"
@@ -28,7 +28,7 @@ resource "aws_iam_access_key" "deployment" {
     user = "${aws_iam_user.deployment.name}"
 }
 
-output "deployment_user" { 
+output "deployment_user" {
     value = "${aws_iam_user.deployment.name}"
 }
 output "deployment_key_id" {
@@ -37,7 +37,7 @@ output "deployment_key_id" {
 }
 output "deployment_key_secret" {
     sensitive = true
-    value = "${aws_iam_access_key.deployment.secret}" 
+    value = "${aws_iam_access_key.deployment.secret}"
 }
 
 output "s3_config_bucket" {

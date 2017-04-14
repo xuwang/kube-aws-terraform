@@ -7,7 +7,7 @@ resource "aws_s3_bucket_object" "vault_cnf" {
     content = "${data.template_file.vault_cnf.rendered}"
 }
 data "template_file" "vault_cnf" {
-    template = "${file("./artifacts/upload-templates/vault.cnf")}"
+    template = "${file("${artifacts_dir}/upload-templates/vault.cnf")}"
     vars {
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
@@ -20,7 +20,7 @@ resource "aws_s3_bucket_object" "vault_hcl" {
     content = "${data.template_file.vault_hcl.rendered}"
 }
 data "template_file" "vault_hcl" {
-    template = "${file("./artifacts/upload-templates/vault.hcl")}"
+    template = "${file("${artifacts_dir}/upload-templates/vault.hcl")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "AWS_DEFAULT_REGION" = "${var.aws_account["default_region"]}"
@@ -34,7 +34,7 @@ resource "aws_s3_bucket_object" "vault_sh" {
     content = "${data.template_file.vault_sh.rendered}"
 }
 data "template_file" "vault_sh" {
-    template = "${file("./artifacts/upload-templates/vault.sh")}"
+    template = "${file("${artifacts_dir}/upload-templates/vault.sh")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "ROUTE53_ZONE_NAME" = "${var.route53_zone_name}"
@@ -53,7 +53,7 @@ resource "aws_s3_bucket_object" "envvars" {
     content = "${data.template_file.envvars.rendered}"
 }
 data "template_file" "envvars" {
-    template = "${file("./artifacts/upload-templates/envvars")}"
+    template = "${file("${artifacts_dir}/upload-templates/envvars")}"
     vars {
         "VAULT_RELEASE" = "${var.vault_release}"
     }
@@ -68,7 +68,7 @@ resource "aws_s3_bucket_object" "vault_cloud_config" {
   content = "${data.template_file.vault_cloud_config.rendered}"
 }
 data "template_file" "vault_cloud_config" {
-    template = "${file("./artifacts/cloud-config.yaml.tmpl")}"
+    template = "${file("${artifacts_dir}/cloud-config.yaml.tmpl")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "AWS_DEFAULT_REGION" = "${var.aws_account["default_region"]}"
@@ -86,7 +86,7 @@ resource "aws_s3_bucket_object" "vault_pki_tokens" {
   content = "place-holder"
 }
 data "template_file" "vault_policy_json" {
-    template = "${file("./artifacts/policy.json")}"
+    template = "${file("${artifacts_dir}/policy.json")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
