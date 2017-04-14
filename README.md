@@ -52,13 +52,17 @@ $ aws configure --profile kube-user
 ```
 Input AWS access key id and secret at the prompt. The build process bellow will configure Terraform AWS provider to use `kube-user` profile stored in ~/.aws/credentials.
 
+### Install Docker
+
+[Install Docker](https://docs.docker.com/engine/installation/#platform-support-matrix)
+
 ### Install tools
 
-Install [Terraform](http://www.terraform.io/downloads.html), [Jq](http://stedolan.github.io/jq/), [graphviz](http://www.graphviz.org/), [AWS CLI](https://github.com/aws/aws-cli) on MacOS:
+[Jq](http://stedolan.github.io/jq/), [graphviz](http://www.graphviz.org/), [AWS CLI](https://github.com/aws/aws-cli) on MacOS:
 
 ```
 $ brew update
-$ brew install terraform jq graphviz awscli gettext
+$ brew install jq graphviz awscli gettext
 $ brew link --force gettext
 ```
 __NOTE:__ Make sure the installed Terraform version is matching the required Terraform version defined in env.sh.sample by `TF_VERSION`.

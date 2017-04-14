@@ -14,11 +14,6 @@
 │       ├── redis-rc.yml
 │       ├── redis-svc.yml
 │       └── teardown.sh
-├── artifacts
-│   └── secrets
-│       └── api-server
-│           ├── policy.jsonl
-│           └── token.csv.sample
 ├── docs
 │   ├── 00-run-book.md
 │   ├── 01-aws-resources.md
@@ -36,19 +31,19 @@
     ├── add-ons
     │   ├── Makefile
     │   ├── envs.sh
+    │   ├── kube-system-admin-role-bindings.yaml
     │   ├── kubedns
     │   │   ├── kubedns-cm.yaml
     │   │   ├── kubedns-deployment.yaml
     │   │   ├── kubedns-sa.yaml
     │   │   └── kubedns-svc.yaml
-    │   ├── monitor
-    │   │   ├── grafana-deployment.yaml
-    │   │   ├── grafana-service.yaml
-    │   │   ├── heapster-deployment.yaml
-    │   │   ├── heapster-service.yaml
-    │   │   ├── influxdb-deployment.yaml
-    │   │   └── influxdb-service.yaml
-    │   └── sa-admin-binding.yaml
+    │   └── monitor
+    │       ├── grafana-deployment.yaml
+    │       ├── grafana-service.yaml
+    │       ├── heapster-deployment.yaml
+    │       ├── heapster-service.yaml
+    │       ├── influxdb-deployment.yaml
+    │       └── influxdb-service.yaml
     ├── artifacts
     │   ├── policies
     │   │   ├── assume_role_policy.json
@@ -66,16 +61,16 @@
     │   ├── artifacts
     │   │   ├── cloud-config.yaml.tmpl
     │   │   └── policy.json
-    │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
-    │   ├── main.tf
-    │   └── upload.tf
+    │   └── tf
+    │       ├── main.tf
+    │       └── upload.tf
     ├── iam
-    │   ├── Makefile -> ../common/common.mk
-    │   ├── common.tf -> ../common/common.tf
+    │   ├── Makefile
     │   ├── envs.sh
-    │   ├── kubernetes.tf
-    │   └── main.tf
+    │   └── tf
+    │       ├── kubernetes.tf
+    │       └── main.tf
     ├── master
     │   ├── Makefile
     │   ├── artifacts
@@ -86,12 +81,12 @@
     │   │   │   └── setup.sh
     │   │   └── upload-templates
     │   │       └── envvars
-    │   ├── common.tf -> ../common/common.tf
-    │   ├── elb.tf
     │   ├── envs.sh
-    │   ├── main.tf
-    │   ├── security-group.tf
-    │   └── upload.tf
+    │   └── tf
+    │       ├── elb.tf
+    │       ├── main.tf
+    │       ├── security-group.tf
+    │       └── upload.tf
     ├── modules
     │   ├── cloudtrail
     │   │   ├── main.tf
@@ -114,25 +109,25 @@
     │   │       ├── envvars
     │   │       ├── kube-proxy-kubeconfig
     │   │       └── kubelet-kubeconfig
-    │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
-    │   ├── main.tf
-    │   └── upload.tf
+    │   └── tf
+    │       ├── main.tf
+    │       └── upload.tf
     ├── pki
     │   ├── Makefile -> ../common/common.mk
-    │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
-    │   └── main.tf
+    │   └── tf
+    │       └── main.tf
     ├── route53
     │   ├── Makefile -> ../common/common.mk
-    │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
-    │   └── main.tf
+    │   └── tf
+    │       └── main.tf
     ├── s3
     │   ├── Makefile -> ../common/common.mk
-    │   ├── common.tf -> ../common/common.tf
     │   ├── envs.sh
-    │   └── main.tf
+    │   └── tf
+    │       └── main.tf
     ├── scripts
     │   ├── allow-myip.sh
     │   ├── aws-keypair.sh
@@ -166,22 +161,23 @@
     │   │       ├── vault.cnf
     │   │       ├── vault.hcl
     │   │       └── vault.sh
-    │   ├── common.tf -> ../common/common.tf
-    │   ├── elb.tf
     │   ├── envs.sh
-    │   ├── main.tf
-    │   ├── upload.tf
-    │   └── variables.tf
+    │   └── tf
+    │       ├── elb.tf
+    │       ├── main.tf
+    │       ├── upload.tf
+    │       └── variables.tf
     └── vpc
-        ├── Makefile -> ../common/common.mk
-        ├── common.tf -> ../common/common.tf
+        ├── Makefile
         ├── envs.sh
-        ├── vpc-subnet-elb.tf
-        ├── vpc-subnet-etcd.tf
-        ├── vpc-subnet-master.tf
-        ├── vpc-subnet-node.tf
-        ├── vpc-subnet-vault.tf
-        └── vpc.tf
+        └── tf
+            ├── vpc-subnet-elb.tf
+            ├── vpc-subnet-etcd.tf
+            ├── vpc-subnet-master.tf
+            ├── vpc-subnet-node.tf
+            ├── vpc-subnet-vault.tf
+            └── vpc.tf
 
-41 directories, 141 files
+47 directories, 130 files
+
 ```
