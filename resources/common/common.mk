@@ -5,20 +5,30 @@ AWS_USER := $(shell aws --profile ${AWS_PROFILE} iam get-user | jq -r ".User.Use
 AWS_ACCOUNT := $(shell aws --profile ${AWS_PROFILE} iam get-user | jq -r ".User.Arn" | grep -Eo '[[:digit:]]{12}')
 ALLOWED_ACCOUNT_IDS := "$(AWS_ACCOUNT)"
 
-SCRIPTS=../scripts
-SEC_PATH=${PWD}/../artifacts/secrets
-SSHKEY_DIR=${HOME}/.ssh
-ARTIFACTS_DIR=${PWD}/../artifacts
-BUILD_DIR=${PWD}/build
-TF_VAR_build_dir=/build
-TF_VAR_artifacts_dir=${TF_VAR_build_dir}/artifacts
-TF_VAR_secrets_path=${TF_VAR_artifacts_dir}/secrets
+SCRIPTS := ../scripts
+SEC_PATH := ../artifacts/secrets
+SSHKEY_DIR := ${HOME}/.ssh
+BUILD_DIR := ${PWD}/build
+ARTIFACTS_DIR := ../artifacts
+MODULES_PATH := ../modules
 
-TF_VERSION=0.9.1
-TF_IMAGE=hashicorp/${TF_CMD}:${TF_VERSION}
-TF_CMD=docker run -it --rm -w=${TF_VAR_build_dir}\
-	--env-file=${BUILD_DIR}/tf.env \
-  -v=${BUILD_DIR}:${TF_VAR_build_dir} ${TF_IMAGE}
+# Timestamp for tagging resources
+TF_VAR_timestamp := $(shell date +%Y-%m-%d-%H%M)
+# Terraform dir referenced in container
+TF_VAR_build_dir := /build
+TF_VAR_artifacts_dir := ${TF_VAR_build_dir}/artifacts
+TF_VAR_secrets_path := ${TF_VAR_artifacts_dir}/secrets
+
+TF_VERSION := 0.9.1
+TF_IMAGE := hashicorp/terraform:${TF_VERSION}
+TF_CMD := docker run -it --rm --env-file=${BUILD_DIR}/tf.env \
+		-v=${HOME}/.aws:/root/.aws \
+		-v=${BUILD_DIR}:${TF_VAR_build_dir} \
+		-w=${TF_VAR_build_dir} ${TF_IMAGE}
+
+# Terraform max retries and log level
+TF_MAX_RETRIES := 10
+#TF_LOG := debug
 
 # Terraform commands
 # Note: for production, set -refresh=true to be safe
@@ -34,19 +44,12 @@ TF_LIST := ${TF_CMD} state list
 TF_REFRESH := ${TF_CMD} refresh
 TF_TAINT := ${TF_CMD} taint -allow-missing
 TF_OUTPUT := ${TF_CMD} output -json
-#TF_LOG := debug
 
 # TF environments
 TF_REMOTE_STATE_PATH := "${MODULE}.tfstate"
-TF_REMOTE_STATE_BUCKET := ${AWS_ACCOUNT}-${CLUSTER_NAME}-${TF_CMD}
-
-# tf files
+TF_REMOTE_STATE_BUCKET := ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform
 TF_PROVIDER := provider.tf
 
-# Timestamp for tagging resources
-TF_VAR_timestamp := $(shell date +%Y-%m-%d-%H%M)
-TF_VAR_app_repository := "git@example.com:user/app-repo.git"
-TF_VAR_git_ssh_command := "ssh -i /root/.ssh/git-sync-rsa.pem -o 'StrictHostKeyChecking no'"
 export
 
 all: apply ## provisioning
@@ -60,19 +63,26 @@ help: ## this info
 
 update-build: check-profile
 	@mkdir -p ${BUILD_DIR}
-	@cp -rf ../modules ${BUILD_DIR}
-	@cp -f ../common/*.rf ${BUILD_DIR}
+	# copy modules to buid dir
+	@cp -rf ${MODULES_PATH} ${BUILD_DIR}
+	# copy shared tf files to buidl dir
+	@cp -f ../common/*.tf ${BUILD_DIR}
+	# copy local tf files to build dir
 	@cp -rf tf/* ${BUILD_DIR}
+	# copy shared artifacts to build dir
 	@cp -rf ../artifacts ${BUILD_DIR}
-	@cp -rf artifacts/* ${BUILD_DIR}/artifacts
+	# copy local artifacts to build dir if exist
+	@if [ -d artifacts ] ; then cp -rf artifacts/* ${BUILD_DIR}/artifacts; fi
+	# generate docker env-file for tf vars and aws profile
 	@env | grep 'TF_VAR\|AWS_' | grep -v 'TF_CMD' > ${BUILD_DIR}/tf.env
+	# generate tf provider file
 	@../scripts/gen-provider.sh > ${BUILD_DIR}/${TF_PROVIDER}
 
 check-profile:
-@if ! aws --profile ${AWS_PROFILE} iam get-user > /dev/null 2>&1 ; then \
-	echo "ERROR: AWS profile \"${AWS_PROFILE}\" is not setup!"; \
-	exit 1 ; \
-fi
+	@if ! aws --profile ${AWS_PROFILE} iam get-user > /dev/null 2>&1 ; then \
+		echo "ERROR: AWS profile \"${AWS_PROFILE}\" is not setup!"; \
+		exit 1 ; \
+	fi
 
 init: remote
 	@${TF_GET}

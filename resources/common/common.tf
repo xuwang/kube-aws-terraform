@@ -67,10 +67,6 @@ variable "timestamp" {
     default = "undefined"
 }
 
-variable "git_ssh_command" {
-    default = "undefined"
-}
-
 variable "route53_zone_name" {
     default = "example.com"
 }
