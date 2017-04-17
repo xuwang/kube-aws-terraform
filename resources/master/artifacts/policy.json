@@ -30,7 +30,8 @@
         "s3:Get*"
       ],
       "Resource": [
-        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etc/sysconfig/initial-cluster",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etc/sysconfig/",
+        "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/etc/sysconfig/*",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/master",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/master/*",
         "arn:aws:s3:::${AWS_ACCOUNT}-${CLUSTER_NAME}-config/pki/ca.pem",
