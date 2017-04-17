@@ -75,4 +75,6 @@ init_vars
 install_bash_s3
 get_cloudinit
 do_setup
+# make sure docker is stopped before cloudinit
+systemctl stop docker
 do_cloudinit
