@@ -27,7 +27,10 @@ do-config: ## Create kubeconfig for kubectl
 	@echo Download vault generated ca cert from the api server
 	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
 	@scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/* ${KUBERNETES_WORKDIR}/
+		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin.pem \
+		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin-key.pem \
+		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem \
+		 ${KUBERNETES_WORKDIR}/
 
 	@echo kubectl config set-cluster kubernetes...
 	@kubectl config set-cluster ${CLUSTER_NAME} \
@@ -80,7 +83,7 @@ ui: dashboard ## kubectl proxy and open dashboard ui
 		sleep 10 ; \
 	done
 	echo "Connecting to ui..."
-	open "http://127.0.0.1:8001/ui/#/workload?namespace=kube-system"
+	open "http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/workload?namespace=kube-system"
 	echo "Please 'make kill-ui' to close kube proxy connection"
 
 kill-ui:  kill-metrics ## Close Kube console connection
