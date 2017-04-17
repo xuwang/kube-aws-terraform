@@ -9,7 +9,7 @@ resource "aws_s3_bucket_object" "etcd_cloud_config" {
 }
 
 data "template_file" "etcd_cloud_config" {
-    template = "${file("${artifacts_dir}/cloud-config.yaml.tmpl")}"
+    template = "${file("${var.artifacts_dir}/cloud-config.yaml.tmpl")}"
     vars {
       "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
       "AWS_DEFAULT_REGION" = "${var.aws_account["default_region"]}"

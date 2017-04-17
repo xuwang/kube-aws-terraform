@@ -49,7 +49,7 @@ data "template_file" "user_data" {
 }
 
 data "template_file" "etcd_policy_json" {
-    template = "${file("${artifacts_dir}/policy.json")}"
+    template = "${file("${var.artifacts_dir}/policy.json")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
