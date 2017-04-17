@@ -18,9 +18,10 @@ This implementation presents one of the opportunities for anyone who are interes
 
 ## Features
 
-* Kubernetes 1.5.5, Docker engine 1.12.6
+* Kubernetes 1.6.1, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
-* Terraform 0.9.1, with remote state on S3 storage
+* Terraform 0.9.2 (can be defined in env), which runs as a container to make sure the team use the same version. 
+* Terraform remote state on S3 storage
 * Autoscaling group for each etcd2, master, node, and vault cluster for hight availability
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
