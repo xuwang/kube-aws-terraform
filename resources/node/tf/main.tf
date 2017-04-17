@@ -49,7 +49,7 @@ data "template_file" "user_data" {
 }
 
 data "template_file" "node_policy_json" {
-    template = "${file("${artifacts_dir}/policy.json")}"
+    template = "${file("${var.artifacts_dir}/policy.json")}"
     vars {
         "AWS_ACCOUNT" = "${data.aws_caller_identity.current.account_id}"
         "CLUSTER_NAME" = "${var.cluster_name}"
