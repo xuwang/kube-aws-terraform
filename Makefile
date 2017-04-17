@@ -152,5 +152,10 @@ get-apiserver-elb: ## Get API server ELB address
 destroy-add-ons: ## Delete all add-ons, ie. kubedns, dashboard, and monitor
 	cd resources/add-ons; make kube-cleanup
 
-.PHONY: all help vpc s3 iam etcd node add-ons destroy-add-ons
+# see https://github.com/docker/for-mac/issues/17#issuecomment-236517032
+sync-docker-time: ## sync docker vm time with hardware clock
+		@docker run --rm --privileged alpine hwclock -s
+
+
+.PHONY: all help vpc s3 iam etcd node add-ons destroy-add-ons sync-docker-time
 .PHONY: destroy destroy-vpc destroy-s3 destroy-iam destroy-etcd destroy-node smoke-test

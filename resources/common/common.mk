@@ -191,12 +191,17 @@ upgrade-kube: ## upgrade k8s to version defined in TF_VAR_kube_version
 	@$(MAKE)
 	@echo "Don't forget to reboot ${MODULE}s."
 
+# see https://github.com/docker/for-mac/issues/17#issuecomment-236517032
+sync-docker-time: ## sync docker vm time with hardware clock
+		@docker run --rm --privileged alpine hwclock -s
+
 confirm:
 	@echo "CONTINUE? [Y/N]: "; read ANSWER; \
 	if [ ! "$$ANSWER" = "Y" ]; then \
 		echo "Exiting." ; exit 1 ; \
   fi
 
+
 .PHONY: init plan apply show output destroy clean remote-push remote-pull help
-.PHONY: update-build update-ami update_user-data get-ips
+.PHONY: update-build update-ami update_user-data get-ips sync-docker-time
 .PHONY: create-key upload-key destroy-key force-destroy-remote
