@@ -1,9 +1,10 @@
-include ../common/common.mk
+include ../../envs.sh
+include envs.sh
 
 KUBERNETES_WORKDIR := /tmp/kubernetes_workdir
 KUBERNETES_DASHBOARD := https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
 
-helpme:
+help:
 	@# adapted from https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@echo '_________________'
 	@echo '| Make targets: |'
@@ -114,9 +115,14 @@ kill-metrics:  ## Close monitor console connection
 delete-dashboard: kill-ui ## Delete dashboard
 	kubectl delete -f ${KUBERNETES_DASHBOARD}
 
-monitor: ## Deploy monitor
+monitor: ## Deploy heapster, infuluxdb and grafana
 	@if ! kubectl get pods -n kube-system | grep monitoring-grafana &> /dev/null ; \
 	then \
+		while ! kubectl get pods -n kube-system -o json -l k8s-app=kube-dns | grep ready | grep -q true  ; \
+		do \
+			echo Waitting for kube-dns ; \
+			sleep 5 ; \
+		done ; \
 		kubectl create -f monitor/ ; \
 	else \
 		kubectl get svc,pods -n kube-system -l task=monitoring ; \
