@@ -34,6 +34,15 @@ fi
 
 # Generate certs from vualt pki for etcd and kube-apiserver
 #  get-certs <issuer_name> <common_name> <auth_token> <install path>
+
+# Cert used by etcd
 bash get-certs.sh etcd-server etcd-server $(cat /opt/etc/pki-tokens/etcd-server) /etc/etcd/certs
+chown etcd /etc/etcd/certs/* && chmod 600 /etc/etcd/certs/*
+
+# Cert used by kubectl admin
 bash get-certs.sh kube-apiserver admin $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
+chown core /var/lib/kubernetes/admin* && chmod 600 /var/lib/kubernetes/admin*
+
+# Cert used by kube-apiserver
 bash get-certs.sh kube-apiserver kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
+chmod 600 /var/lib/kubernetes/kube-apiserver-key.pem
