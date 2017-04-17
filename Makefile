@@ -24,14 +24,14 @@ cluster: core master node  ## Create or update a kubernetes cluster (include cor
 core: vpc s3 route53 iam pki vault etcd  ## Create or update vpc, s3, route 53, iam, pki, vault, and etcd.
 
 master: etcd  ## Create or update masters
-	cd resources/master; make
+	cd resources/master; make apply
 show-master: ## Show master resources
 	cd resources/master; make show
 destroy-master:  ## Destroy masters
 	cd resources/master; make destroy
 
 etcd: iam vault vpc ## Create or update etcd cluster
-	cd resources/etcd; make
+	cd resources/etcd; make apply
 plan-etcd: ## Generate etcd cluster Terraform plan (dry-run)
 	cd resources/etcd; make plan
 show-etcd: ## Show etcd cluster resources
@@ -40,29 +40,29 @@ destroy-etcd: destroy-node ## Destroy node and etcd cluster
 	cd resources/etcd; make destroy
 
 iam: s3 ## Create or update IAM and S3 buckets
-	cd resources/iam; make
+	cd resources/iam; make apply
 destroy-iam: destroy-etcd ## Destroy IAM and its dependencies
 	cd resources/iam; make destroy
 
 pki: s3 ## Create or update Vault PKI backend
-	cd resources/pki; make
+	cd resources/pki; make apply
 destroy-pki: ## Destroy Vault PKI backend.
 	cd resources/pki; make destroy
 
 route53: vpc ## Create or update Route53 zone
-	cd resources/route53; make
+	cd resources/route53; make apply
 show-route53: ## Show Route53 resource
 	cd resources/route53; make show
 destroy-route53: ## Destroy Route53 Zone
 	cd resources/route53; make destroy
 
 s3: ## Create or update S3 buckets
-	cd resources/s3; make
+	cd resources/s3; make apply
 destroy-s3: ## Destroy S3 buckets
 	cd resources/s3; make destroy
 
 vault: vpc iam pki route53 ## Create or updat Vault server
-	cd resources/vault; make
+	cd resources/vault; make apply
 plan-vault: ## Generate Vault Terraform plan
 	cd resources/vault; make plan
 show-vault: ## Show Vault resource
@@ -71,7 +71,7 @@ destroy-vault: ## Destroy Vault
 	cd resources/vault; make destroy
 
 vpc: 		## Create or upate VPC, gateways, routing tables, subnets
-	cd resources/vpc; make
+	cd resources/vpc; make apply
 plan-vpc:	## Generate VPC Terraform plan
 	cd resources/vpc; make plan
 show-vpc:	## Show VPC and subnets resources
@@ -80,7 +80,7 @@ destroy-vpc: destroy-s3	## Destroy VPC
 	cd resources/vpc; make destroy
 
 node: etcd   	## Create or udpate nodes
-	cd resources/node; make
+	cd resources/node; make apply
 show-node:	## Show node resource
 	cd resources/node; make show
 plan-node:	## Generate node Terraform plan
