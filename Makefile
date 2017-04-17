@@ -89,8 +89,8 @@ destroy-node: ## Destroy node
 	cd resources/node; make destroy
 
 plan-destroy-all:	## Generate destroy plan of all resources
-	@rm -rf ${ROOT_DIR}/tmp; mkdir -p ${ROOT_DIR}/tmp
-	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) destroy-plan  2> /tmp/destroy.err;)
+	@rm /tmp/destroy.err
+	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) destroy-plan 2> /tmp/destroy.err;)
 
 confirm:
 	@echo "CONTINUE? [Y/N]: "; read ANSWER; \
@@ -103,15 +103,16 @@ teardown:
 	$(MAKE) destroy-add-ons
 	$(MAKE) destroy-all
 
-destroy-all: | plan-destroy-all		## Destroy all resources
-	for i in ${ROOT_DIR}tmp/*.plan; do terraform show $$i; done | grep -- -
-	@$(eval total=$(shell for i in ${ROOT_DIR}/tmp/*.plan; do terraform show $$i; done | grep -- - | wc -l))
+destroy-all: plan-destroy-all	## Destroy all resources
+	@rm -f /tmp/destroy_plan
+	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) show-destroy-plan >> /tmp/destroy_plan;)
+	@cat /tmp/destroy_plan
+	@$(eval total=$(shell cat /tmp/destroy_plan | wc -l))
 	@echo ""
 	@echo "Will destroy $$total resources"
 	@$(MAKE) confirm
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) destroy 2> /tmp/destroy.err;)
 	@$(MAKE) destroy-remote
-	rm -rf ${ROOT_DIR}tmp/*.plan
 
 destroy-remote:		# Destroy Terraform remote state, as final cleanup
 	@echo "Destroy Terraform remote state?"
