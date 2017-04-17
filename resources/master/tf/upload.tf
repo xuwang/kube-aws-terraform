@@ -8,7 +8,7 @@ resource "aws_s3_bucket_object" "master_cloud_config" {
   content = "${data.template_file.master_cloud_config.rendered}"
 }
 data "template_file" "master_cloud_config" {
-    template = "${file("${artifacts_dir}/cloud-config.yaml.tmpl")}"
+    template = "${file("${var.artifacts_dir}/cloud-config.yaml.tmpl")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
@@ -25,7 +25,7 @@ resource "aws_s3_bucket_object" "envvars" {
     content = "${data.template_file.envvars.rendered}"
 }
 data "template_file" "envvars" {
-    template = "${file("${artifacts_dir}/upload-templates/envvars")}"
+    template = "${file("${var.artifacts_dir}/upload-templates/envvars")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
