@@ -20,7 +20,7 @@ This implementation presents one of the opportunities for anyone who are interes
 
 * Kubernetes 1.6.1, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
-* Terraform 0.9.2 (can be defined in env), which runs as a container to make sure the team use the same version. 
+* Terraform 0.9.2 (can be defined in env), which runs as a container to make sure the team use the same version.
 * Terraform remote state on S3 storage
 * Autoscaling group for each etcd2, master, node, and vault cluster for hight availability
 * CoreOS for self-upgrade/patching management
@@ -84,12 +84,10 @@ $ cd kube-aws-terraform
 
 ### Minimum cluster configuration
 
-There are two files you want to make change:
+Only one file you want to make change:
 
 * Copy **envs.sh.sample** to **envs.sh** and customize environment variables to match your setup.
-* Copy **artifacts/secrets/api-server/token.csv.sample** to **artifacts/secrets/api-server/token.csv**, change the token value. This is used for kubelet and API server ABAC token-based authentication.
-
-**envs.sh** and **tokens.csv** files are ignored in .gitignore.
+**envs.sh** is ignored in .gitignore.
 
 A minimum cluster configuration must contain **AWS_ROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
 
@@ -116,7 +114,7 @@ NOTE: AWS route53 zone will be created. If you use an existing Route53 zone, you
 
 ### Build default cluster
 
-The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (https://aws.amazon.com/free/) service. Estimated cost with the default infrastructure build is about $16.00/day. Please review resources before proceed.
+The default EC2 instance type (t2.medium) is **not** covered by AWS Free Tier (https://aws.amazon.com/free/) service.  Please review resources before proceed.
 
 ```
 $ make cluster | tee /tmp/build.log
@@ -124,7 +122,7 @@ $ make cluster | tee /tmp/build.log
 It takes about 20 minutes for the cluster to be ready.
 If you want to plan and build step-by-step, see Makefile `cluster` target.
 
-The default cluster contain total of 5 EC2 instances, S3 buckets, necessary AWS IAM roles/polices, keypairs, and SSL certs. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
+The default cluster contains 5 EC2 instances, API server ELB, S3 buckets, necessary AWS IAM roles/polices, keypairs, and SSL certs. See [AWS Resources](docs/01-AWS-resources.md) for resource details.  Run `more -R /tmp/build.log` to review build events.
 
 At AWS console, you should see you should have the following compute instances:
 
