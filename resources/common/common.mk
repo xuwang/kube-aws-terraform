@@ -151,7 +151,7 @@ upload-config: check-profile  ## upload files in artifacts/upload to S3
 		@echo "$(PWD)/artifacts/upload doesn't exit. Nothing to upload"; \
 	fi
 
-init: update-build ## setup terraform remote state
+init: sync-docker-time update-build ## setup terraform remote state
 	@echo set remote state to s3://${TF_REMOTE_STATE_BUCKET}/${TF_REMOTE_STATE_PATH}
 
 	@if ! aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
