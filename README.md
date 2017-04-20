@@ -20,7 +20,7 @@ This implementation presents one of the opportunities for anyone who are interes
 
 * Kubernetes 1.6.1, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
-* Terraform 0.9.2 (can be defined in env), which runs as a container to make sure the team use the same version.
+* Terraform 0.9.3 (can be defined in env), which runs as a container to make sure the team uses the same version.
 * Terraform remote state on S3 storage
 * Autoscaling group for each etcd2, master, node, and vault cluster for hight availability
 * CoreOS for self-upgrade/patching management
@@ -140,11 +140,13 @@ $ make get-apiserver-elb
 Please add "54.186.177.19 kube-api.example.com" to /etc/hosts file.
 ```
 
-You may need update the /etc/hosts file if you are not able to connect to the api server after a while because ELB IP can change. You should setup example.com domain delegation properly for production.
+You may need to update the /etc/hosts file periodically if your connection to the api server stops working because AWS ELB IP address can change.
+
+The API server name is registered with Route53 and is aliased to the API server's ELB name. If you delegate the example.com domain to Route53, you don't need to modify /etc/hosts file.
 
 ### Config kubectl and deploy add-ons
 
-To setup kubectl config and deploy add-ons, i.e. kubedns, dashboard, and monitor:
+The following command will setup kubectl config and deploy add-ons, i.e. kubedns, dashboard, and monitor:
 
 ```
 $ make add-ons
