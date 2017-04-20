@@ -7,14 +7,14 @@ resource "aws_autoscaling_group" "instance_pool" {
   min_size = "${var.cluster_min_size}"
   max_size = "${var.cluster_max_size}"
   desired_capacity = "${var.cluster_desired_capacity}"
-  
+
   health_check_type = "EC2"
   health_check_grace_period = 300
   force_delete = true
   metrics_granularity = "1Minute"
 
   launch_configuration = "${aws_launch_configuration.instance_pool.name}"
-  
+
   tag {
     key = "Name"
     value = "${var.asg_name}"
@@ -35,20 +35,20 @@ resource "aws_launch_configuration" "instance_pool" {
   instance_type = "${var.image_type}"
   iam_instance_profile = "${aws_iam_instance_profile.instance_pool.name}"
   security_groups = ["${split(",",var.cluster_security_groups)}"]
-  key_name = "${var.keypair}"  
+  key_name = "${var.keypair}"
   lifecycle { create_before_destroy = true }
 
   # /root
   root_block_device = {
-    volume_type = "${var.root_volume_type}" 
-    volume_size = "${var.root_volume_size}" 
+    volume_type = "${var.root_volume_type}"
+    volume_size = "${var.root_volume_size}"
   }
 
   # /var/lib/docker
   ebs_block_device = {
     device_name = "/dev/sdb"
-    volume_type = "${var.docker_volume_type}" 
-    volume_size = "${var.docker_volume_size}" 
+    volume_type = "${var.docker_volume_type}"
+    volume_size = "${var.docker_volume_size}"
   }
 
   # /opt/data
@@ -59,7 +59,7 @@ resource "aws_launch_configuration" "instance_pool" {
   }
 
   # instance store device, necessary for instance with ephemeral devices, e.g. m3.
-  # no effect for instances without ephemeral disks. 
+  # no effect for instances without ephemeral disks.
   ephemeral_block_device  {
     device_name = "/dev/sdd"
     virtual_name = "ephemeral0"
@@ -80,10 +80,10 @@ resource "aws_iam_role_policy" "instance_pool" {
 # setup ec2 instance profile
 resource "aws_iam_instance_profile" "instance_pool" {
   name = "${var.asg_name}"
-  roles = ["${aws_iam_role.instance_pool.name}"]
+  role = "${aws_iam_role.instance_pool.name}"
   lifecycle { create_before_destroy = true }
 
-  # Sleep a little to wait the IAM profile to be ready - 
+  # Sleep a little to wait the IAM profile to be ready -
   # This seems to fix:
   #     aws_launch_configuration.instance_pool: Error creating launch configuration: ValidationError: You are not authorized to #       perform this operation
   provisioner "local-exec" {
