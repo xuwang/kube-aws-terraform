@@ -100,6 +100,7 @@ confirm:
 
 teardown:
 	@-cd ${ROOT_DIR}/apps/gitlab; ./teardown.sh
+	@-cd ${ROOT_DIR}/apps/nginx-test; ./teardown.sh
 	$(MAKE) destroy-add-ons
 	$(MAKE) destroy-all
 
@@ -143,8 +144,8 @@ kill-ui: ## Close dashboard UI connection
 kill-metrics: ## Close Granfana UI connection
 	cd resources/add-ons; make kill-metrics
 
-smoke-test:
-	cd resources/node; make smoke-test
+smoke-test: ## Run smoke test
+	cd ${ROOT_DIR}/apps/nodeapp; ./deploy.sh
 
 get-apiserver-elb: ## Get API server ELB address
 	cd resources/master; make get-apiserver-elb
