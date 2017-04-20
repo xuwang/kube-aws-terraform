@@ -171,9 +171,11 @@ $ make metrics
 
 ![Monitor](./images/kube-monitor.png)
 
-### Start a GitLab application
+### Start an application
 
-There is a GitLab deployment example that contains redis, postgres, and gitlab container. To start it:
+#### GitLab deployment
+
+This example contains redis, postgres, and GitLab containers.
 ```
 $ cd apps/gitlab
 $ ./deploy.sh
@@ -185,7 +187,18 @@ Default login info is in **gitlab-rc.yml**. Note this is a demo, insecure connec
 cd apps/gitlab
 ./teardown.sh
 ```
+#### Nodeapp deployment
 
+This example demonstrates a nodeapp deployed to two nodes. Reload the site to see container id changes.
+```
+cd apps/nodeapp
+./deploy.sh
+```
+To teardown:
+```
+cd apps/nodeapp
+./teardown.sh
+```
 ## Teardown
 
 This will delete all Kubernetes deployments provisioned and destroy all AWS resources. You will be asked to confirm when
