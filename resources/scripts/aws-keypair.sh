@@ -12,7 +12,7 @@ key="${CLUSTER_NAME}-default"
 if [ "X${AWS_ACCOUNT}" = "X" ];
 then
   echo "Getting AWS account number..."
-  AWS_ACCOUNT=$(aws --profile ${AWS_PROFILE} iam get-user | jq ".User.Arn" | grep -Eo '[[:digit:]]{12}')
+  AWS_ACCOUNT=$(aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account')
 fi
 
 create(){
@@ -28,7 +28,7 @@ create(){
     chmod 600 ${SSHKEY_DIR}/${key}.pem
   fi
   echo "ssh-add ${SSHKEY_DIR}/${key}.pem"
-  if ! pgrep ssh-agent >/dev/null 2>&1 ; 
+  if ! pgrep ssh-agent >/dev/null 2>&1 ;
   then
     eval $(ssh-agent)
   fi
@@ -61,7 +61,7 @@ destroy(){
     echo "Delete AWS keypair ${key}"
     #aws --profile ${AWS_PROFILE} --region ${AWS_REGION}  s3 rm s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/keypairs/${key}.pem
     aws --profile ${AWS_PROFILE} --region ${AWS_REGION} ec2 delete-key-pair --key-name ${key}
-  fi 
+  fi
 }
 
 while getopts ":c:d:e:h" OPTION

@@ -1,8 +1,7 @@
 include ../../envs.sh
 include envs.sh
 
-AWS_USER := $(shell aws --profile ${AWS_PROFILE} iam get-user | jq -r ".User.UserName")
-AWS_ACCOUNT := $(shell aws --profile ${AWS_PROFILE} iam get-user | jq -r ".User.Arn" | grep -Eo '[[:digit:]]{12}')
+AWS_ACCOUNT := $(shell aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account')
 ALLOWED_ACCOUNT_IDS := "$(AWS_ACCOUNT)"
 
 SCRIPTS := ../scripts
@@ -19,7 +18,7 @@ TF_VAR_build_dir := /build
 TF_VAR_artifacts_dir := ${TF_VAR_build_dir}/artifacts
 TF_VAR_secrets_path := ${TF_VAR_artifacts_dir}/secrets
 
-TF_VERSION := 0.9.2
+TF_VERSION := 0.9.3
 TF_IMAGE := hashicorp/terraform:${TF_VERSION}
 TF_CMD := docker run -it --rm --env-file=${BUILD_DIR}/tf.env \
 		-v=${HOME}/.aws:/root/.aws \
@@ -78,7 +77,7 @@ update-build: check-profile ## create or update build dir for terraform
 	@../scripts/gen-provider.sh > ${BUILD_DIR}/${TF_PROVIDER}
 
 check-profile: ## validate AWS profile
-	@if ! aws --profile ${AWS_PROFILE} iam get-user > /dev/null 2>&1 ; then \
+	@if ! aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account'> /dev/null 2>&1 ; then \
 		echo "ERROR: AWS profile \"${AWS_PROFILE}\" is not setup!"; \
 		exit 1 ; \
 	fi

@@ -15,7 +15,7 @@ resource "aws_vpc" "cluster_vpc" {
         Name = "${var.cluster_name}"
     }
     tags {
-        Modified = "${var.timestamp}-${var.iamuser}-terraform"
+        Modified = "${var.timestamp}-terraform"
     }
 }
 

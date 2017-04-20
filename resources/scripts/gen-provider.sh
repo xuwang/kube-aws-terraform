@@ -18,10 +18,7 @@ AWS_REGION=${AWS_REGION##\"}
 TF_MAX_RETRIES=${TF_MAX_RETRIES%%\"}
 TF_MAX_RETRIES=${TF_MAX_RETRIES##\"}
 
-#TF_VAR_aws_region=$($DIR/read_cfg.sh $HOME/.aws/config "profile $AWS_PROFILE" region)
-aws_user=$(aws --profile $AWS_PROFILE iam get-user)
-AWS_USER_NAME=$(echo $aws_user | jq --raw-output '.User.UserName')
-AWS_ACCOUNT=$(echo $aws_user | jq ".User.Arn" | grep -Eo '[[:digit:]]{12}')
+AWS_ACCOUNT=$(aws --profile $AWS_PROFILE sts get-caller-identity --output text --query 'Account')
 ALLOW_SSH_CIDR="$(curl -s http://ipinfo.io/ip)/32"
 
 cat <<EOF
@@ -54,8 +51,5 @@ variable "aws_account" {
         default_region = "$AWS_REGION"
         profile = "$AWS_PROFILE"
     }
-}
-variable "iamuser" {
-    default = "${AWS_USER_NAME}"
 }
 EOF
