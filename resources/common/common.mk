@@ -57,7 +57,11 @@ help: ## this info
 	@echo '_________________'
 	@echo '| Make targets: |'
 	@echo '-----------------'
-	@cat ../common/common.mk | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@cat ../common/common.mk | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' | sort -k1,1
+	@echo
+	@cat Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' | sort -k1,1
 
 update-build: check-profile ## create or update build dir for terraform
 	@mkdir -p ${BUILD_DIR}
