@@ -15,6 +15,8 @@ AWS_PROFILE=${AWS_PROFILE%%\"}
 AWS_PROFILE=${AWS_PROFILE##\"}
 AWS_REGION=${AWS_REGION%%\"}
 AWS_REGION=${AWS_REGION##\"}
+AWS_ROLE_ARN=${AWS_ROLE_ARN%%\"}
+AWS_ROLE_ARN=${AWS_ROLE_ARN##\"}
 TF_MAX_RETRIES=${TF_MAX_RETRIES%%\"}
 TF_MAX_RETRIES=${TF_MAX_RETRIES##\"}
 
@@ -29,12 +31,7 @@ terraform {
     key    = "${TF_REMOTE_STATE_PATH}"
     region = "${TF_REMOTE_STATE_REGION}"
     encrypt = "true"
-    profile = "${AWS_PROFILE}"
-EOF
-if [[ ! -z "${AWS_ROLE_ARN}" ]]; then
-    echo \ \ \ \ role_arn = \""${AWS_ROLE_ARN}"\" 
-fi
-cat <<EOF
+    role_arn = "${AWS_ROLE_ARN}"
   }
 }
 
@@ -42,12 +39,10 @@ provider "aws" {
   profile = "$AWS_PROFILE"
   max_retries = "$TF_MAX_RETRIES"
   region = "$AWS_REGION"
+  assume_role {
+    role_arn = "${AWS_ROLE_ARN}"
+  }
 EOF
-if [[ ! -z "${AWS_ROLE_ARN}" ]]; then
-    echo \ \ "assume_role {"
-    echo \ \ \ \ role_arn = \""${AWS_ROLE_ARN}"\"
-    echo \ \ "}"
-fi
 if [ ! -z $ALLOWED_ACCOUNT_IDS ]; then
     echo  \ \ allowed_account_ids = [ "$ALLOWED_ACCOUNT_IDS" ]
 elif [[ ! -z $FORBIDDEN_ACCOUNT_IDS ]]; then
@@ -60,11 +55,7 @@ variable "aws_account" {
     id = "$AWS_ACCOUNT"
     default_region = "$AWS_REGION"
     profile = "$AWS_PROFILE"
-EOF
-if [[ ! -z "${AWS_ROLE_ARN}" ]]; then
-    echo \ \ \ \ role_arn = \""${AWS_ROLE_ARN}"\" 
-fi
-cat <<EOF
+    role_arn = "${AWS_ROLE_ARN}"
   }
 }
 EOF
