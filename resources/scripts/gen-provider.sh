@@ -18,7 +18,6 @@ AWS_REGION=${AWS_REGION##\"}
 TF_MAX_RETRIES=${TF_MAX_RETRIES%%\"}
 TF_MAX_RETRIES=${TF_MAX_RETRIES##\"}
 
-AWS_ACCOUNT=$(aws --profile $AWS_PROFILE sts get-caller-identity --output text --query 'Account')
 ALLOW_SSH_CIDR="$(curl -s http://ipinfo.io/ip)/32"
 
 cat <<EOF
@@ -30,6 +29,12 @@ terraform {
     key    = "${TF_REMOTE_STATE_PATH}"
     region = "${TF_REMOTE_STATE_REGION}"
     encrypt = "true"
+    profile = "${AWS_PROFILE}"
+EOF
+if [[ ! -z "${AWS_ROLE_ARN}" ]]; then
+    echo \ \ \ \ role_arn = \""${AWS_ROLE_ARN}"\" 
+fi
+cat <<EOF
   }
 }
 
@@ -38,6 +43,11 @@ provider "aws" {
   max_retries = "$TF_MAX_RETRIES"
   region = "$AWS_REGION"
 EOF
+if [[ ! -z "${AWS_ROLE_ARN}" ]]; then
+    echo \ \ "assume_role {"
+    echo \ \ \ \ role_arn = \""${AWS_ROLE_ARN}"\"
+    echo \ \ "}"
+fi
 if [ ! -z $ALLOWED_ACCOUNT_IDS ]; then
     echo  \ \ allowed_account_ids = [ "$ALLOWED_ACCOUNT_IDS" ]
 elif [[ ! -z $FORBIDDEN_ACCOUNT_IDS ]]; then
@@ -46,10 +56,15 @@ fi
 cat <<EOF
 }
 variable "aws_account" {
-    default = {
-        id = "$AWS_ACCOUNT"
-        default_region = "$AWS_REGION"
-        profile = "$AWS_PROFILE"
-    }
+  default = {
+    id = "$AWS_ACCOUNT"
+    default_region = "$AWS_REGION"
+    profile = "$AWS_PROFILE"
+EOF
+if [[ ! -z "${AWS_ROLE_ARN}" ]]; then
+    echo \ \ \ \ role_arn = \""${AWS_ROLE_ARN}"\" 
+fi
+cat <<EOF
+  }
 }
 EOF

@@ -3,6 +3,9 @@ include envs.sh
 
 AWS_ACCOUNT := $(shell aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account')
 ALLOWED_ACCOUNT_IDS := "$(AWS_ACCOUNT)"
+ifdef AWS_ROLE_NAME
+	AWS_ROLE_ARN := arn:aws:iam::${AWS_ACCOUNT}:role/${AWS_ROLE_NAME}
+endif
 
 SCRIPTS := ../scripts
 SEC_PATH := ../artifacts/secrets
@@ -196,13 +199,13 @@ upgrade-kube: ## upgrade k8s to version defined in TF_VAR_kube_version
 
 # see https://github.com/docker/for-mac/issues/17#issuecomment-236517032
 sync-docker-time: ## sync docker vm time with hardware clock
-		@docker run --rm --privileged alpine hwclock -s
+	@docker run --rm --privileged alpine hwclock -s
 
 confirm:
 	@echo "CONTINUE? [Y/N]: "; read ANSWER; \
 	if [ ! "$$ANSWER" = "Y" ]; then \
 		echo "Exiting." ; exit 1 ; \
-  fi
+	fi
 
 
 .PHONY: init plan apply show output destroy clean remote-push remote-pull help

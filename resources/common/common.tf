@@ -148,6 +148,7 @@ data "terraform_remote_state" "etcd" {
         bucket = "${var.remote_state_bucket}"
         key = "etcd.tfstate"
         region = "${var.remote_state_region}"
+        role_arn = "${var.aws_account["role_arn"]}"
     }
 }
 
@@ -157,6 +158,7 @@ data "terraform_remote_state" "master" {
         bucket = "${var.remote_state_bucket}"
         key = "master.tfstate"
         region = "${var.remote_state_region}"
+        role_arn = "${var.aws_account["role_arn"]}"
     }
 }
 
@@ -166,6 +168,7 @@ data "terraform_remote_state" "iam" {
         bucket = "${var.remote_state_bucket}"
         key = "iam.tfstate"
         region = "${var.remote_state_region}"
+        role_arn = "${var.aws_account["role_arn"]}"
     }
 }
 
@@ -175,6 +178,7 @@ data "terraform_remote_state" "pki" {
         bucket = "${var.remote_state_bucket}"
         key = "pki.tfstate"
         region = "${var.remote_state_region}"
+        role_arn = "${var.aws_account["role_arn"]}"
     }
 }
 
@@ -184,6 +188,7 @@ data "terraform_remote_state" "route53" {
         bucket = "${var.remote_state_bucket}"
         key = "route53.tfstate"
         region = "${var.remote_state_region}"
+        role_arn = "${var.aws_account["role_arn"]}"
     }
 }
 
@@ -193,6 +198,7 @@ data "terraform_remote_state" "s3" {
         bucket = "${var.remote_state_bucket}"
         key = "s3.tfstate"
         region = "${var.remote_state_region}"
+        role_arn = "${var.aws_account["role_arn"]}"
     }
 }
 
@@ -202,5 +208,6 @@ data "terraform_remote_state" "vpc" {
         bucket = "${var.remote_state_bucket}"
         key = "vpc.tfstate"
         region = "${var.remote_state_region}"
+        role_arn = "${var.aws_account["role_arn"]}"
     }
 }

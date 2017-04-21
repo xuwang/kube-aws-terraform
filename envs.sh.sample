@@ -4,6 +4,7 @@
 
 export AWS_PROFILE=undefined
 export AWS_REGION=us-west-2
+# export AWS_ROLE_NAME= optional role name if using sts roles
 export TF_REMOTE_STATE_REGION=us-west-2
 export AWS_VM_TYPE=hvm
 export CLUSTER_NAME=undefined
