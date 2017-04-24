@@ -26,9 +26,9 @@ resource "aws_route_table_association" "vault_rt" {
 }
 
 output "vault_zone_ids" {
-  value = [ "${aws_subnet.vault_subnet.*.id}"]
+  value = [ "${aws_subnet.vault_subnet.*.id}" ]
 }
 
 output "vault_zone_names" {
-  value = [ "${aws_subnet.vault_subnet.*.az}"]
+  value = [ "${aws_subnet.vault_subnet.*.availability_zone}" ]
 }

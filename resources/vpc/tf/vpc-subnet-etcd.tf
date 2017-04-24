@@ -20,9 +20,9 @@ resource "aws_route_table_association" "etcd_rt" {
 }
 
 output "etcd_zone_ids" {
-  value = [ "${aws_subnet.etcd_subnet.*.id}"]
+  value = [ "${aws_subnet.etcd_subnet.*.id}" ]
 }
 
 output "etcd_zone_names" {
-  value = [ "${aws_subnet.etcd_subnet.*.az}"]
+  value = [ "${aws_subnet.etcd_subnet.*.availability_zone}" ]
 }

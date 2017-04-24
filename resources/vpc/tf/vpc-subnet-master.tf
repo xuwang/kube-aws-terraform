@@ -20,9 +20,9 @@ resource "aws_route_table_association" "master_rt" {
 }
 
 output "master_zone_ids" {
-  value = [ "${aws_subnet.master_subnet.*.id}"]
+  value = [ "${aws_subnet.master_subnet.*.id}" ]
 }
 
 output "master_zone_names" {
-  value = [ "${aws_subnet.master_subnet.*.az}"]
+  value = [ "${aws_subnet.master_subnet.*.availability_zone}" ]
 }

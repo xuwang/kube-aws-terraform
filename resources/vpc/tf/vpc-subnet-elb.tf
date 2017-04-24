@@ -20,9 +20,9 @@ resource "aws_route_table_association" "elb_rt" {
 }
 
 output "elb_zone_ids" {
-  value = [ "${aws_subnet.elb_subnet.*.id}"]
+  value = [ "${aws_subnet.elb_subnet.*.id}" ]
 }
 
 output "elb_zone_names" {
-  value = [ "${aws_subnet.elb_subnet.*.az}"]
+  value = [ "${aws_subnet.elb_subnet.*.availability_zone}" ]
 }
