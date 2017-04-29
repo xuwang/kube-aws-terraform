@@ -108,7 +108,7 @@ destroy-all: plan-destroy-all	## Destroy all resources
 	@rm -f /tmp/destroy_plan
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) show-destroy-plan >> /tmp/destroy_plan;)
 	@cat /tmp/destroy_plan
-	@$(eval total=$(shell cat /tmp/destroy_plan | wc -l))
+	@$(eval total=$(shell cat /tmp/destroy_plan | grep -v data.terraform | wc -l))
 	@echo ""
 	@echo "Will destroy $$total resources"
 	@$(MAKE) confirm
