@@ -75,7 +75,7 @@ Remember to periodically update these packages.
 
 ### Set Public Route53 Zone
 
-* Using existing route53 zone, set ROUTE53_ZONE_NAME in `envs.sh` file.
+* To use an existing route53 zone, set ROUTE53_ZONE_NAME in `envs.sh` file.
 
 * To make a new route53 Zone
 
@@ -113,7 +113,6 @@ export AWS_REGION=us-west-2
 export CLUSTER_NAME=kube-cluster
 export COREOS_UPDATE_CHANNEL=beta
 export ROUTE53_ZONE_NAME=example.com
-export ROUTE53_ZONE_ID=route_53_zone_id
 export ENABLE_REMOTE_VERSIONING=false
 
 # Kubernetes API server DNS name
@@ -123,8 +122,7 @@ export SCRIPTS=../scripts
 export SEC_PATH=../artifacts/secrets
 export SSHKEY_DIR=${HOME}/.ssh
 
-# Public zone name and zone id
-TF_VAR_route53_public_zone_id=${ROUTE53_ZONE_ID}
+# Public zone name
 TF_VAR_route53_public_zone_name=${ROUTE53_ZONE_NAME}
 ```
 
