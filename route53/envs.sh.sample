@@ -1,0 +1,28 @@
+###############################
+# Environments for the cluster.
+###############################
+
+export AWS_PROFILE=NODEFAULT
+#export AWS_ROLE_NAME=cluster-admin-role
+export AWS_REGION=us-west-2
+export TF_REMOTE_STATE_REGION=us-west-2
+export ROUTE53_ZONE_NAME=lab-test.example.com
+export CLUSTER_NAME=test-cluster
+export ENABLE_REMOTE_VERSIONING=false
+
+export SCRIPTS=scripts
+
+################
+# Terraform vars
+################
+
+# Max AWS API retries for Terraform
+export TF_MAX_RETRIES=10
+# Default domain for route53 zone
+export TF_VAR_route53_zone_name=${ROUTE53_ZONE_NAME}
+export TF_VAR_aws_region=${AWS_REGION}
+
+# Terraform remote state bucket name, defined as ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform
+# in /resources/common/common.mk.
+export TF_VAR_remote_state_region=${TF_REMOTE_STATE_REGION}
+export TF_VAR_remote_state_bucket=${TF_REMOTE_STATE_BUCKET}
