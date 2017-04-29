@@ -73,6 +73,18 @@ __NOTE:__ Make sure the installed Terraform version is matching the required Ter
 
 Remember to periodically update these packages.
 
+### Set Public Route53 Zone
+
+* Using existing route53 zone, set ROUTE53_ZONE_NAME in `envs.sh` file.
+
+* To make a new route53 Zone
+
+  Go to `route53` directory under the top repo. Edit `envs.sh` with zone name, cluster name, and aws profile, then run `make plan`, `make apply`.
+
+  Set ROUTE53_ZONE_NAME in `envs.sh`
+
+If your zone name is `mylab.example.com`, the api server route53 record will be `kube-api.lab.example.com`, and an ELB will be created for it.
+
 ## Quick Start
 
 ### Clone the repository
@@ -101,16 +113,20 @@ export AWS_REGION=us-west-2
 export CLUSTER_NAME=kube-cluster
 export COREOS_UPDATE_CHANNEL=beta
 export ROUTE53_ZONE_NAME=example.com
+export ROUTE53_ZONE_ID=route_53_zone_id
 export ENABLE_REMOTE_VERSIONING=false
 
 # Kubernetes API server DNS name
-export KUBE_API_DNSNAME=kube-api.example.com
+export KUBE_API_DNSNAME=kube-api.${ROUTE53_ZONE_NAME}
 
 export SCRIPTS=../scripts
 export SEC_PATH=../artifacts/secrets
 export SSHKEY_DIR=${HOME}/.ssh
+
+# Public zone name and zone id
+TF_VAR_route53_public_zone_id=${ROUTE53_ZONE_ID}
+TF_VAR_route53_public_zone_name=${ROUTE53_ZONE_NAME}
 ```
-NOTE: AWS route53 zone will be created. If you use an existing Route53 zone, you need to change Terraform configuration under *resources/route53* directory.
 
 ### Build default cluster
 

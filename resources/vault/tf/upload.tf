@@ -37,7 +37,7 @@ data "template_file" "vault_sh" {
     template = "${file("${var.artifacts_dir}/upload-templates/vault.sh")}"
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
-        "ROUTE53_ZONE_NAME" = "${var.route53_zone_name}"
+        "ROUTE53_ZONE_NAME" = "${var.route53_public_zone_name}"
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
         "VAULT_AUTO_UNSEAL" = "${var.vault_auto_unseal}"

@@ -2,6 +2,10 @@ include ../../envs.sh
 include envs.sh
 
 AWS_ACCOUNT := $(shell aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account')
+ROUTE53_ZONE_ID :=$(shell aws --profile ${AWS_PROFILE} route53 list-hosted-zones --output json | \
+		jq -r --arg ROUTE53_ZONE_NAME "${ROUTE53_ZONE_NAME}" '.HostedZones[] | \
+		select(.Name=="${ROUTE53_ZONE_NAME}.") | .Id ' | cut -d'/' -f 3)
+
 ALLOWED_ACCOUNT_IDS := "$(AWS_ACCOUNT)"
 ifdef AWS_ROLE_NAME
 	AWS_ROLE_ARN := arn:aws:iam::${AWS_ACCOUNT}:role/${AWS_ROLE_NAME}
@@ -13,6 +17,9 @@ SSHKEY_DIR := ${HOME}/.ssh
 BUILD_DIR := ${PWD}/build
 ARTIFACTS_DIR := ../artifacts
 MODULES_PATH := ../modules
+
+# Zone id
+TF_VAR_route53_public_zone_id := ${ROUTE53_ZONE_ID}
 
 # Timestamp for tagging resources
 TF_VAR_timestamp := $(shell date +%Y-%m-%d-%H%M)
@@ -66,7 +73,7 @@ help: ## this info
 	@cat Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' | sort -k1,1
 
-update-build: check-profile ## create or update build dir for terraform
+update-build: check-profile check-route53-zone ## create or update build dir for terraform
 	@mkdir -p ${BUILD_DIR}
 # copy modules to buid dir
 	@cp -rf ${MODULES_PATH} ${BUILD_DIR}
@@ -87,6 +94,14 @@ check-profile: ## validate AWS profile
 	@if ! aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account'> /dev/null 2>&1 ; then \
 		echo "ERROR: AWS profile \"${AWS_PROFILE}\" is not setup!"; \
 		exit 1 ; \
+	fi
+
+check-route53-zone:  ## validate AWS route53 zone
+	@if ! aws --profile ${AWS_PROFILE} route53 list-hosted-zones --output json | \
+			jq -r --arg ROUTE53_ZONE_NAME "${ROUTE53_ZONE_NAME}" '.HostedZones[] | \
+			select(.Name=="${ROUTE53_ZONE_NAME}.") | .Id ' | grep hostedzone ; then \
+		echo "ERROR: "${ROUTE53_ZONE_NAME}" is not setup!"; \
+		exit 1; \
 	fi
 
 plan: init ## terraform plan
@@ -127,6 +142,11 @@ create-key: ## create AWS keypair for this module
 
 destroy-key: ## destroy AWS keypair for this module
 	../scripts/aws-keypair.sh -d $(CLUSTER_NAME)-${MODULE};
+
+logs: ## Get logs of kubernetes services
+	@$(MAKE) get-ips
+	@echo "For all systemd logs, run ssh core@<ip> journalctl -f "
+	@echo "For a secific servie, run ssh core@<ip> journalctl -f -u <kube-apiserver>|kube-controller-manager|kubelet|kube-proxy"
 
 get-ips: ## get ips of EC2 in this module
 	@echo "${MODULE}; public ips: " `$(SCRIPTS)/get-ec2-public-id.sh $(CLUSTER_NAME)-${MODULE}`

@@ -14,7 +14,7 @@ resource "tls_self_signed_cert" "ca-cert" {
         country = "${var.vault_ca["country"]}"
         country = "${var.vault_ca["province"]}"
         organization = "${var.vault_ca["organization"]}"
-        common_name = "${var.route53_zone_name}"
+        common_name = "${var.route53_public_zone_name}"
     }
 
     allowed_uses = [

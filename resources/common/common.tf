@@ -67,18 +67,19 @@ variable "timestamp" {
     default = "undefined"
 }
 
-variable "route53_zone_name" {
+# Public route53
+variable "route53_public_zone_name" {
     default = "example.com"
 }
+variable "route53_public_zone_id" {}
 
+# Vault
 variable "vault_release" {
     default = "0.7.0"
 }
-
 variable "vault_auto_unseal" {
     default = "false"
 }
-
 variable "vault_rootca_cn" {
     default = "vault.example.com"
 }

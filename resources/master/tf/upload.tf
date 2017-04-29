@@ -31,7 +31,7 @@ data "template_file" "envvars" {
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
         "MODULE_NAME" = "${var.module_name}"
-        "ROUTE53_ZONE_NAME" = "${var.route53_zone_name}"
+        "ROUTE53_ZONE_NAME" = "${var.route53_public_zone_name}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
         "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
         "KUBE_VERSION" = "${var.kube_version}"

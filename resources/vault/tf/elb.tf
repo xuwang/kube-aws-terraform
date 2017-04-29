@@ -133,7 +133,7 @@ resource "aws_route53_record" "private-vault" {
   zone_id = "${data.terraform_remote_state.route53.route53_private_zone_id}"
   name = "vault"
   type = "A"
-  
+
   alias {
     name = "${aws_elb.vault.dns_name}"
     zone_id = "${aws_elb.vault.zone_id}"
@@ -141,10 +141,10 @@ resource "aws_route53_record" "private-vault" {
   }
 }
 resource "aws_route53_record" "public-vault" {
-  zone_id = "${data.terraform_remote_state.route53.route53_public_zone_id}"
+  zone_id = "${var.route53_public_zone_id}"
   name = "vault"
   type = "A"
-  
+
   alias {
     name = "${aws_elb.vault.dns_name}"
     zone_id = "${aws_elb.vault.zone_id}"

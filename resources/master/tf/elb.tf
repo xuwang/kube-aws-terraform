@@ -63,7 +63,7 @@ resource "aws_route53_record" "private-apiserver" {
   zone_id = "${data.terraform_remote_state.route53.route53_private_zone_id}"
   name = "api-server"
   type = "A"
-  
+
   alias {
     name = "${aws_elb.kube_apiserver_private.dns_name}"
     zone_id = "${aws_elb.kube_apiserver_private.zone_id}"
@@ -71,10 +71,10 @@ resource "aws_route53_record" "private-apiserver" {
   }
 }
 resource "aws_route53_record" "public-apiserver" {
-  zone_id = "${data.terraform_remote_state.route53.route53_public_zone_id}"
+  zone_id = "${var.route53_public_zone_id}"
   name = "${var.kube_api_dnsname}"
   type = "A"
-  
+
   alias {
     name = "${aws_elb.kube_apiserver_public.dns_name}"
     zone_id = "${aws_elb.kube_apiserver_public.zone_id}"

@@ -20,6 +20,6 @@ data "template_file" "etcd_cloud_config" {
       "VAULT_RELEASE" = "${var.vault_release}"
       "MODULE_NAME" = "${var.module_name}"
       "CLUSTER_NAME" = "${var.cluster_name}"
-      "ROUTE53_ZONE_NAME" = "${var.route53_zone_name}"
+      "ROUTE53_ZONE_NAME" = "${var.route53_public_zone_name}"
     }
 }

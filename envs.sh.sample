@@ -13,7 +13,7 @@ export ROUTE53_ZONE_NAME=example.com
 export ENABLE_REMOTE_VERSIONING=false
 
 # Kubernetes API server DNS name
-export KUBE_API_DNSNAME=kube-api.example.com
+export KUBE_API_DNSNAME=kube-api.${ROUTE53_ZONE_NAME}
 
 export SCRIPTS=../scripts
 export SEC_PATH=../artifacts/secrets
@@ -74,3 +74,7 @@ export TF_VAR_vault_rootca_cn=vault.${TF_VAR_route53_zone_name}
 
 # Default VPC prefix
 export TF_VAR_vpc_prefix="10.240"
+
+# Public zone name
+TF_VAR_route53_public_zone_name=${ROUTE53_ZONE_NAME}
+
