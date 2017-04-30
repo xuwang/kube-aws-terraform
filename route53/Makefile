@@ -1,6 +1,10 @@
 include envs.sh
 
 AWS_ACCOUNT := $(shell aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account')
+ROUTE53_ZONE_ID := $(shell aws --profile ${AWS_PROFILE} route53 list-hosted-zones --output json | \
+		jq -r --arg ROUTE53_ZONE_NAME "${ROUTE53_ZONE_NAME}" '.HostedZones[] | \
+		select(.Name=="${ROUTE53_ZONE_NAME}.") | .Id ' | cut -d'/' -f 3)
+
 ALLOWED_ACCOUNT_IDS := "$(AWS_ACCOUNT)"
 ifdef AWS_ROLE_NAME
 	AWS_ROLE_ARN := arn:aws:iam::${AWS_ACCOUNT}:role/${AWS_ROLE_NAME}
@@ -87,16 +91,13 @@ destroy-plan: init ## terraform destroy-plan
 	@echo Plan destroy ${MODULE}...
 	@-${TF_DESTROY_PLAN} -out ${TF_VAR_build_dir}/destroy-${MODULE}.plan
 
-show-destroy-plan: ## show resources planed to be destroyed
-	@-${TF_SHOW} ${TF_VAR_build_dir}/destroy-${MODULE}.plan | grep -- -
-
 destroy: init ## terraform destroy
-	@echo Destroy ${MODULE}...
+	@aws --profile uit-itlab route53 list-resource-record-sets --hosted-zone-id=${ROUTE53_ZONE_ID} | jq '.ResourceRecordSets[]'
+	@echo Destroy ${ROUTE53_ZONE_NAME} with these records?
+	@$(MAKE) confirm
+	@${TF_APPLY} -var route53_zone_force_destroy="true"
 	@${TF_DESTROY}
 	$(MAKE) clean
-
-refresh: init ## terraform refresh
-	@${TF_REFRESH}
 
 clean: ## delete build dir
 	rm -rf ${BUILD_DIR}
@@ -117,7 +118,7 @@ init: sync-docker-time update-build ## setup terraform remote state
 		aws s3api --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} put-bucket-versioning \
 			--bucket ${TF_REMOTE_STATE_BUCKET} --versioning-configuration Status="Enabled" ; \
 	fi
-	
+
 # Terraform remote S3 backend init
 	@${TF_INIT}
 
@@ -140,5 +141,4 @@ confirm:
 		echo "Exiting." ; exit 1 ; \
 	fi
 
-.PHONY: init plan apply show output destroy sync-docker-time help
-.PHONY: update-build get-ips sync-docker-time force-destroy-remote
+.PHONY: init plan apply show output destroy sync-docker-time help force-destroy-remote
