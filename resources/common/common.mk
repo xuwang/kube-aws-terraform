@@ -2,7 +2,7 @@ include ../../envs.sh
 include envs.sh
 
 AWS_ACCOUNT := $(shell aws --profile ${AWS_PROFILE} sts get-caller-identity --output text --query 'Account')
-ROUTE53_ZONE_ID :=$(shell aws --profile ${AWS_PROFILE} route53 list-hosted-zones --output json | \
+ROUTE53_ZONE_ID := $(shell aws --profile ${AWS_PROFILE} route53 list-hosted-zones --output json | \
 		jq -r --arg ROUTE53_ZONE_NAME "${ROUTE53_ZONE_NAME}" '.HostedZones[] | \
 		select(.Name=="${ROUTE53_ZONE_NAME}.") | .Id ' | cut -d'/' -f 3)
 
