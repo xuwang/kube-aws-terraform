@@ -11,3 +11,4 @@ export PATH=/opt/bin:$PATH:/opt/etc/vault/scripts
 interactive=${1:-'false'}
 
 BUCKET=$(grep bucket /opt/etc/vault/vault.hcl | grep -v ^# | awk '{print $NF}' | sed 's/"//g')
+REGION=$(grep region /opt/etc/vault/vault.hcl | grep -v ^# | awk '{print $NF}' | sed 's/"//g')
