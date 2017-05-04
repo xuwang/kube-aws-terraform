@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # sfeng@stanford.edu 2016
 #
 # Modified https://github.com/hashicorp/best-practices/blob/master/packer/config/vault/scripts/setup_vault.sh
@@ -25,9 +25,9 @@ if [ "X$interactive" = 'X-i' ]; then
 fi
 
 if [ -z "$BUCKET" ]; then
-  exit1 "S3 Bucket is not defined in conf."
+  exit1 "S3 Bucket is not defined in $DIR/utils/env_defaults."
 elif ! bucket_exist ; then
-  exit1 "S3 Bucket is doesn't exist. Create it first."
+  exit1 "$BUCKET doesn't exist. Create it first."
 fi
 
 if ! s3ls root-token ; then
