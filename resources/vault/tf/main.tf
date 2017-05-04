@@ -16,7 +16,7 @@ module "vault" {
 
   # Instance specifications
   ami = "${data.aws_ami.coreos_ami.id}"
-  image_type = "t2.medium"
+  image_type = "${var.instance_type}"
   keypair = "${var.cluster_name}-vault"
 
   # Note: currently vault launch_configuration devices can NOT be changed after vault cluster is up
