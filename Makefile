@@ -89,7 +89,7 @@ destroy-node: ## Destroy node
 	cd resources/node; make destroy
 
 plan-destroy-all:	## Generate destroy plan of all resources
-	@rm /tmp/destroy.err
+	@rm -rf /tmp/destroy.err
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) destroy-plan 2> /tmp/destroy.err;)
 
 confirm:
