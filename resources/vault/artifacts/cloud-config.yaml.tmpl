@@ -76,7 +76,7 @@ coreos:
         After=vault.service
         [Service]
         TimeoutStartSec=0
-        ExecStartPre=/bin/bash -c "if [ ! -f /root/.vault-token ]; then /opt/etc/vault/scripts/s3get.sh ${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-s3-backend root-token/root-token /root/.vault-token; fi "
+        ExecStartPre=/bin/bash -c "if [ ! -f /root/.vault-token ]; then /opt/bin/s3get.sh ${AWS_ACCOUNT}-${CLUSTER_NAME}-vault-s3-backend root-token/root-token /root/.vault-token; fi "
         ExecStart=/usr/bin/sh -c "source /etc/profile.d/vault.sh; \
           if ! vault audit-list | grep -q  ^file/; then vault audit-enable file path=/vault/logs/vault_audit.log; fi "
         RestartSec=20
