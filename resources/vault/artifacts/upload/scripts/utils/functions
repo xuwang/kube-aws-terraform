@@ -26,11 +26,11 @@ check_vault() {
   fi
 }
 
-bucket_exist() { 
- docker run --rm xueshanf/awscli aws s3 ls s3://$BUCKET > /dev/null 2>&1
+bucket_exist() {
+ docker run --rm xueshanf/awscli aws s3 ls s3://$BUCKET --region $REGION > /dev/null 2>&1
 }
-s3ls() { 
- docker run --rm xueshanf/awscli aws s3 ls s3://$BUCKET/$1 > /dev/null 2>&1
+s3ls() {
+ docker run --rm xueshanf/awscli aws s3 ls s3://$BUCKET/$1 --region $REGION > /dev/null 2>&1
 }
 
 get_root_token() {
