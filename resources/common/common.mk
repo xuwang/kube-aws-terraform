@@ -157,7 +157,7 @@ upload-artifacts: check-profile ## upload artifacts to S3 bucket
 	then \
 		mkdir -p $(PWD)/tmp ; \
 		COPYFILE_DISABLE=1 tar zcvhf tmp/${MODULE}.tar.gz -C $(PWD)/artifacts/upload . ; \
-		aws s3 --profile ${AWS_PROFILE} cp tmp/${MODULE}.tar.gz \
+		aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} cp tmp/${MODULE}.tar.gz \
 			s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/artifacts/${MODULE}/upload/${MODULE}.tar.gz; \
 		rm -rf $(PWD)/tmp ; \
 	else \
@@ -170,7 +170,7 @@ upload-config: check-profile  ## upload files in artifacts/upload to S3
 	then \
 		mkdir -p $(PWD)/tmp ; \
 		COPYFILE_DISABLE=1 tar zcvhf tmp/${MODULE}.tar.gz -C $(PWD)/artifacts/upload . ; \
-		aws s3 --profile ${AWS_PROFILE} cp tmp/${MODULE}.tar.gz \
+		aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} cp tmp/${MODULE}.tar.gz \
 			s3://${AWS_ACCOUNT}-${CLUSTER_NAME}-config/${MODULE}/config.tar.gz; \
 		rm -rf $(PWD)/tmp ; \
 	else \
