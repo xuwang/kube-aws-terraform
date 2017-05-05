@@ -90,15 +90,6 @@ resource "aws_security_group" "etcd"  {
     cidr_blocks = ["${data.terraform_remote_state.vpc.cluster_vpc_cidr}"]
   }
 
-  # Allow SSH from my hosts
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["${split(",", var.allow_ssh_cidr)}"]
-    self = true
-  }
-
   tags {
     KubernetesCluster = "${var.cluster_name}"
   }

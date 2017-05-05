@@ -28,15 +28,6 @@ resource "aws_security_group" "kubernetes"  {
     ]
   }
 
-  # Allow SSH from my hosts
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["${split(",", var.allow_ssh_cidr)}"]
-    self = true
-  }
-
   # Allow secure api port from my hosts
   ingress {
     from_port = 6443
@@ -53,4 +44,4 @@ resource "aws_security_group" "kubernetes"  {
     Name = "${var.cluster_name}-kubernetes"
   }
 }
-output "security_group_kubernetes" { value = "${aws_security_group.kubernetes.id}" }
+output "master_security_group" { value = "${aws_security_group.kubernetes.id}" }

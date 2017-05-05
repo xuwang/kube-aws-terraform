@@ -27,11 +27,13 @@ do-config: ## Create kubeconfig for kubectl
 	@mkdir -p ${KUBERNETES_WORKDIR}
 	@echo Download vault generated ca cert from the api server
 	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
+	@../scripts/allow-myip.sh -a master 22
 	@scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin.pem \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin-key.pem \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem \
 		 ${KUBERNETES_WORKDIR}/
+	@../scripts/allow-myip.sh -r master 22
 
 	@echo kubectl config set-cluster kubernetes...
 	@kubectl config set-cluster ${CLUSTER_NAME} \

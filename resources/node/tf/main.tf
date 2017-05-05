@@ -1,5 +1,5 @@
 module "node" {
-  source = "/build/modules/cluster"
+  source = "/build/modules/cluster-no-opt-data"
 
   # cluster variables
   cluster_name = "${var.cluster_name}"
@@ -23,9 +23,7 @@ module "node" {
   root_volume_type = "gp2"
   root_volume_size = 50
   docker_volume_type = "gp2"
-  docker_volume_size = 50
-  data_volume_type = "gp2"
-  data_volume_size = 100
+  docker_volume_size = 150
 
   user_data = "${data.template_file.user_data.rendered}"
   iam_role_policy = "${data.template_file.node_policy_json.rendered}"
@@ -76,15 +74,6 @@ resource "aws_security_group" "node"  {
     to_port = 65535
     protocol = "tcp"
     cidr_blocks = ["${data.terraform_remote_state.vpc.cluster_vpc_cidr}"]
-  }
-
-  # Allow SSH from pre-defined IP addresses
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["${split(",", var.allow_ssh_cidr)}"]
-    self = true
   }
 
   # Allow PodCIDR so containers can communicate. E.g. kube-dns is very slow or intermittent not working

@@ -143,10 +143,16 @@ create-key: ## create AWS keypair for this module
 destroy-key: ## destroy AWS keypair for this module
 	../scripts/aws-keypair.sh -d $(CLUSTER_NAME)-${MODULE};
 
-logs: ## Get logs of kubernetes services
+remote-ssh: open-ssh ## Run remote ssh 
 	@$(MAKE) get-ips
 	@echo "For all systemd logs, run ssh core@<ip> journalctl -f "
-	@echo "For a secific servie, run ssh core@<ip> journalctl -f -u <kube-apiserver>|kube-controller-manager|kubelet|kube-proxy"
+	@echo "For a secific service, run ssh core@<ip> journalctl -f -u <kube-apiserver>|kube-controller-manager|kubelet|kube-proxy"
+	@echo "To revoke firewall rule: make close-ssh"
+
+open-ssh:
+	@../scripts/allow-myip.sh -a ${MODULE} 22
+close-ssh:
+	@../scripts/allow-myip.sh -r ${MODULE} 22
 
 get-ips: ## get ips of EC2 in this module
 	@echo "${MODULE}; public ips: " `$(SCRIPTS)/get-ec2-public-id.sh $(CLUSTER_NAME)-${MODULE}`
@@ -201,6 +207,10 @@ remote-push: init ## terraform remote push
 
 remote-pull: init ## terraform remote pull
 	@${TF_CMD} remote pull
+
+ssh: open-ssh ## ssh into a node
+	@ip=`make get-ips | awk '{print $$NF}'`; ssh -A core@$$ip
+	@../scripts/allow-myip.sh -r ${MODULE} 22
 
 force-destroy-remote: update-build  ## destroy terraform remote state bucket
 	@if aws s3 --profile ${AWS_PROFILE} --region ${TF_REMOTE_STATE_REGION} ls s3://${TF_REMOTE_STATE_BUCKET}  &> /dev/null; \
