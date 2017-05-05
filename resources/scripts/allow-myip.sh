@@ -6,7 +6,7 @@ ACTION=${1:DONOTHING}
 MODULE_NAME=${2:-master}
 PORT=${3:-22}
 
-SGNAME=${MODULE_NAME}_security_group
+SGNAME=${CLUSTER_NAME}-${MODULE_NAME}
 myip=$(curl -s ipecho.net/plain)
 
 if [ $MODULE_NAME == 'master' ];
