@@ -58,7 +58,7 @@ data "template_file" "user_data" {
 // Security group for Vault allows SSH and HTTP access (via "tcp" in
 // case TLS is used)
 resource "aws_security_group" "vault" {
-    name = "vault"
+    name = "${var.cluster_name}-vault"
     description = "Vault servers"
     vpc_id = "${data.terraform_remote_state.vpc.cluster_vpc_id}"
     tags {
