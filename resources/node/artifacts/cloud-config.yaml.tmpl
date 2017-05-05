@@ -18,28 +18,6 @@ coreos:
         Environment="DEV=/dev/xvdb"
         # Do not wipe the disk if it's already being used, so the docker images persistent cross reboot.
         ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then wipefs -a -f $DEV && mkfs.ext4 -T news -F -L $LABEL $DEV && echo wiped; fi"
-    - name: format-opt-data.service
-      command: start
-      content: |
-        [Unit]
-        Description=Formats opt data drive
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        Environment="LABEL=opt-data"
-        Environment="DEV=/dev/xvdc"
-        ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then  wipefs -a -f $DEV && mkfs.ext4 -F -L $LABEL $DEV && echo wiped; fi"
-    - name: opt-data.mount
-      command: start
-      content: |
-        [Unit]
-        Description=Mount data to /opt/data
-        Requires=format-opt-data.service
-        After=format-opt-data.service
-        [Mount]
-        What=/dev/xvdc
-        Where=/opt/data
-        Type=ext4
     - name: var-lib-docker.mount
       command: start
       content: |
