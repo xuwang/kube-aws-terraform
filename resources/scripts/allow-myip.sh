@@ -11,7 +11,7 @@ myip=$(curl -s ipecho.net/plain)
 
 if [ $MODULE_NAME == 'master' ];
 then
-  SGNAME=$CLUSTER_NAME-kubernetes
+  SGNAME=${CLUSTER_NAME}-kubernetes
 fi
 security_group_id=$(aws --region ${AWS_REGION} --profile ${AWS_PROFILE} ec2 describe-security-groups | \
     jq -r --arg SGNAME ${SGNAME} ".SecurityGroups[] | select(.GroupName==\"${SGNAME}\") | .GroupId" )
