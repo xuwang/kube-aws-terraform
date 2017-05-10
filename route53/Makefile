@@ -92,7 +92,7 @@ destroy-plan: init ## terraform destroy-plan
 	@-${TF_DESTROY_PLAN} -out ${TF_VAR_build_dir}/destroy-${MODULE}.plan
 
 destroy: init ## terraform destroy
-	@aws --profile uit-itlab route53 list-resource-record-sets --hosted-zone-id=${ROUTE53_ZONE_ID} | jq '.ResourceRecordSets[]'
+	@aws --profile ${AWS_PROFILE} route53 list-resource-record-sets --hosted-zone-id=${ROUTE53_ZONE_ID} | jq '.ResourceRecordSets[]'
 	@echo Destroy ${ROUTE53_ZONE_NAME} with these records?
 	@$(MAKE) confirm
 	@${TF_APPLY} -var route53_zone_force_destroy="true"
