@@ -10,7 +10,7 @@ ifdef AWS_ROLE_NAME
 	AWS_ROLE_ARN := arn:aws:iam::${AWS_ACCOUNT}:role/${AWS_ROLE_NAME}
 endif
 
-TF_REMOTE_STATE_BUCKET := ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform
+TF_REMOTE_STATE_BUCKET := ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform-public
 TF_REMOTE_STATE_PATH := "route53.tfstate"
 
 BUILD_DIR := ${PWD}/build
