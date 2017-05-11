@@ -2,7 +2,6 @@
 # ELB for Kubernet API server
 
 resource "aws_elb" "kube_apiserver_public" {
-  name = "${var.cluster_name}-kube-apiserver-pub"
   subnets = ["${data.terraform_remote_state.vpc.elb_zone_ids}"]
   security_groups = [ "${aws_security_group.kubernetes.id}" ]
 
@@ -33,7 +32,6 @@ resource "aws_elb" "kube_apiserver_public" {
 }
 
 resource "aws_elb" "kube_apiserver_private" {
-    name = "${var.cluster_name}-kube-apiserver-pri"
     internal = true
     subnets = ["${data.terraform_remote_state.vpc.elb_zone_ids}"]
     security_groups = [ "${aws_security_group.kubernetes.id}" ]
