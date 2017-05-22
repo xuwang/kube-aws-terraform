@@ -80,7 +80,7 @@ dashboard: kube-system-admin-role-binding ## Start dashboard
 
 ui: dashboard ## kubectl proxy and open dashboard ui
 	kubectl proxy -p 8001 &> /dev/null &
-	@while ! kubectl get pods -n kube-system -o json -l app=kubernetes-dashboard  | grep ready | grep -q true ; \
+	@while ! kubectl get pods -n kube-system -o json -l k8s-app=kubernetes-dashboard | jq .items'[]'.status.containerStatuses'[]'.ready | grep -q true; \
 	do \
 		echo Waitting for UI ; \
 		sleep 10 ; \
