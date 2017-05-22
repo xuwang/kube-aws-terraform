@@ -125,8 +125,8 @@ show-all:	## Show all resources
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) show 2> /tmp/destroy.err;)
 
 upgrade-kube:	## Upgrade Kubernetes version
-	@cd resources/node; make upgrade-kube
 	@cd resources/master; make upgrade-kube
+	@cd resources/node; make upgrade-kube
 
 # Extras
 add-ons:	## Kubernetes add-ons, e.g. dns, dashboard
