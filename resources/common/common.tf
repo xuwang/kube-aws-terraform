@@ -115,7 +115,7 @@ variable "kubelet_token" {
 }
 # Kubernetes version
 variable "kube_version" {
-    default = "v1.6.1"
+    default = "v1.6.4"
 }
 
 # Sensitive data

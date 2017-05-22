@@ -223,8 +223,9 @@ force-destroy-remote: update-build  ## destroy terraform remote state bucket
 
 upgrade-kube: ## upgrade k8s to version defined in TF_VAR_kube_version
 	@echo "Will upgrade ${MODULE}'s Kubernetes to ${TF_VAR_kube_version}."
+	@$(MAKE) plan
 	@$(MAKE) confirm
-	@$(MAKE)
+	@$(MAKE) apply
 	@echo "Don't forget to reboot ${MODULE}s."
 
 # see https://github.com/docker/for-mac/issues/17#issuecomment-236517032
