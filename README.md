@@ -18,7 +18,7 @@ This implementation presents one of the opportunities for anyone who are interes
 
 ## Features
 
-* Kubernetes 1.6.1, Docker engine 1.12.6
+* Kubernetes 1.6.4, Docker engine 1.12.6
 * AWS provider integration (ELB,EBS)
 * Terraform 0.9.3 (can be defined in env), which runs as a container to make sure the team uses the same version.
 * Terraform remote state on S3 storage
