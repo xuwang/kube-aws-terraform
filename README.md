@@ -11,6 +11,7 @@ This implementation presents one of the opportunities for anyone who are interes
 - [Prerequisite](#prerequisite)
 - [Quick Start](#quick-start)
 - [Test Cluster](#test-cluster)
+- [GitLab or GitHub webhook authentication](gitLab-or-GitHub-webhook-authentication)
 - [Teardown](#teardown)
 - [Cluster Guide](#cluster-guide)
 - [Limitations](#limitations)
@@ -19,6 +20,7 @@ This implementation presents one of the opportunities for anyone who are interes
 ## Features
 
 * Kubernetes 1.6.4, Docker engine 1.12.6
+* RBAC authorization mode enabled by default
 * AWS provider integration (ELB,EBS)
 * Terraform 0.9.3 (can be defined in env), which runs as a container to make sure the team uses the same version.
 * Terraform remote state on S3 storage
@@ -142,6 +144,10 @@ At AWS console, you should see you should have the following compute instances:
 
 ![EC2 Console](./images/ec2-instances.png)
 
+## GitLab or GitHub webhook authentication
+
+If you want to integrate Kubernetes authentication using GitLab or GitHub personal access token, please see [kube-gitlab-authn](https://github.com/xuwang/kube-gitlab-authn) and [kubernetes-github-authn](https://github.com/oursky/kubernetes-github-authn/).
+
 ## Test Cluster
 
 ### Setup public api server DNS
@@ -156,7 +162,7 @@ Please add "54.186.177.19 kube-api.example.com" to /etc/hosts file.
 
 You may need to update the /etc/hosts file periodically if your connection to the api server stops working because AWS ELB IP address can change.
 
-The API server name is registered with Route53 and is aliased to the API server's ELB name. If you delegate the example.com domain to Route53, you don't need to modify /etc/hosts file.
+Note: The API server name is registered with Route53 and is aliased to the API server's ELB name. If you delegate the example.com domain to Route53, you don't need to modify /etc/hosts file.
 
 ### Config kubectl and deploy add-ons
 
