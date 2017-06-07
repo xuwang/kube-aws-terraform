@@ -101,7 +101,7 @@ Only one file you want to make change:
 * Copy **envs.sh.sample** to **envs.sh** and customize environment variables to match your setup.
 **envs.sh** is ignored in .gitignore.
 
-* Modify **env.sh**. A minimum cluster configuration must contain **AWS_ROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
+* Modify **env.sh**. A minimum cluster configuration must contain **AWS_PROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
 
 ```
 ###############################
