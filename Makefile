@@ -107,10 +107,9 @@ teardown:
 destroy-all: plan-destroy-all	## Destroy all resources
 	@rm -f /tmp/destroy_plan
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) show-destroy-plan >> /tmp/destroy_plan;)
-	@cat /tmp/destroy_plan
-	@$(eval total=$(shell cat /tmp/destroy_plan | grep -v data.terraform | wc -l))
+	@cat /tmp/destroy_plan | grep -v data.terraform
 	@echo ""
-	@echo "Will destroy $$total resources"
+	@echo "Will destroy these resources. Please confirm."
 	@$(MAKE) confirm
 	@$(foreach resource,$(ALL_RESOURCES),cd $(ROOT_DIR)/resources/$(resource) && $(MAKE) destroy 2> /tmp/destroy.err;)
 	@$(MAKE) destroy-remote
