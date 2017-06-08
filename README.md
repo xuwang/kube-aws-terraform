@@ -24,7 +24,7 @@ This implementation presents one of the opportunities for anyone who are interes
 * AWS provider integration (ELB,EBS)
 * Terraform 0.9.3 (can be defined in env), which runs as a container to make sure the team uses the same version.
 * Terraform remote state on S3 storage
-* Autoscaling group for each etcd2, master, node, and vault cluster for hight availability
+* Autoscaling group for each etcd2, master, node, and vault cluster for higher availability
 * CoreOS for self-upgrade/patching management
 * [Hashicorp Vault 0.6.5](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
 * Using separated CA/Certs for secure communications between Kubernetes components
@@ -103,7 +103,7 @@ Only one file you want to make change:
 * Copy **envs.sh.sample** to **envs.sh** and customize environment variables to match your setup.
 **envs.sh** is ignored in .gitignore.
 
-* Modify **env.sh**. A minimum cluster configuration must contain **AWS_ROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
+* Modify **env.sh**. A minimum cluster configuration must contain **AWS_PROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
 
 ```
 ###############################
