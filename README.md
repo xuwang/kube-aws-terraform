@@ -19,7 +19,7 @@ This implementation presents one of the opportunities for anyone who are interes
 
 ## Features
 
-* Kubernetes 1.6.4, Docker engine 1.12.6
+* Kubernetes v1.6.6, Docker engine 1.12.6
 * RBAC authorization mode enabled by default
 * AWS provider integration (ELB,EBS)
 * Terraform 0.9.3 (can be defined in env), which runs as a container to make sure the team uses the same version.
