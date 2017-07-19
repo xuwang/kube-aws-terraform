@@ -15,7 +15,7 @@ then
   touch  /opt/etc/${MODULE_NAME}/${VAULT_IMAGE}
 fi
 
-Generate vault.sh needed by bootstraping certs
+# Generate vault.sh needed by bootstraping certs
 cat > /etc/profile.d/vault.sh <<EOF
 # For vault client to connect server through TLS
 export VAULT_CACERT=/opt/etc/vault/ca/ca.pem
