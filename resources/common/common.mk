@@ -28,7 +28,6 @@ TF_VAR_build_dir := /build
 TF_VAR_artifacts_dir := ${TF_VAR_build_dir}/artifacts
 TF_VAR_secrets_path := ${TF_VAR_artifacts_dir}/secrets
 
-TF_VERSION := 0.9.6
 TF_IMAGE := hashicorp/terraform:${TF_VERSION}
 TF_CMD := docker run -i --rm --env-file=${BUILD_DIR}/tf.env \
 		-v=${HOME}/.aws:/root/.aws \
@@ -143,7 +142,7 @@ create-key: ## create AWS keypair for this module
 destroy-key: ## destroy AWS keypair for this module
 	../scripts/aws-keypair.sh -d $(CLUSTER_NAME)-${MODULE};
 
-remote-ssh: open-ssh ## Run remote ssh 
+remote-ssh: open-ssh ## Run remote ssh
 	@$(MAKE) get-ips
 	@echo "For all systemd logs, run ssh core@<ip> journalctl -f "
 	@echo "For a secific service, run ssh core@<ip> journalctl -f -u <kube-apiserver>|kube-controller-manager|kubelet|kube-proxy"

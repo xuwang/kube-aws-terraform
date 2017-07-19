@@ -46,16 +46,17 @@ resource "aws_autoscaling_attachment" "asg_attachment_master_private" {
 # First bootstrap script, same for all modules
 data "template_file" "user_data" {
     template = "${file("${var.artifacts_dir}/user-data-s3-bootstrap.sh")}"
-
-    # explicitly wait for these configurations to be uploaded to s3 buckets
-    depends_on = ["aws_s3_bucket_object.envvars",
-                  "aws_s3_bucket_object.master_cloud_config"]
+    
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
         "MODULE_NAME" = "${var.module_name}"
         "CUSTOM_TAG" = "${var.module_name}"
+        # Implicitly wait for the below buckets to be ready. Cannot use depends_on
+       # See https://github.com/hashicorp/terraform/issues/15491
+        "ENVVARS_BUCKET" = "${aws_s3_bucket_object.envvars.id}"
+        "CLOUD_CONFIG_BUCKET" = "${aws_s3_bucket_object.master_cloud_config.id}"
     }
 }
 

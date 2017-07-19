@@ -36,15 +36,14 @@ module "etcd" {
 data "template_file" "user_data" {
     template = "${file("${var.artifacts_dir}/user-data-s3-bootstrap.sh")}"
 
-    # explicitly wait for these configurations to be uploaded to s3 buckets
-    depends_on = [ "aws_s3_bucket_object.etcd_cloud_config" ]
-
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
         "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
         "MODULE_NAME" = "${var.module_name}"
         "CUSTOM_TAG" = "${var.module_name}"
+        # Make sure cloud_config bucket is created first
+        "CLOUD_CONFIG_BUCKET" = "${aws_s3_bucket_object.etcd_cloud_config.id}"
     }
 }
 
