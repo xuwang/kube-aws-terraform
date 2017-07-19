@@ -20,7 +20,7 @@ TF_VAR_timestamp := $(shell date +%Y-%m-%d-%H%M)
 # Terraform dir referenced in container
 TF_VAR_build_dir := /build
 
-TF_VERSION := 0.9.3
+TF_VERSION := light
 TF_IMAGE := hashicorp/terraform:${TF_VERSION}
 TF_CMD := docker run -it --rm --env-file=${BUILD_DIR}/tf.env \
 		-v=${HOME}/.aws:/root/.aws \
