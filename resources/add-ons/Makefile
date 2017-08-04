@@ -117,7 +117,7 @@ kill-metrics:  ## Close monitor console connection
 delete-dashboard: kill-ui ## Delete dashboard
 	kubectl delete -f ${KUBERNETES_DASHBOARD}
 
-monitor: ## Deploy heapster, infuluxdb and grafana
+monitor: kube-system-admin-role-binding ## Deploy heapster, infuluxdb and grafana
 	@if ! kubectl get pods -n kube-system | grep monitoring-grafana &> /dev/null ; \
 	then \
 		while ! kubectl get pods -n kube-system -o json -l k8s-app=kube-dns | grep ready | grep -q true  ; \
