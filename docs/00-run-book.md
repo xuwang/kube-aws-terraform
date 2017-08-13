@@ -95,7 +95,7 @@ Read Kubernetes release notes to make necessary configuration changes. Ideally u
 * Edit envs.sh file to change the version of Kubernetes, as shown in bellow example:
 
 ```
-export TF_VAR_kube_version="v1.7.1"
+export TF_VAR_kube_version="v1.7.3"
 ```
 
 * Update systemd install-kubernetes unit

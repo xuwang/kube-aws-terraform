@@ -19,7 +19,7 @@ This implementation presents one of the opportunities for anyone who are interes
 
 ## Features
 
-* Kubernetes v1.7.1, Docker engine 1.12.6
+* Kubernetes v1.7.3, Docker engine 1.12.6
 * RBAC authorization mode enabled by default
 * AWS provider integration (ELB,EBS)
 * Terraform hashicorp/terraform:light (can be defined in `env.sh`), which runs as a container to make sure the team uses the same version.
