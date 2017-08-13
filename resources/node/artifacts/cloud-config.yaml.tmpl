@@ -15,7 +15,7 @@ coreos:
         Type=oneshot
         RemainAfterExit=yes
         Environment="LABEL=var-lib-docker"
-        Environment="DEV=/dev/xvdb"
+        Environment="DEV=/dev/xvdf"
         # Do not wipe the disk if it's already being used, so the docker images persistent cross reboot.
         ExecStart=-/bin/bash -c "if ! findfs LABEL=$LABEL > /tmp/label.$LABEL; then wipefs -a -f $DEV && mkfs.ext4 -T news -F -L $LABEL $DEV && echo wiped; fi"
     - name: var-lib-docker.mount
@@ -27,7 +27,7 @@ coreos:
         After=format-disk.service
         Before=docker.service
         [Mount]
-        What=/dev/xvdb
+        What=/dev/xvdf
         Where=/var/lib/docker
         Type=ext4
     - name: docker.service

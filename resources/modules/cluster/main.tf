@@ -46,14 +46,14 @@ resource "aws_launch_configuration" "instance_pool" {
 
   # /var/lib/docker
   ebs_block_device = {
-    device_name = "/dev/sdb"
+    device_name = "/dev/sdf"
     volume_type = "${var.docker_volume_type}"
     volume_size = "${var.docker_volume_size}"
   }
 
   # /opt/data
   ebs_block_device = {
-    device_name = "/dev/sdc"
+    device_name = "/dev/sdg"
     volume_type = "${var.data_volume_type}"
     volume_size = "${var.data_volume_size}"
   }
