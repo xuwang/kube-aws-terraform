@@ -52,6 +52,7 @@ coreos:
         Requires=docker.service
         ConditionPathExists=/var/lib/kubelet/kubeconfig
         [Service]
+        Environment="PATH=/opt/bin/:/usr/sbin:/usr/bin:/sbin:/bin"
         ExecStart=/opt/bin/kubelet \
           --allow-privileged=true \
           --cloud-provider=aws \
