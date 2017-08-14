@@ -51,7 +51,8 @@ resource "aws_route_table" "cluster_vpc" {
 }
 
 resource "aws_vpc_dhcp_options" "cluster_dhcp" {
-    domain_name = "${var.aws_account["default_region"]}.compute.internal"
+    domain_name = "${var.aws_account["default_region"] == "us-east-1" ? "ec2.internal" :
+          "${var.aws_account["default_region"]}.compute.internal" }"
     domain_name_servers = ["AmazonProvidedDNS"]
 
     tags {
