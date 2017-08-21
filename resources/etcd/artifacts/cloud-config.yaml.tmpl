@@ -145,7 +145,7 @@ write_files:
       # dyamically create/join the etcd cluster by querying autoscaling group
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
-      /usr/bin/docker run --rm --name=etcd-init -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
+      /usr/bin/docker run --rm --name=etcd-init -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_CURLOPTS='-k' --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
       # Upload etcd initial-cluster urls to s3 bucket for kube peers. Wait a bit for the etcd-peers file to be ready
       mkdir -p /etc/sysconfig
       retry=20
