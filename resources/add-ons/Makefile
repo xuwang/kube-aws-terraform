@@ -70,7 +70,7 @@ kubedns: ## Deploy kube-dns
 delete-kubedns: ## Delete kube-dns
 	kubectl delete -f kubedns/;
 
-dashboard: kube-system-admin-role-binding ## Start dashboard
+dashboard: do-config kube-system-admin-role-binding ## Start dashboard
 	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard |grep Running &> /dev/null ; \
 	then \
 		kubectl create -f ${KUBERNETES_DASHBOARD} ; \
