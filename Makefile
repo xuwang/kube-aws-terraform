@@ -17,7 +17,8 @@ help:
 	@echo '_________________'
 	@echo '| Make targets: |'
 	@echo '-----------------'
-	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' | sort -k1,1
 
 cluster: core master node  ## Create or update a kubernetes cluster (include core, masters and nodes)
 
