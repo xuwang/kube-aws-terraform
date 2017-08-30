@@ -125,7 +125,7 @@ $ /opt/bin/kubectl version
 
 ```
 # Vault release: restart vault service if changed
-export TF_VAR_vault_release=0.7.3
+export TF_VAR_vault_release=0.8.1
 ```
 
 * Change vault's configuration and restart vault
@@ -133,11 +133,27 @@ export TF_VAR_vault_release=0.7.3
 ```
 $ cd resources/vault
 $ make
-$ make get-ips
-$ ssh core@<vault-ip>
+$ make ssh
+Permitted 22 from <yourip>/32 to vault...
 $ sudo reboot
 ```
 
+* Verify vault status
+```
+$ cd resources/vault
+$ make remote-cmd "source /etc/profile.d/vault.sh; vault status"
+Permitted 22 from <yourip>/32 to vault...
+Sealed: false
+Key Shares: 5
+Key Threshold: 3
+Unseal Progress: 0
+Unseal Nonce:
+Version: 0.8.1
+Cluster Name: vault-cluster-e4a80891
+Cluster ID: f5137877-494e-c38b-8dab-********
+
+High-Availability Enabled: false
+```
 ## Upgrade Instances Operating System
 
 All machines are running CoreOS image. With auto-update enabled, CoreOS and etcd binaries will be upgraded automatically when CoreOS has new release.
