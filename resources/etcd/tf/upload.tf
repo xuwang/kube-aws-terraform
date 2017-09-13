@@ -17,7 +17,7 @@ data "template_file" "etcd_cloud_config" {
       "CLUSTER_INTERNAL_ZONE" = "${var.cluster_internal_zone}"
       "CONFIG_BUCKET" = "${var.aws_account["id"]}-${var.cluster_name}-config"
       "APP_REPOSITORY" = "${var.app_repository}"
-      "VAULT_RELEASE" = "${var.vault_release}"
+      "VAULT_IMAGE" = "${var.vault_image}"
       "MODULE_NAME" = "${var.module_name}"
       "CLUSTER_NAME" = "${var.cluster_name}"
       "ROUTE53_ZONE_NAME" = "${var.route53_public_zone_name}"

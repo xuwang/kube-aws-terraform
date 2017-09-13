@@ -55,7 +55,7 @@ resource "aws_s3_bucket_object" "envvars" {
 data "template_file" "envvars" {
     template = "${file("${var.artifacts_dir}/upload-templates/envvars")}"
     vars {
-        "VAULT_RELEASE" = "${var.vault_release}"
+        "VAULT_IMAGE" = "${var.vault_image}"
     }
 }
 

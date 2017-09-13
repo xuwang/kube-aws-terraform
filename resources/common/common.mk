@@ -238,9 +238,9 @@ force-destroy-remote: update-build  ## destroy terraform remote state bucket
 			--force ; \
 	fi
 
-.PHONY: upgrade-kube
-upgrade-kube: ## upgrade k8s to version defined in TF_VAR_kube_version
-	@echo "Will upgrade ${MODULE}'s Kubernetes to ${TF_VAR_kube_version}."
+.PHONY: update
+update: ## update changes to the current module
+	@echo "Will update with the following changes to ${MODULE}."
 	@$(MAKE) plan
 	@$(MAKE) confirm
 	@$(MAKE) apply

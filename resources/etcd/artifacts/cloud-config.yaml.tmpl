@@ -60,7 +60,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=true
-        ExecStartPre=/usr/bin/docker run --rm -v /opt/bin:/tmp vault:${VAULT_RELEASE} cp /bin/vault /tmp/vault
+        ExecStartPre=/usr/bin/docker run --rm -v /opt/bin:/tmp ${VAULT_IMAGE} cp /bin/vault /tmp/vault
         ExecStart=/bin/bash -c "sleep 10; [ -x /opt/bin/vault ] &&  /opt/bin/get-kube-certs.sh "
 write_files:
   - path: /etc/profile.d/alias.sh

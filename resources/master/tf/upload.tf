@@ -37,6 +37,6 @@ data "template_file" "envvars" {
         "KUBE_VERSION" = "${var.kube_version}"
         "KUBE_API_DNSNAME" = "${var.kube_api_dnsname}"
         "KUBE_API_SERVICE" = "${var.kube_api_service}"
-        "VAULT_RELEASE" = "${var.vault_release}"
+        "VAULT_IMAGE" = "${var.vault_image}"
     }
 }

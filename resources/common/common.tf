@@ -74,8 +74,7 @@ variable "route53_public_zone_name" {
 variable "route53_public_zone_id" {}
 
 # Vault
-variable "vault_release" {
-    default = "0.7.0"
+variable "vault_image" {
 }
 variable "vault_auto_unseal" {
     default = "false"
