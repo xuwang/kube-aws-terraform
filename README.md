@@ -22,11 +22,11 @@ This implementation presents one of the opportunities for anyone who are interes
 * Kubernetes v1.7.5, Docker engine 1.12.6
 * RBAC authorization mode enabled by default
 * AWS provider integration (ELB,EBS)
-* Terraform hashicorp/terraform:light (can be defined in `env.sh`), which runs as a container to make sure the team uses the same version.
+* Terraform hashicorp/terraform:light (can be defined in `envs.sh`), which runs as a container to make sure the team uses the same version.
 * Terraform remote state on S3 storage
 * Autoscaling group for each etcd2, master, node, and vault cluster for higher availability
 * CoreOS for self-upgrade/patching management
-* [Hashicorp Vault 0.7.3](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
+* [Hashicorp Vault 0.8.2](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
 * Using separated CA/Certs for secure communications between Kubernetes components
 * Add-ons installed:
   * kubedns
@@ -68,8 +68,6 @@ $ brew update
 $ brew install jq graphviz awscli gettext
 $ brew link --force gettext
 ```
-__NOTE:__ Make sure the installed Terraform version is matching the required Terraform version defined in env.sh.sample by `TF_VERSION`.
-
 
 [Install kubectl](https://kubernetes.io/docs/user-guide/prereqs/)
 
@@ -85,7 +83,7 @@ Remember to periodically update these packages.
 
   Set ROUTE53_ZONE_NAME in `envs.sh`
 
-If your zone name is `mylab.example.com`, the api server route53 record will be `kube-api.lab.example.com`, and an ELB will be created for it.
+If your zone name is `mylab.example.com`, the api server route53 record will be `kube-api.mylab.example.com`, and an ELB will be created for it.
 
 ## Quick Start
 
@@ -103,7 +101,7 @@ Only one file you want to make change:
 * Copy **envs.sh.sample** to **envs.sh** and customize environment variables to match your setup.
 **envs.sh** is ignored in .gitignore.
 
-* Modify **env.sh**. A minimum cluster configuration must contain **AWS_PROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
+* Modify **envs.sh**. A minimum cluster configuration must contain **AWS_PROFILE**, unique **CLUSTER_NAME**,  **ROUTE53_ZONE_NAME**, as shown in the example below:
 
 ```
 ###############################
