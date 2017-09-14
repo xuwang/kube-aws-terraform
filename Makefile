@@ -187,6 +187,8 @@ destroy-add-ons: ## Delete all add-ons, ie. kubedns, dashboard, and monitor
 sync-docker-time: ## sync docker vm time with hardware clock
 	@docker run --rm --privileged alpine hwclock -s
 
-.PHONY: kube-config
+.PHONY: kube-config kube-reconfig
 kube-config: ## config kubectl
 	cd resources/add-ons; make kube-config
+kube-reconfig: ## reconfig kubectl
+	cd resources/add-ons; make kube-reconfig

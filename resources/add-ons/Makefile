@@ -20,10 +20,10 @@ kube-config: ## If kubeconfig is not configured the this cluster, configure it
 		echo Run "kubectl config delete-context ${CLUSTER_NAME} if you want to re-configure." ; \
 		$(MAKE) switch-context ; \
 	else \
-		$(MAKE) do-config ; \
+		$(MAKE) re-config ; \
 	fi
 
-do-config: ## Create kubeconfig for kubectl
+kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
 	@rm -rf ${KUBERNETES_WORKDIR}
 	@mkdir -p ${KUBERNETES_WORKDIR}
 	@echo Download vault generated ca cert from the api server
@@ -74,7 +74,7 @@ kubedns: ## Deploy kube-dns
 delete-kubedns: ## Delete kube-dns
 	kubectl delete -f kubedns/;
 
-dashboard: do-config kube-system-admin-role-binding ## Start dashboard
+dashboard: re-config kube-system-admin-role-binding ## Start dashboard
 	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard |grep Running &> /dev/null ; \
 	then \
 		kubectl create -f ${KUBERNETES_DASHBOARD} ; \
@@ -146,5 +146,5 @@ kube-cleanup: ## Delete all add-ons and delete the default-context
 		kubectl config delete-context default-context ; \
 	fi
 
-.PHONY: add-ons dashboard delete-dashboard delete-monitor delete-kubedns do-config helpme kill-metrics
+.PHONY: add-ons dashboard delete-dashboard delete-monitor delete-kubedns re-config helpme kill-metrics
 .PHONY: kill-ui kube-cleanup kube-config kubedns metrics monitor kube-system-admin-role-binding ui
