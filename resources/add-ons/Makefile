@@ -11,16 +11,16 @@ help:
 	@echo '-----------------'
 	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-add-ons: kube-config kubedns monitor dashboard ## buncled addsons kubedns,monitor,dashboard
+add-ons: kube-config kubedns monitor dashboard ## bundled addsons kubedns,monitor,dashboard
 
 kube-config: ## If kubeconfig is not configured the this cluster, configure it
-	@if kubectl config get-contexts -o name | grep ^${CLUSTER_NAME}$$ &> /dev/null ; \
+	if kubectl config get-contexts -o name | grep ^${CLUSTER_NAME}$$ &> /dev/null ; \
 	then \
 		echo ${CLUSTER_NAME} is configured. Skip configuration. ; \
 		echo Run "kubectl config delete-context ${CLUSTER_NAME} if you want to re-configure." ; \
 		$(MAKE) switch-context ; \
 	else \
-		$(MAKE) kube-config ; \
+		$(MAKE) kube-reconfig ; \
 	fi
 
 kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
