@@ -20,7 +20,7 @@ kube-config: ## If kubeconfig is not configured the this cluster, configure it
 		echo Run "kubectl config delete-context ${CLUSTER_NAME} if you want to re-configure." ; \
 		$(MAKE) switch-context ; \
 	else \
-		$(MAKE) re-config ; \
+		$(MAKE) kube-config ; \
 	fi
 
 kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
