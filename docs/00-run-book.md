@@ -125,14 +125,14 @@ $ /opt/bin/kubectl version
 
 ```
 # Vault release: restart vault service if changed
-export TF_VAR_vault_release=0.8.1
+export TF_VAR_vault_image=0.8.2
 ```
 
 * Change vault's configuration and restart vault
 
 ```
 $ cd resources/vault
-$ make
+$ make update
 $ make ssh
 Permitted 22 from <yourip>/32 to vault...
 $ sudo reboot
