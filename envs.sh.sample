@@ -24,7 +24,8 @@ export SSHKEY_DIR=${HOME}/.ssh
 ################
 
 # Required Terraform version: 0.9 <= version < 1.0
-export TF_VERSION="~>0.9.1"
+export TF_VERSION=light
+export TF_REQUIRED_VERSION="~> 0.9"
 
 # Max AWS API retries for Terraform
 export TF_MAX_RETRIES=10
@@ -50,7 +51,7 @@ export TF_VAR_instance_type=t2.medium
 
 # Route53 internal zone point to vault and api-server internal ELB. Not to
 # clash with kubernetes "cluster.local"
-export TF_VAR_cluster_internal_zone="cluster.internal"
+export TF_VAR_cluster_internal_zone="${CLUSTER_NAME}.cluster.internal"
 export TF_VAR_kube_api_dnsname=${KUBE_API_DNSNAME}
 export TF_VAR_kube_version="v1.7.5"
 
