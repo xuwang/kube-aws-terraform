@@ -1,7 +1,7 @@
 include ../../envs.sh
 include envs.sh
 
-KUBERNETES_WORKDIR := /tmp/kubernetes_workdir
+KUBERNETES_WORKDIR := /tmp/kubernetes_workdir_${CLUSTER_NAME}
 KUBERNETES_DASHBOARD := https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
 
 help:
@@ -35,27 +35,27 @@ do-config: ## Create kubeconfig for kubectl
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem \
 		 ${KUBERNETES_WORKDIR}/
 	@${SCRIPTS}/allow-myip.sh -r master 22
-	$(MAKE) switch-context
-
-switch-context: ## Switch context to this cluster
 	@echo kubectl config set-cluster kubernetes...
 	@kubectl config set-cluster ${CLUSTER_NAME} \
   		--certificate-authority=${KUBERNETES_WORKDIR}/kube-apiserver-ca.pem \
   		--embed-certs=true \
   		--server=https://${KUBE_API_DNSNAME}:6443
 
-	@echo kubectl config set-credentials admin...
-	@kubectl config set-credentials admin \
+	@echo kubectl config set-credentials ${CLUSTER_NAME}-admin...
+	@kubectl config set-credentials ${CLUSTER_NAME}-admin \
 		--embed-certs=true \
 		--client-certificate=${KUBERNETES_WORKDIR}/admin.pem \
 		--client-key=${KUBERNETES_WORKDIR}/admin-key.pem
+	@-gshred ${KUBERNETES_WORKDIR}/*
+	@-rm -rf ${KUBERNETES_WORKDIR}
+	$(MAKE) switch-context
+
+switch-context: ## Switch context to this cluster
 	@echo kubectl config set-context  ${CLUSTER_NAME} ...
 	@kubectl config set-context ${CLUSTER_NAME} \
   		--cluster=${CLUSTER_NAME} \
-  		--user=admin
+  		--user=${CLUSTER_NAME}-admin
 	kubectl config use-context ${CLUSTER_NAME}
-	@-gshred ${KUBERNETES_WORKDIR}/*
-	@echo rm -rf ${KUBERNETES_WORKDIR}
 
 kube-system-admin-role-binding: kube-config ## Create Service account admin binding
 	@if ! kubectl get clusterrolebinding kube-system-admin-role-binding &> /dev/null ; \
