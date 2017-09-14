@@ -14,7 +14,7 @@ help:
 add-ons: kube-config kubedns monitor dashboard ## bundled addsons kubedns,monitor,dashboard
 
 kube-config: ## If kubeconfig is not configured the this cluster, configure it
-	if kubectl config get-contexts -o name | grep ^${CLUSTER_NAME}$$ &> /dev/null ; \
+	@if kubectl config get-contexts -o name | grep ^${CLUSTER_NAME}$$ &> /dev/null ; \
 	then \
 		echo ${CLUSTER_NAME} is configured. Skip configuration. ; \
 		echo Run "kubectl config delete-context ${CLUSTER_NAME} if you want to re-configure." ; \
