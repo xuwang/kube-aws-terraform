@@ -14,10 +14,11 @@ help:
 add-ons: kube-config kubedns monitor dashboard ## buncled addsons kubedns,monitor,dashboard
 
 kube-config: ## If kubeconfig is not configured the this cluster, configure it
-	@if kubectl config get-contexts | grep default-context | grep ${CLUSTER_NAME} &> /dev/null ; \
+	@if kubectl config get-contexts -o name | grep ^${CLUSTER_NAME}$$ &> /dev/null ; \
 	then \
-		echo ${CLUSTER_NAME} is current context. Skip configuration. ; \
-		echo Run "kubectl config delete-context default-context" if you want to re-configure. ; \
+		echo ${CLUSTER_NAME} is configured. Skip configuration. ; \
+		echo Run "kubectl config delete-context ${CLUSTER_NAME} if you want to re-configure." ; \
+		$(MAKE) switch-context ; \
 	else \
 		$(MAKE) do-config ; \
 	fi
@@ -27,14 +28,16 @@ do-config: ## Create kubeconfig for kubectl
 	@mkdir -p ${KUBERNETES_WORKDIR}
 	@echo Download vault generated ca cert from the api server
 	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
-	@../scripts/allow-myip.sh -a master 22
+	@${SCRIPTS}/allow-myip.sh -a master 22
 	@scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin.pem \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin-key.pem \
 		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem \
 		 ${KUBERNETES_WORKDIR}/
-	@../scripts/allow-myip.sh -r master 22
+	@${SCRIPTS}/allow-myip.sh -r master 22
+	$(MAKE) switch-context
 
+switch-context: ## Switch context to this cluster
 	@echo kubectl config set-cluster kubernetes...
 	@kubectl config set-cluster ${CLUSTER_NAME} \
   		--certificate-authority=${KUBERNETES_WORKDIR}/kube-apiserver-ca.pem \
@@ -46,11 +49,12 @@ do-config: ## Create kubeconfig for kubectl
 		--embed-certs=true \
 		--client-certificate=${KUBERNETES_WORKDIR}/admin.pem \
 		--client-key=${KUBERNETES_WORKDIR}/admin-key.pem
-	@echo kubectl config set-context default-context ...
-	@kubectl config set-context default-context \
+	@echo kubectl config set-context  ${CLUSTER_NAME} ...
+	@kubectl config set-context ${CLUSTER_NAME} \
   		--cluster=${CLUSTER_NAME} \
   		--user=admin
-	kubectl config use-context default-context
+	kubectl config use-context ${CLUSTER_NAME}
+	@-gshred ${KUBERNETES_WORKDIR}/*
 	@echo rm -rf ${KUBERNETES_WORKDIR}
 
 kube-system-admin-role-binding: kube-config ## Create Service account admin binding
