@@ -2,8 +2,9 @@ include ../../envs.sh
 include envs.sh
 
 KUBERNETES_WORKDIR := /tmp/kubernetes_workdir_${CLUSTER_NAME}
-KUBERNETES_DASHBOARD := https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
+KUBERNETES_DASHBOARD := https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
 
+.PHONY: help
 help:
 	@# adapted from https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@echo '_________________'
@@ -11,8 +12,10 @@ help:
 	@echo '-----------------'
 	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+.PHONY: add-ons
 add-ons: kube-config kubedns monitor dashboard ## bundled addsons kubedns,monitor,dashboard
 
+.PHONY: kube-config
 kube-config: ## If kubeconfig is not configured the this cluster, configure it
 	@if kubectl config get-contexts -o name | grep ^${CLUSTER_NAME}$$ &> /dev/null ; \
 	then \
@@ -23,6 +26,7 @@ kube-config: ## If kubeconfig is not configured the this cluster, configure it
 		$(MAKE) kube-reconfig ; \
 	fi
 
+.PHONY: kube-reconfig
 kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
 	@rm -rf ${KUBERNETES_WORKDIR}
 	@mkdir -p ${KUBERNETES_WORKDIR}
@@ -50,6 +54,7 @@ kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
 	@-rm -rf ${KUBERNETES_WORKDIR}
 	$(MAKE) switch-context
 
+.PHONY: switch-context
 switch-context: ## Switch context to this cluster
 	@echo kubectl config set-context  ${CLUSTER_NAME} ...
 	@kubectl config set-context ${CLUSTER_NAME} \
@@ -57,12 +62,14 @@ switch-context: ## Switch context to this cluster
   		--user=${CLUSTER_NAME}-admin
 	kubectl config use-context ${CLUSTER_NAME}
 
+.PHONY: kube-system-admin-role-binding
 kube-system-admin-role-binding: kube-config ## Create Service account admin binding
 	@if ! kubectl get clusterrolebinding kube-system-admin-role-binding &> /dev/null ; \
 	then \
-		kubectl create -f kube-system-admin-role-binding.yaml ; \
+		kubectl create -f rbac-policies/kube-system-admin-role-binding.yaml ; \
 	fi
 
+.PHONY: kubedns
 kubedns: ## Deploy kube-dns
 	@if ! kubectl get svc -n kube-system kube-dns &> /dev/null ; \
 	then \
@@ -71,17 +78,20 @@ kubedns: ## Deploy kube-dns
 		kubectl get svc,pods -n kube-system -l k8s-app=kube-dns ; \
 	fi
 
+.PHONY: delete-kubedns
 delete-kubedns: ## Delete kube-dns
 	kubectl delete -f kubedns/;
 
+.PHONY: dashboard
 dashboard: re-config kube-system-admin-role-binding ## Start dashboard
 	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard |grep Running &> /dev/null ; \
 	then \
-		kubectl create -f ${KUBERNETES_DASHBOARD} ; \
+		kubectl appply -f ${KUBERNETES_DASHBOARD} ; \
 	else \
 		kubectl get svc,pods -n kube-system -l k8s-app=kubernetes-dashboard ; \
 	fi
 
+.PHONY: ui
 ui: dashboard ## kubectl proxy and open dashboard ui
 	kubectl proxy -p 8001 &> /dev/null &
 	@while ! kubectl get pods -n kube-system -o json -l k8s-app=kubernetes-dashboard | jq .items'[]'.status.containerStatuses'[]'.ready | grep -q true; \
@@ -89,10 +99,13 @@ ui: dashboard ## kubectl proxy and open dashboard ui
 		echo Waitting for UI ; \
 		sleep 10 ; \
 	done
-	echo "Connecting to ui..."
-	open "http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/workload?namespace=kube-system"
-	echo "Please 'make kill-ui' to close kube proxy connection"
+	@echo
+	@echo To access endpoint of dashboard local proxy, go to:
+	@echo http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/
+	@echo
+	@echo "Please 'make kill-ui' to close kube proxy connection"
 
+.PHONY: kill-ui
 kill-ui:  kill-metrics ## Close Kube console connection
 	@if pgrep -f 8001 &> /dev/null ; \
 	then \
@@ -100,6 +113,7 @@ kill-ui:  kill-metrics ## Close Kube console connection
 		kill $(shell pgrep -f 8001) ; \
 	fi
 
+.PHONY: metrics
 metrics: monitor ## Open metrics ui
 	kubectl proxy -p 8002 &> /dev/null &
 	@while ! kubectl get pods -n kube-system -o json -l k8s-app=grafana | grep ready | grep -q true ; \
@@ -111,6 +125,7 @@ metrics: monitor ## Open metrics ui
 	open "http://127.0.0.1:8002/api/v1/proxy/namespaces/kube-system/services/monitoring-grafana/dashboard/db/pods"
 	echo "Please 'make kill-metrics' to close kube proxy connection"
 
+.PHONY: kill-metrics
 kill-metrics:  ## Close monitor console connection
 	@if pgrep -f 8002 &> /dev/null ; \
 	then \
@@ -118,9 +133,11 @@ kill-metrics:  ## Close monitor console connection
 		kill $(shell pgrep -f 8002) ; \
 	fi
 
+.PHONY: delete-dashboard
 delete-dashboard: kill-ui ## Delete dashboard
 	kubectl delete -f ${KUBERNETES_DASHBOARD}
 
+.PHONY: monitor
 monitor: kube-system-admin-role-binding ## Deploy heapster, infuluxdb and grafana
 	@if ! kubectl get pods -n kube-system | grep monitoring-grafana &> /dev/null ; \
 	then \
@@ -134,9 +151,11 @@ monitor: kube-system-admin-role-binding ## Deploy heapster, infuluxdb and grafan
 		kubectl get svc,pods -n kube-system -l task=monitoring ; \
 	fi
 
+.PHONY: delete-monitor
 delete-monitor: ## Delete monitor
 	kubectl delete -f monitor/
 
+.PHONY: kube-cleanup
 kube-cleanup: ## Delete all add-ons and delete the default-context
 	@-$(MAKE) delete-dashboard
 	@-$(MAKE) delete-monitor
@@ -145,6 +164,3 @@ kube-cleanup: ## Delete all add-ons and delete the default-context
 	then \
 		kubectl config delete-context default-context ; \
 	fi
-
-.PHONY: add-ons dashboard delete-dashboard delete-monitor delete-kubedns re-config helpme kill-metrics
-.PHONY: kill-ui kube-cleanup kube-config kubedns metrics monitor kube-system-admin-role-binding ui
