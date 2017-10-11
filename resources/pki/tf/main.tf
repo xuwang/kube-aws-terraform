@@ -44,6 +44,7 @@ resource "aws_s3_bucket_object" "ca-cert" {
 }
 
 output "ca_key" {
+  sensitive = true
   value = "${tls_private_key.ca-key.private_key_pem}"
 }
 output "ca_cert" {
