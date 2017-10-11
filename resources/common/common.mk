@@ -137,7 +137,7 @@ refresh: init ## terraform refresh
 
 .PHONY: clean
 clean: ## delete build dir
-	rm -rf ${BUILD_DIR}
+	@-rm -rf ${BUILD_DIR}
 
 .PHONY: create-key destroy-key
 create-key: ## create AWS keypair for this module
