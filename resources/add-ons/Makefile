@@ -69,6 +69,13 @@ kube-system-admin-role-binding: kube-config ## Create Service account admin bind
 		kubectl create -f rbac-policies/kube-system-admin-role-binding.yaml ; \
 	fi
 
+.PHONY: kubernetes-dashboard-admin-role-binding
+kubernetes-dashboard-admin-role-binding: kube-config ## Create Service account admin binding
+	@if ! kubectl get clusterrolebinding kubernetes-dashboard &> /dev/null ; \
+	then \
+		kubectl create -f rbac-policies/kubernetes-dashboard-admin.yaml ; \
+	fi
+
 .PHONY: kubedns
 kubedns: ## Deploy kube-dns
 	@if ! kubectl get svc -n kube-system kube-dns &> /dev/null ; \
@@ -83,7 +90,7 @@ delete-kubedns: ## Delete kube-dns
 	kubectl delete -f kubedns/;
 
 .PHONY: dashboard
-dashboard: kube-reconfig kube-system-admin-role-binding ## Start dashboard
+dashboard: kube-reconfig kubernetes-dashboard-admin-role-binding ## Start dashboard
 	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard |grep Running &> /dev/null ; \
 	then \
 		kubectl appply -f ${KUBERNETES_DASHBOARD} ; \
