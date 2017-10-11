@@ -1,11 +1,5 @@
 #cloud-config
 coreos:
-  etcd2:
-    advertise-client-urls: https://$private_ipv4:2379
-    initial-advertise-peer-urls: https://$private_ipv4:2380
-    # http only on loopback interface.
-    listen-client-urls: http://127.0.0.1:4001,https://0.0.0.0:2379
-    listen-peer-urls: https://$private_ipv4:2380
   update:
     reboot-strategy: etcd-lock
   locksmith:
@@ -17,11 +11,14 @@ coreos:
         - name: 30-cloudinit.conf
           content: |
             [Unit]
-            Requires=etcd2.service
-            After=etcd2.service
+            Requires=etcd-member.service
+            After=etcd-member.service
             [Service]
             EnvironmentFile=/etc/locksmithd/locksmithd-envs
     - name: etcd2.service
+      command: stop
+      mask: true
+    - name: etcd-member.service
       command: start
       drop-ins:
         - name: 60-etcd-peers.conf
@@ -30,9 +27,17 @@ coreos:
               Requires=install-cert.service etcd-init.service
               Wants=install-cert.service
               After=install-cert.service etcd-init.service
+              Conflicts=etcd.service
+              Conflicts=etcd2.service
               [Service]
               EnvironmentFile=/etc/sysconfig/etcd-peers
               EnvironmentFile=/etc/etcd/cert-envs
+              Environment=ETCD_SSL_DIR=/etc/etcd/certs
+              Environment=ETCD_ADVERTISE_CLIENT_URLS=https://$private_ipv4:2379
+              Environment=ETCD_INITIAL_ADVERTISE_PEER_URLS=https://$private_ipv4:2380
+              Environment=ETCD_LISTEN_CLIENT_URLS=https://0.0.0.0:2379,http://0.0.0.0:4001
+              Environment=ETCD_LISTEN_PEER_URLS=https://$private_ipv4:2380,http://$private_ipv4:7001
+
     - name: etcd-init.service
       command: start
       content: |
@@ -145,7 +150,8 @@ write_files:
       # dyamically create/join the etcd cluster by querying autoscaling group
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
-      /usr/bin/docker run --rm --name=etcd-init -v /etc/sysconfig/:/etc/sysconfig/ --env ETCD_CURLOPTS='-k' --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
+      /usr/bin/docker run --rm --name=etcd-init -v /etc/sysconfig/:/etc/sysconfig/ \
+        --env ETCD_CURLOPTS='-k' --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
       # Upload etcd initial-cluster urls to s3 bucket for kube peers. Wait a bit for the etcd-peers file to be ready
       mkdir -p /etc/sysconfig
       retry=20
@@ -166,13 +172,13 @@ write_files:
     permissions: 0644
     owner: root
     content: |
-        ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-        ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
-        ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+        ETCD_PEER_CERT_FILE=/etc/ssl/certs/etcd-server.pem
+        ETCD_PEER_KEY_FILE=/etc/ssl/certs/etcd-server-key.pem
+        ETCD_PEER_TRUSTED_CA_FILE=/etc/ssl/certs/etcd-server-ca.pem
         ETCD_PEER_CLIENT_CERT_AUTH=true
-        ETCD_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-        ETCD_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
-        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+        ETCD_CERT_FILE=/etc/ssl/certs/etcd-server.pem
+        ETCD_KEY_FILE=/etc/ssl/certs/etcd-server-key.pem
+        ETCD_TRUSTED_CA_FILE=/etc/ssl/certs/etcd-server-ca.pem
         #ETCD_CLIENT_CERT_AUTH=true
 
   - path: /etc/locksmithd/locksmithd-envs
