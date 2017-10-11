@@ -35,7 +35,7 @@ module "etcd" {
 
 data "template_file" "user_data" {
     template = "${file("${var.artifacts_dir}/user-data-s3-bootstrap.sh")}"
-
+    
     vars {
         "AWS_ACCOUNT" = "${var.aws_account["id"]}"
         "CLUSTER_NAME" = "${var.cluster_name}"
@@ -87,6 +87,14 @@ resource "aws_security_group" "etcd"  {
     to_port = 2379
     protocol = "tcp"
     cidr_blocks = ["${data.terraform_remote_state.vpc.cluster_vpc_cidr}"]
+  }
+
+  # Allow etcd peers to ssh to each other
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    self = true
   }
 
   tags {
