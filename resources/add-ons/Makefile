@@ -93,13 +93,13 @@ delete-kubedns: ## Delete kube-dns
 dashboard: kube-reconfig kubernetes-dashboard-admin-role-binding ## Start dashboard
 	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard |grep Running &> /dev/null ; \
 	then \
-		kubectl appply -f ${KUBERNETES_DASHBOARD} ; \
+		kubectl apply -f ${KUBERNETES_DASHBOARD} ; \
 	else \
 		kubectl get svc,pods -n kube-system -l k8s-app=kubernetes-dashboard ; \
 	fi
 
 .PHONY: ui
-ui: dashboard ## kubectl proxy and open dashboard ui
+ui: kill-ui dashboard ## kubectl proxy and open dashboard ui
 	kubectl proxy -p 8001 &> /dev/null &
 	@while ! kubectl get pods -n kube-system -o json -l k8s-app=kubernetes-dashboard | jq .items'[]'.status.containerStatuses'[]'.ready | grep -q true; \
 	do \
