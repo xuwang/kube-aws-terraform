@@ -1,9 +1,6 @@
 #cloud-config
 
 coreos:
-  etcd2:
-    proxy: on
-    listen-client-urls: http://127.0.0.1:2379
   update:
     reboot-strategy: etcd-lock
   locksmith:
@@ -15,18 +12,27 @@ coreos:
         - name: 30-cloudinit.conf
           content: |
             [Unit]
-            Requires=etcd2.service
-            After=etcd2.service
+            Requires=etcd-member.service
+            After=etcd-member.service
             [Service]
             EnvironmentFile=/etc/locksmithd/locksmithd-envs
     - name: etcd2.service
-      command: reload-or-restart
+      command: stop
+      mask: true
+    - name: etcd-member.service
+      command: start
       drop-ins:
         - name: 60-initial-cluster.conf
           content: |
-            [Service]
-            EnvironmentFile=/etc/sysconfig/initial-cluster
-            EnvironmentFile=/etc/etcd/cert-envs
+              [Unit]
+              Conflicts=etcd.service
+              Conflicts=etcd2.service
+              [Service]
+              EnvironmentFile=/etc/sysconfig/initial-cluster
+              EnvironmentFile=/etc/etcd/cert-envs
+              Environment=ETCD_PROXY=on
+              Environment=ETCD_SSL_DIR=/etc/etcd/certs
+              Environmen=ETCD_LISTEN_CLIENT_URLS=http://127.0.0.1:2379
 
     - name: kube-controller-manager.service
       command: start
@@ -146,14 +152,14 @@ write_files:
     permissions: 0644
     owner: root
     content: |
-        ETCD_PEER_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-        ETCD_PEER_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
-        ETCD_PEER_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
+        ETCD_PEER_CERT_FILE=/etc/ssl/certs/etcd-server.pem
+        ETCD_PEER_KEY_FILE=/etc/ssl/certs/etcd-server-key.pem
+        ETCD_PEER_TRUSTED_CA_FILE=/etc/ssl/certs/etcd-server-ca.pem
         ETCD_PEER_CLIENT_CERT_AUTH=true
-        ETCD_CERT_FILE=/etc/etcd/certs/etcd-server.pem
-        ETCD_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
-        ETCD_TRUSTED_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
-        # ETCD_CLIENT_CERT_AUTH=true
+        ETCD_CERT_FILE=/etc/ssl/certs/etcd-server.pem
+        ETCD_KEY_FILE=/etc/ssl/certs/etcd-server-key.pem
+        ETCD_TRUSTED_CA_FILE=/etc/ssl/certs/etcd-server-ca.pem
+        #ETCD_CLIENT_CERT_AUTH=true
 
   - path: /etc/profile.d/locksmithctl.sh
     permissions: 0644
