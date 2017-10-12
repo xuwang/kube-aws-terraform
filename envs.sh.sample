@@ -23,9 +23,9 @@ export SSHKEY_DIR=${HOME}/.ssh
 # Terraform vars
 ################
 
-# Required Terraform version: 0.9 <= version < 1.0
-export TF_VERSION=light
-export TF_REQUIRED_VERSION="~> 0.9"
+# Required Terraform version: 0.10 <= version < 1.0
+export TF_VERSION=0.10.7
+export TF_REQUIRED_VERSION="~> 0.10"
 
 # Max AWS API retries for Terraform
 export TF_MAX_RETRIES=10
