@@ -19,14 +19,14 @@ This implementation presents one of the opportunities for anyone who are interes
 
 ## Features
 
-* Kubernetes v1.7.5, Docker engine 1.12.6
+* Kubernetes v1.7.8, Docker engine 1.12.6, etcd v3
 * RBAC authorization mode enabled by default
 * AWS provider integration (ELB,EBS)
 * Terraform hashicorp/terraform:light (can be defined in `envs.sh`), which runs as a container to make sure the team uses the same version.
 * Terraform remote state on S3 storage
-* Autoscaling group for each etcd2, master, node, and vault cluster for higher availability
+* Autoscaling group for each etcd, master, node, and vault cluster for higher availability
 * CoreOS for self-upgrade/patching management
-* [Hashicorp Vault 0.8.2](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
+* [Hashicorp Vault 0.8.3](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
 * Using separated CA/Certs for secure communications between Kubernetes components
 * Add-ons installed:
   * kubedns
