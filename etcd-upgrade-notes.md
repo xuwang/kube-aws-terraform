@@ -1,6 +1,6 @@
-# Etcd2 to Etcd3 Migration notes
+# Etcd2 to Etcd3 Migration Notes
 
-WARNING: These are just  working notes to provide some high level migration steps. You need througly understand etcd backup, restore process and do your own research on etcd2->etcd3 cluster migration kubernetes data store etcd2->etcd3 migration.
+WARNING: These are just working notes to provide some high level migration steps. You need througly understand etcd backup, restore process and do your own research on 1) etcd2->etcd3 cluster upgrade, 2) kubernetes storage backend etcd2->etcd3 data migration.
 
 ## Upgrade references
 
@@ -15,7 +15,7 @@ Here is a collection of migration references. Please read them carefully before 
 
 * Have a test system
 
-* If you only has one etcd instance, it's better to make it a 3 etcd cluster so you can perform rolling upgrade without service outage. You can change the capacity in `resources/etcd/envs.sh` file.
+* If you only have one etcd instance, it's better to make it a 3-node etcd cluster so you can perform rolling upgrade without service outage. You can change the capacity in `resources/etcd/envs.sh` file.
 
 * Make sure the cluster is healthy
 
@@ -23,7 +23,7 @@ Here is a collection of migration references. Please read them carefully before 
 $ etcdctl cluster-health
 ```
 
-## High Level Upgrade steps
+## High level upgrade steps
 
 * Update to the latest repo, which replaces CoreOS build-in etcd2 service with  `etcd-member.service` in cloud-config. The following will update the etcd cluster cloud-config to install etcd-member configuration drop-in:
 
@@ -40,7 +40,7 @@ $ make apply
 
 ```console
 endpoints="10.240.2.4:2379,10.240.2.20:2379,10.240.2.23:2379"
-core@ip-10-240-2-20-kube-lab-etcd ~ $ ETCDCTL_API=3 etcdctl --endpoints $endpoints --insecure-skip-tls-verify --cert=/etc/etcd/certs/etcd-server.pem  --key=/etc/etcd/certs/etcd-server-key.pem -w table endpoint status
+core@ip-10-240-2-20 ~ $ ETCDCTL_API=3 etcdctl --endpoints $endpoints --insecure-skip-tls-verify --cert=/etc/etcd/certs/etcd-server.pem  --key=/etc/etcd/certs/etcd-server-key.pem -w table endpoint status
 +------------------+------------------+---------+---------+-----------+-----------+------------+
 |     ENDPOINT     |        ID        | VERSION | DB SIZE | IS LEADER | RAFT TERM | RAFT INDEX |
 +------------------+------------------+---------+---------+-----------+-----------+------------+
@@ -53,15 +53,15 @@ core@ip-10-240-2-20-kube-lab-etcd ~ $ ETCDCTL_API=3 etcdctl --endpoints $endpoin
 
 or:
 
-```consolecore@ip-10-240-2-20-kube-lab-etcd ~ $ rkt list
+```consolecore@ip-10-240-2-20 ~ $ rkt list
 UUID		APP	IMAGE NAME			STATE	CREATED		STARTED		NETWORKS
 77d53649	etcd	quay.io/coreos/etcd:v3.1.10	running	6 hours ago	6 hours ago
 ```
 
-## Migerate Kubernetes etcd2 data store to etcd3 data store
+## Migerate Kubernetes etcd2 data store to etcd3 storage backend
 
 The previous KAT's kube-apiserver has etcd2 storage-backend. Since etcd3 image supports both etcd2 and etcd3 protocol, you can
-delay data migration to another time, but the latest KAT repo uses etcd3 storage backend by default, you might want to migrate before you do next api server upgrade. Please verify your etcd2 backend kube-apiserver still works before you upgrade kube-apiserver. 
+delay data migration to another time, but the latest KAT repo uses etcd3 storage backend by default, you might want to migrate before you do next api server upgrade. Please verify your etcd2 backend kube-apiserver still works before you upgrade kube-apiserver.
 
 Stop all etcd services so no data change during the etcd2 data converstion:
 
