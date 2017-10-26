@@ -192,3 +192,18 @@ kube-config: ## config kubectl
 	cd resources/add-ons; make kube-config
 kube-reconfig: ## reconfig kubectl
 	cd resources/add-ons; make kube-reconfig
+
+.PHONY: validate
+validate: ## Validate kube servies on master and nodes
+	make validate-master
+	make validate-node
+.PHONY:
+validate-master: ## Valiate kube master daemon status
+	@echo Vaidating master kube processes
+	@cd resources/master; \
+		make remote-cmd "cd /etc/systemd/system; systemctl status kube-* |grep -B 2 Active"
+.PHONY:
+validate-node: ## Valiate kube node daemon status
+	@echo Validating nodes kube processes
+	@cd resources/node; \
+		make remote-cmd "cd /etc/systemd/system; systemctl status kube-* |grep -B 2 Active"
