@@ -13,7 +13,7 @@ help:
 	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' | sort -k1,1
 
 .PHONY: add-ons
-add-ons: kube-config kubedns monitor dashboard ## bundled addsons kubedns,monitor,dashboard
+add-ons: kubedns monitor dashboard ## bundled addsons kubedns,monitor,dashboard
 
 .PHONY: kube-config
 kube-config: ## If kubeconfig is not configured the this cluster, configure it
@@ -30,7 +30,6 @@ kube-config: ## If kubeconfig is not configured the this cluster, configure it
 kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
 	@rm -rf ${KUBERNETES_WORKDIR}
 	@mkdir -p ${KUBERNETES_WORKDIR}
-	@-kubectl config delete-context ${CLUSTER_NAME}
 	@echo Download vault generated ca cert from the api server. Clean out ssh-agent memory cache
 	@ssh-add -D
 	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
@@ -79,7 +78,7 @@ kubernetes-dashboard-admin-role-binding: kube-config ## Create Service account a
 	fi
 
 .PHONY: kubedns
-kubedns: ## Deploy kube-dns
+kubedns: kube-config ## Deploy kube-dns
 	@if ! kubectl get svc -n kube-system kube-dns &> /dev/null ; \
 	then \
 		kubectl create -f kubedns/ ; \
@@ -88,11 +87,11 @@ kubedns: ## Deploy kube-dns
 	fi
 
 .PHONY: delete-kubedns
-delete-kubedns: ## Delete kube-dns
+delete-kubedns: kube-config ## Delete kube-dns
 	kubectl delete -f kubedns/;
 
 .PHONY: dashboard
-dashboard: kube-reconfig kubernetes-dashboard-admin-role-binding ## Start dashboard
+dashboard: kube-config kubernetes-dashboard-admin-role-binding ## Start dashboard
 	@if ! kubectl get pods -n kube-system |grep kubernetes-dashboard |grep Running &> /dev/null ; \
 	then \
 		kubectl apply -f ${KUBERNETES_DASHBOARD} ; \
@@ -123,7 +122,7 @@ kill-ui:  kill-metrics ## Close Kube console connection
 	fi
 
 .PHONY: metrics
-metrics: monitor ## Open metrics ui
+metrics: kube-config monitor ## Open metrics ui
 	kubectl proxy -p 8002 &> /dev/null &
 	@while ! kubectl get pods -n kube-system -o json -l k8s-app=grafana | grep ready | grep -q true ; \
 	do \
@@ -143,7 +142,7 @@ kill-metrics:  ## Close monitor console connection
 	fi
 
 .PHONY: delete-dashboard
-delete-dashboard: kill-ui ## Delete dashboard
+delete-dashboard: kube-config kill-ui ## Delete dashboard
 	kubectl delete -f ${KUBERNETES_DASHBOARD}
 
 .PHONY: monitor
@@ -161,7 +160,7 @@ monitor: kube-system-admin-role-binding ## Deploy heapster, infuluxdb and grafan
 	fi
 
 .PHONY: delete-monitor
-delete-monitor: ## Delete monitor
+delete-monitor: kube-config ## Delete monitor
 	kubectl delete -f monitor/
 
 .PHONY: kube-cleanup
