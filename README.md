@@ -65,7 +65,7 @@ Input AWS access key id and secret at the prompt. The build process bellow will 
 
 ```
 $ brew update
-$ brew install jq graphviz awscli gettext
+$ brew install jq graphviz awscli gettext coreutils
 $ brew link --force gettext
 ```
 
