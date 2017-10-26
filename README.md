@@ -164,6 +164,31 @@ Note: The API server name is registered with Route53 and is aliased to the API s
 
 ### Config kubectl and deploy add-ons
 
+Validate kube master service and kube-proxy are all running:
+
+```console
+$ make validate
+Vaidating master kube processes
+...
+● kube-apiserver.service - Kubernetes API Server
+   Loaded: loaded (/etc/systemd/system/kube-apiserver.service; static; vendor preset: disabled)
+   Active: active (running) since Thu 2017-10-26 03:19:03 UTC; 32min ago
+--
+● kube-controller-manager.service - Kubernetes master Manager
+   Loaded: loaded (/etc/systemd/system/kube-controller-manager.service; disabled; vendor preset: disabled)
+   Active: active (running) since Thu 2017-10-26 03:19:01 UTC; 32min ago
+--
+● kube-scheduler.service - Kubernetes Scheduler
+   Loaded: loaded (/etc/systemd/system/kube-scheduler.service; disabled; vendor preset: disabled)
+   Active: active (running) since Thu 2017-10-26 03:19:01 UTC; 32min ago
+
+Validating nodes kube processes
+● kube-proxy.service - Kubernetes Kube Proxy
+   Loaded: loaded (/etc/systemd/system/kube-proxy.service; disabled; vendor preset: disabled)
+   Active: active (running) since Thu 2017-10-26 03:21:06 UTC; 30min ago
+
+```
+
 The following command will setup kubectl config and deploy add-ons, i.e. kubedns, dashboard, and monitor:
 
 ```

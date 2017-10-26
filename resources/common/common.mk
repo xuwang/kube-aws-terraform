@@ -152,6 +152,8 @@ remote-ssh: open-ssh ## Run remote ssh
 	@echo "For a secific service, run ssh core@<ip> journalctl -f -u <kube-apiserver>|kube-controller-manager|kubelet|kube-proxy"
 	@echo "To revoke firewall rule: make close-ssh"
 open-ssh:
+	@ssh-add -D
+	@ssh-add ${HOME}/.ssh/${CLUSTER_NAME}-${MODULE}.pem 
 	@../scripts/allow-myip.sh -a ${MODULE} 22
 close-ssh:
 	@../scripts/allow-myip.sh -r ${MODULE} 22
@@ -225,7 +227,6 @@ remote-cmd: open-ssh ## Run remote shell command
 
 .PHONY: ssh
 ssh: open-ssh ## ssh into a node
-	@ssh-add ${HOME}/.ssh/${CLUSTER_NAME}-${MODULE}.pem
 	@ip=`make get-ips | awk '{print $$NF}'`; ssh -A core@$$ip
 	@../scripts/allow-myip.sh -r ${MODULE} 22
 
