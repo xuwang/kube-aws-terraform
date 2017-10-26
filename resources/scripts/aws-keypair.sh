@@ -27,14 +27,6 @@ create(){
     aws --profile ${AWS_PROFILE} --region ${AWS_REGION} ec2 create-key-pair --key-name ${key} --query 'KeyMaterial' --output text > ${SSHKEY_DIR}/${key}.pem
     chmod 600 ${SSHKEY_DIR}/${key}.pem
   fi
-  echo "ssh-add ${SSHKEY_DIR}/${key}.pem"
-  if ! pgrep ssh-agent >/dev/null 2>&1 ;
-  then
-    eval $(ssh-agent)
-  fi
-  ssh-add ${SSHKEY_DIR}/${key}.pem
-  # Clean up
-  # rm -rf ${SSHKEY_DIR}
 }
 
 exist(){
