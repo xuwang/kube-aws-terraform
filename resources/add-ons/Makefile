@@ -30,6 +30,7 @@ kube-config: ## If kubeconfig is not configured the this cluster, configure it
 kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
 	@rm -rf ${KUBERNETES_WORKDIR}
 	@mkdir -p ${KUBERNETES_WORKDIR}
+	@-kubectl config delete-context ${CLUSTER_NAME}
 	@echo Download vault generated ca cert from the api server. Clean out ssh-agent memory cache
 	@ssh-add -D
 	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
