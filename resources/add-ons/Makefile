@@ -10,7 +10,7 @@ help:
 	@echo '_________________'
 	@echo '| Make targets: |'
 	@echo '-----------------'
-	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@cat $(shell pwd)/Makefile | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' | sort -k1,1
 
 .PHONY: add-ons
 add-ons: kube-config kubedns monitor dashboard ## bundled addsons kubedns,monitor,dashboard
