@@ -252,6 +252,7 @@ $ make teardown
 ```
 ## Cluster Guide
 
+- [Troubleshooting](docs/trouble-shooting.md)
 - [Run book](docs/00-run-book.md)
 - [AWS Resourses](docs/01-aws-resources.md)
 - [Kubernetes PKI vault backend](docs/02-vault-pki.md)
