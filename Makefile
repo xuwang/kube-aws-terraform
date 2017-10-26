@@ -195,8 +195,8 @@ kube-reconfig: ## reconfig kubectl
 
 .PHONY: validate
 validate: ## Validate kube servies on master and nodes
-	make validate-master
-	make validate-node
+	@make validate-master
+	@make validate-node
 .PHONY:
 validate-master: ## Valiate kube master daemon status
 	@echo Vaidating master kube processes
