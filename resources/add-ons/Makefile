@@ -34,11 +34,9 @@ kube-reconfig: ## Create or reconfigure kubeconfig for kubectl
 	@ssh-add -D
 	@ssh-add ${SSHKEY_DIR}/${CLUSTER_NAME}-master.pem
 	@${SCRIPTS}/allow-myip.sh -a master 22
-	@scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin.pem \
-		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/admin-key.pem \
-		core@${KUBE_API_DNSNAME}:/var/lib/kubernetes/kube-apiserver-ca.pem \
-		 ${KUBERNETES_WORKDIR}/
+	@ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+		core@${KUBE_API_DNSNAME} "tar -C /var/lib/kubernetes -cf - admin.pem admin-key.pem kube-apiserver-ca.pem" | \
+		  tar -C ${KUBERNETES_WORKDIR}/ -xf - 
 	@${SCRIPTS}/allow-myip.sh -r master 22
 	@echo kubectl config set-cluster kubernetes...
 	@kubectl config set-cluster ${CLUSTER_NAME} \
