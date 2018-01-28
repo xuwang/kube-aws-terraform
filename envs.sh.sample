@@ -23,9 +23,9 @@ export SSHKEY_DIR=${HOME}/.ssh
 # Terraform vars
 ################
 
-# Required Terraform version: 0.10 <= version < 1.0
-export TF_VERSION=0.10.7
-export TF_REQUIRED_VERSION="~> 0.10"
+# Required Terraform version: 0.11 <= version < 1.0
+export TF_VERSION=0.11.2
+export TF_REQUIRED_VERSION="~> 0.11"
 
 # Max AWS API retries for Terraform
 export TF_MAX_RETRIES=10
@@ -53,7 +53,7 @@ export TF_VAR_instance_type=t2.medium
 # clash with kubernetes "cluster.local"
 export TF_VAR_cluster_internal_zone="${CLUSTER_NAME}.cluster.internal"
 export TF_VAR_kube_api_dnsname=${KUBE_API_DNSNAME}
-export TF_VAR_kube_version="v1.7.8"
+export TF_VAR_kube_version="v1.9.2"
 
 # Terraform remote state bucket name, defined as ${AWS_ACCOUNT}-${CLUSTER_NAME}-terraform
 # in /resources/common/common.mk.
@@ -68,7 +68,7 @@ export TF_VAR_vault_ca={country = "US", province = "California", \
 	organization = "IT Department", common_name = "${TF_VAR_route53_zone_name}"}
 
 # Vault release: restart vault service if changed
-export TF_VAR_vault_image=vault:0.8.2
+export TF_VAR_vault_image=vault:0.9.2
 
 # Default vault root ca common name, for cert signing
 export TF_VAR_vault_rootca_cn=vault.${TF_VAR_route53_zone_name}
