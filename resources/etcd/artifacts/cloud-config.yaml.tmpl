@@ -51,6 +51,7 @@ coreos:
         RemainAfterExit=true
         EnvironmentFile=/etc/environment
         TimeoutStartSec=10min
+        ExecStartPre=/bin/bash -c "sleep $[ ( $RANDOM % 20 )  + 1 ]"
         ExecStart=/opt/bin/etcd-init.sh
         [Install]
         WantedBy=multi-user.target
@@ -151,16 +152,13 @@ write_files:
       # see https://github.com/dockerage/etcd-aws-cluster
       image=dockerage/etcd-aws-cluster
       /usr/bin/docker run --rm --name=etcd-init -v /etc/sysconfig/:/etc/sysconfig/ \
-        --env ETCD_CURLOPTS='-k' --env ETCD_PEER_SCHEME=https --env ETCD_CLIENT_SCHEME=https $image
+        --env ETCD_CURLOPTS='-k' \
+        --env ETCD_PEER_SCHEME=https \
+        --env ETCD_CURLOPTS="--max-time 10" \
+        --env ETCD_CLIENT_SCHEME=https $image
       # Upload etcd initial-cluster urls to s3 bucket for kube peers. Wait a bit for the etcd-peers file to be ready
       mkdir -p /etc/sysconfig
-      retry=20
-      until etcd_initial_cluster=$(grep ETCD_INITIAL_CLUSTER= /etc/sysconfig/etcd-peers) || [[ $retry -eq 0 ]];
-      do
-        sleep 5
-        let "retry--"
-      done
-      if [ $retry -eq 0 ];
+      if ! etcd_initial_cluster=$(grep ETCD_INITIAL_CLUSTER= /etc/sysconfig/etcd-peers) ;
       then
         echo "ERROR: /etc/sysconfig/initial-cluster doesn't have ETCD_INITIAL_CLUSTER."
         exit 1
