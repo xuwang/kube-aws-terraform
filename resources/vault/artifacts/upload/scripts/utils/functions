@@ -40,18 +40,18 @@ get_root_token() {
 
 init_vault() {
   echo "Initialize Vault"
-  vault operator init -format json | $TMPDIR/vault.init > /dev/null
+  vault operator init -format json | tee $TMPDIR/vault.init > /dev/null
 
   # Store master keys in S3 for operator to retrieve and remove
   COUNTER=1
-  for i in $(jq -r  '.unseal_keys_b64[]' /tmp/vault.init)
+  for key in $(jq -r '.unseal_keys_b64[]' $TMPDIR/vault.init)
   do
     echo $key > $TMPDIR/unseal-key-$COUNTER
     s3put.sh $BUCKET root-token $TMPDIR/unseal-key-$COUNTER
     COUNTER=$((COUNTER + 1))
   done
 
-  jq -r '.root_token' vault.init > $TMPDIR/root-token
+  jq -r '.root_token' $TMPDIR/vault.init > $TMPDIR/root-token
   s3put.sh $BUCKET root-token $TMPDIR/root-token
 
   echo "Remove master keys from disk"
