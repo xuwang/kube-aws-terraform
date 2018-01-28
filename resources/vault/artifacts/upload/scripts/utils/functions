@@ -40,17 +40,18 @@ get_root_token() {
 
 init_vault() {
   echo "Initialize Vault"
-  vault init | tee $TMPDIR/vault.init > /dev/null
+  vault operator init -format json | $TMPDIR/vault.init > /dev/null
 
   # Store master keys in S3 for operator to retrieve and remove
   COUNTER=1
-  cat $TMPDIR/vault.init | grep '\(Unseal Key\)' | awk '{print $4}' | for key in $(cat -); do
+  for i in $(jq -r  '.unseal_keys_b64[]' /tmp/vault.init)
+  do
     echo $key > $TMPDIR/unseal-key-$COUNTER
     s3put.sh $BUCKET root-token $TMPDIR/unseal-key-$COUNTER
     COUNTER=$((COUNTER + 1))
   done
 
-  cat $TMPDIR/vault.init | grep '^Initial' | awk '{print $4}' > $TMPDIR/root-token
+  jq -r '.root_token' vault.init > $TMPDIR/root-token
   s3put.sh $BUCKET root-token $TMPDIR/root-token
 
   echo "Remove master keys from disk"
@@ -64,9 +65,9 @@ unseal_vault() {
   s3get.sh $BUCKET root-token/unseal-key-3 $TMPDIR/unseal-key-3
 
   echo "Unsealing Vault"
-  vault unseal $(cat $TMPDIR/unseal-key-1)
-  vault unseal $(cat $TMPDIR/unseal-key-2)
-  vault unseal $(cat $TMPDIR/unseal-key-3)
+  vault operator unseal $(cat $TMPDIR/unseal-key-1)
+  vault operator unseal $(cat $TMPDIR/unseal-key-2)
+  vault operator unseal $(cat $TMPDIR/unseal-key-3)
   echo "Vault setup complete."
 }
 
