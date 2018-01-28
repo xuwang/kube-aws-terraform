@@ -15,13 +15,6 @@ then
   touch  /opt/etc/${MODULE_NAME}/${VAULT_IMAGE}
 fi
 
-# Install socat binary
-if [ ! -f /opt/etc/${MODULE_NAME}/socat ]
-then
-  docker run --rm -v /opt/bin:/opt/bin xueshanf/install-socat
-  touch /opt/etc/${MODULE_NAME}/socat
-fi
-
 # Generate vault.sh needed by bootstraping certs
 cat > /etc/profile.d/vault.sh <<EOF
 # For vault client to connect server through TLS
