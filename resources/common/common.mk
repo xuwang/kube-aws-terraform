@@ -39,8 +39,8 @@ TF_MAX_RETRIES := 10
 #TF_LOG := debug
 
 # Terraform commands
-# Note: for production, set -refresh=true to be safe
-TF_APPLY := ${TF_CMD} apply -refresh=true
+# Note: for production, set -refresh=true and do not use -auto-approve to be safe
+TF_APPLY := ${TF_CMD} apply -refresh=true -auto-approve
 # Note: for production, remove --force to confirm destroy.
 TF_DESTROY := ${TF_CMD} destroy -force
 TF_DESTROY_PLAN := ${TF_CMD} plan -destroy -refresh=true

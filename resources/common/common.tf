@@ -106,7 +106,7 @@ variable "kube_service_node_ports" {
 }
 # Kubernetes network plugin binary path
 variable "cni_plugin_url" {
-  default = "https://storage.googleapis.com/kubernetes-release/network-plugins/cni-amd64-0799f5732f2a11b329d9e3d51b9c8f2e3759f2ff.tar.gz"
+  default = "https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz"
 }
 # Kubelet/apiserver ABAC token.
 variable "kubelet_token" {
