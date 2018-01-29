@@ -27,9 +27,9 @@ EOF
 # Install CNI plugin and kubernetes
 if [ ! -f /opt/etc/${MODULE_NAME}/${CNI_PLUGIN_URL} ];
 then
-  mkdir -p /opt/cni
+  mkdir -p /opt/cni /etc/cni/net.d
   wget ${CNI_PLUGIN_URL}
-  tar -xvf $(basename ${CNI_PLUGIN_URL}) -C /opt/cni
+  tar -xvf $(basename ${CNI_PLUGIN_URL}) -C /opt/cni/bin
 fi
 if [ ! -f /opt/etc/${MODULE_NAME}/kube-${KUBE_VERSION} ]
 then
