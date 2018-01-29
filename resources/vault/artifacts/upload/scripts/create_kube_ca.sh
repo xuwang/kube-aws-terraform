@@ -47,7 +47,7 @@ create_pki_role_kube_apiserver() {
 create_role_policy() {
     pki_name=$1
     role_name=$2
-    cat <<EOT | vault policy-write $CLUSTER_ID/pki/$pki_name/$role_name -
+    cat <<EOT | vault policy write $CLUSTER_ID/pki/$pki_name/$role_name -
 path "$CLUSTER_ID/pki/$pki_name/issue/$role_name" {
 policy = "write"
 }
@@ -71,13 +71,14 @@ create_auth_token() {
   # check if the token already created and uploaded to the bucket
   echo "s3get.sh ${VAULT_TOKEN_BUCKET} pki-tokens/$token_name $TMPDIR/$token_name"
   s3get.sh ${VAULT_TOKEN_BUCKET} pki-tokens/$token_name $TMPDIR/$token_name
-  if [[ -s "$TMPDIR/$token_name" ]] && vault token-lookup $(cat $TMPDIR/$token_name) > /dev/null 2>&1 ; then
+  if [[ -s "$TMPDIR/$token_name" ]] && vault token lookup $(cat $TMPDIR/$token_name) > /dev/null 2>&1 ; then
     echo "Token $token already exist. Renew token"
-    vault token-renew $(cat $TMPDIR/$token_name)
+    vault token renew $(cat $TMPDIR/$token_name)
   else
-    token=$(vault token-create \
+    token=$(vault token create \
+      -format json \
       -policy="$CLUSTER_ID/$token_path" \
-      -role="kube-$CLUSTER_ID" | egrep -o -E "token(\s+.*)" | cut -f2 | tee $TMPDIR/$token_name)
+      -role="kube-$CLUSTER_ID"  | jq -r '.auth.client_token' | tee $TMPDIR/$token_name)
     if [ -n "$token" ]; then
         s3put.sh ${VAULT_TOKEN_BUCKET} pki-tokens $TMPDIR/$token_name
     fi

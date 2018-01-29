@@ -90,14 +90,14 @@ else
 fi
 
 root_token=$(get_root_token)
-vault auth $root_token
+vault login $root_token
 
 # Mount pki path
-if vault mounts | grep ^$pki_path | grep pki; then
+if vault secrets lists | grep ^$pki_path | grep pki; then
     echo "$pki_path PKI backend already mounted. Skipping re-mount"
 else
-    vault mount -path=$pki_path -description="$description" -max-lease-ttl=$ttl pki
-    vault mount-tune -max-lease-ttl=87600h $pki_path
+    vault secrets enable -path=$pki_path -description="$description" -max-lease-ttl=$ttl pki
+    vault secrets tune -max-lease-ttl=87600h $pki_path
 fi
 
 # Check if it already exist.
