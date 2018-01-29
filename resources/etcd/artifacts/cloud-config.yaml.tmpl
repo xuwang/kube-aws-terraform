@@ -35,8 +35,8 @@ coreos:
               Environment=ETCD_SSL_DIR=/etc/etcd/certs
               Environment=ETCD_ADVERTISE_CLIENT_URLS=https://$private_ipv4:2379
               Environment=ETCD_INITIAL_ADVERTISE_PEER_URLS=https://$private_ipv4:2380
-              Environment=ETCD_LISTEN_CLIENT_URLS=https://0.0.0.0:2379,http://0.0.0.0:4001
-              Environment=ETCD_LISTEN_PEER_URLS=https://$private_ipv4:2380,http://$private_ipv4:7001
+              Environment=ETCD_LISTEN_CLIENT_URLS=https://$private_ipv4:2379,http://127.0.0.1:2379
+              Environment=ETCD_LISTEN_PEER_URLS=https://$private_ipv4:2380,http://127.0.0.1:2380
 
     - name: etcd-init.service
       command: start
@@ -122,7 +122,7 @@ write_files:
     owner: root
     content: |
       # For locksmothclt client to connect etcd cluster through TLS
-      export LOCKSMITHCTL_ENDPOINT=http://127.0.0.1:4001
+      export LOCKSMITHCTL_ENDPOINT=http://127.0.0.1:2379
 
   - path: /etc/profile.d/etcdctl.sh
     permissions: 0644
@@ -132,7 +132,7 @@ write_files:
       #export ETCDCTL_CERT_FILE=/etc/etcd/certs/etcd-server.pem
       #export ETCDCTL_KEY_FILE=/etc/etcd/certs/etcd-server-key.pem
       export ETCDCTL_CA_FILE=/etc/etcd/certs/etcd-server-ca.pem
-      export ETCDCTL_ENDPOINTS=http://127.0.0.1:4001
+      export ETCDCTL_ENDPOINTS=http://127.0.0.1:2379
 
   - path: /etc/profile.d/vault.sh
     permissions: 0644
@@ -183,6 +183,6 @@ write_files:
     permissions: 0644
     owner: root
     content: |
-        LOCKSMITHD_ENDPOINT=http://127.0.0.1:4001
+        LOCKSMITHD_ENDPOINT=http://127.0.0.1:2379
         LOCKSMITHD_REBOOT_WINDOW_START=05:30
         LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h
