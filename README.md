@@ -172,20 +172,35 @@ Vaidating master kube processes
 ...
 ● kube-apiserver.service - Kubernetes API Server
    Loaded: loaded (/etc/systemd/system/kube-apiserver.service; static; vendor preset: disabled)
-   Active: active (running) since Thu 2017-10-26 03:19:03 UTC; 32min ago
+   Active: active (running) since Wed 2018-01-31 06:13:05 UTC; 25min ago
 --
 ● kube-controller-manager.service - Kubernetes master Manager
    Loaded: loaded (/etc/systemd/system/kube-controller-manager.service; disabled; vendor preset: disabled)
-   Active: active (running) since Thu 2017-10-26 03:19:01 UTC; 32min ago
+   Active: active (running) since Wed 2018-01-31 06:13:03 UTC; 25min ago
+--
+● kube-proxy.service - Kubernetes Kube Proxy
+   Loaded: loaded (/etc/systemd/system/kube-proxy.service; disabled; vendor preset: disabled)
+   Active: active (running) since Wed 2018-01-31 06:13:06 UTC; 25min ago
 --
 ● kube-scheduler.service - Kubernetes Scheduler
    Loaded: loaded (/etc/systemd/system/kube-scheduler.service; disabled; vendor preset: disabled)
-   Active: active (running) since Thu 2017-10-26 03:19:01 UTC; 32min ago
-
+   Active: active (running) since Wed 2018-01-31 06:13:03 UTC; 25min ago
+--
+● kubelet.service - Kubernetes Kubelet
+   Loaded: loaded (/etc/systemd/system/kubelet.service; static; vendor preset: disabled)
+   Active: active (running) since Wed 2018-01-31 06:13:06 UTC; 25min ago
 Validating nodes kube processes
 ● kube-proxy.service - Kubernetes Kube Proxy
    Loaded: loaded (/etc/systemd/system/kube-proxy.service; disabled; vendor preset: disabled)
-   Active: active (running) since Thu 2017-10-26 03:21:06 UTC; 30min ago
+   Active: active (running) since Wed 2018-01-31 06:14:45 UTC; 23min ago
+--
+● kubelet.service - Kubernetes Kubelet
+   Loaded: loaded (/etc/systemd/system/kubelet.service; disabled; vendor preset: disabled)
+   Active: active (running) since Wed 2018-01-31 06:14:45 UTC; 23min ago
+NAME                                           STATUS                     ROLES     AGE       VERSION
+ip-10-240-100-131.us-west-1.compute.internal   Ready                      node      24m       v1.9.2
+ip-10-240-101-225.us-west-1.compute.internal   Ready                      node      23m       v1.9.2
+ip-10-240-3-29.us-west-1.compute.internal      Ready,SchedulingDisabled   master    24m       v1.9.2
 
 ```
 
