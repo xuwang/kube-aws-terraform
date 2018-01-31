@@ -117,6 +117,67 @@ coreos:
         Restart=on-failure
         RestartSec=5
 
+    - name: kubelet.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes Kubelet
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        After=docker.service
+        Requires=docker.service
+        ConditionPathExists=/var/lib/kubelet/kubeconfig
+        [Service]
+        Environment="PATH=/opt/bin/:/usr/sbin:/usr/bin:/sbin:/bin"
+        ExecStart=/opt/bin/kubelet \
+          --allow-privileged=true \
+          --cloud-provider=aws \
+          --cluster-dns=${KUBE_DNS_SERVICE} \
+          --non-masquerade-cidr=${KUBE_CLUSTER_CIDR} \
+          --cluster-domain=cluster.local \
+          --container-runtime=docker \
+          --docker=unix:///var/run/docker.sock \
+          --network-plugin=kubenet \
+          --kubeconfig=/var/lib/kubelet/kubeconfig \
+          --register-node=true \
+          --register-with-taints=node-role.kubernetes.io/master=true:NoSchedule \
+          --require-kubeconfig=true \
+          --serialize-image-pulls=false \
+          --tls-cert-file=/var/lib/kubelet/kubelet.pem \
+          --tls-private-key-file=/var/lib/kubelet/kubelet-key.pem \
+          --v=2
+    - name: kube-proxy.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes Kube Proxy
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        [Service]
+        ExecStart=/opt/bin/kube-proxy \
+          --master=https://api-server.${CLUSTER_INTERNAL_ZONE}:6443 \
+          --kubeconfig=/var/lib/kube-proxy/kubeconfig \
+          --proxy-mode=iptables \
+          --cluster-cidr=${KUBE_CLUSTER_CIDR} \
+          --v=2
+        Restart=on-failure
+        RestartSec=5
+        [Install]
+        WantedBy=multi-user.target
+    - name: set-role-name.service
+      command: start
+      content: |
+        [Unit]
+        Description=Set Role Name
+        Wants=kubelet.service
+        After=kubelet.service
+        [Service]
+        Restart=on-failure
+        RestartSec=5
+        ExecStart=/usr/bin/sh -c "HOME=/root; \
+          /opt/bin/kubectl label node $(hostname) kubernetes.io/role=master --overwrite; \
+          /opt/bin/kubectl cordon $(hostname); \
+         " 
+        [Install]
+        WantedBy=multi-user.target
     - name: create-cluster-role-binding.service
       command: start
       content: |

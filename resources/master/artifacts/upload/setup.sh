@@ -25,6 +25,14 @@ then
   docker run --rm -v /opt/bin:/tmp ${VAULT_IMAGE} cp /bin/vault /tmp/vault
   touch  /opt/etc/master/${VAULT_IMAGE}
 fi
+# Install CNI plugin and kubernetes
+if [ ! -f /opt/etc/${MODULE_NAME}/${CNI_PLUGIN_URL} ];
+then
+  mkdir -p /opt/cni/bin /etc/cni/net.d
+  wget ${CNI_PLUGIN_URL}
+  tar -xvf $(basename ${CNI_PLUGIN_URL}) -C /opt/cni/bin
+  touch /opt/etc/${MODULE_NAME}/$(basename ${CNI_PLUGIN_URL})
+fi
 # Install kubernetes
 if [ ! -f /opt/etc/master/kube-${KUBE_VERSION} ]
 then
@@ -46,3 +54,10 @@ chown core /var/lib/kubernetes/admin* && chmod 600 /var/lib/kubernetes/admin*
 # Cert used by kube-apiserver
 bash get-certs.sh kube-apiserver kube-apiserver $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubernetes
 chmod 600 /var/lib/kubernetes/kube-apiserver-key.pem
+
+# Run kubelet so master node can show up in kubectl
+$GET ${CONFIG_BUCKET} node/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
+$GET ${CONFIG_BUCKET} node/kube-proxy-kubeconfig /var/lib/kube-proxy/kubeconfig
+# Generate certs from vualt pki: <issuer endpoint>  <common_name> <auth token> <install_path>
+bash get-certs.sh kube-apiserver kubelet $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kubelet
+bash get-certs.sh kube-apiserver kube-proxy $(cat /opt/etc/pki-tokens/kube-apiserver) /var/lib/kube-proxy

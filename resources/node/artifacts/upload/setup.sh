@@ -30,6 +30,7 @@ then
   mkdir -p /opt/cni/bin /etc/cni/net.d
   wget ${CNI_PLUGIN_URL}
   tar -xvf $(basename ${CNI_PLUGIN_URL}) -C /opt/cni/bin
+  touch /opt/etc/${MODULE_NAME}/$(basename ${CNI_PLUGIN_URL})
 fi
 if [ ! -f /opt/etc/${MODULE_NAME}/kube-${KUBE_VERSION} ]
 then

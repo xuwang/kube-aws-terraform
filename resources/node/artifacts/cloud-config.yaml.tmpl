@@ -73,6 +73,21 @@ coreos:
         RestartSec=5
         [Install]
         WantedBy=multi-user.target
+    - name: set-role-name.service
+      command: start
+      content: |
+        [Unit]
+        Description=Set Role Name
+        Wants=kubelet.service
+        After=kubelet.service
+        [Service]
+        Restart=on-failure
+        RestartSec=5
+        ExecStart=/usr/bin/sh -c "HOME=/root; KUBECONFIG=/var/lib/kubelet/kubeconfig \
+          /opt/bin/kubectl label node $(hostname) kubernetes.io/role=node --overwrite; \
+         " 
+        [Install]
+        WantedBy=multi-user.target
     - name: kube-proxy.service
       command: start
       content: |
