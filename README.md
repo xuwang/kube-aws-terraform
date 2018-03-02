@@ -16,6 +16,7 @@ This implementation presents one of the opportunities for anyone who are interes
 - [Cluster Guide](#cluster-guide)
 - [Limitations](#limitations)
 - [Major References](#major-references)
+- [The Team](#the-team)
 
 ## Features
 
