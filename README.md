@@ -27,7 +27,7 @@ This implementation presents one of the opportunities for anyone who are interes
 * Terraform remote state on S3 storage
 * Autoscaling group for each etcd, master, node, and vault cluster for higher availability
 * CoreOS for self-upgrade/patching management
-* [Hashicorp Vault 0.9.2](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
+* [Hashicorp Vault v0.11.3](https://www.vaultproject.io/) service with PKI mount to manage Kubernetes certificates, i.e. create and renew automatically.
 * Using separated CA/Certs for secure communications between Kubernetes components
 * Add-ons installed:
   * kubedns
