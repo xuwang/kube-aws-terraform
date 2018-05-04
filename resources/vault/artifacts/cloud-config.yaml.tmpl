@@ -1,10 +1,5 @@
 #cloud-config
 coreos:
-  etcd2:
-    advertise-client-urls: http://$private_ipv4:2379
-    initial-advertise-peer-urls: http://$private_ipv4:2380
-    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
-    listen-peer-urls: http://$private_ipv4:2380
   update:
     reboot-strategy: etcd-lock
   locksmith:
@@ -19,12 +14,19 @@ coreos:
           Environment=LOCKSMITHD_REBOOT_WINDOW_START=05:30
           Environment=LOCKSMITHD_REBOOT_WINDOW_LENGTH=3h
     - name: etcd2.service
+      command: stop
+      mask: true
+    - name: etcd-member.service
       command: start
       drop-ins:
         - name: 60-etcd-peers.conf
           content: |
               [Service]
               EnvironmentFile=/etc/sysconfig/etcd-peers
+              Environment=ETCD_ADVERTISE_CLIENT_URLS=http://$private_ipv4:2379
+              Environment=ETCD_INITIAL_ADVERTISE_PEER_URLS=http://$private_ipv4:2380
+              Environment=ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+              Environment=ETCD_LISTEN_PEER_URLS=http://$private_ipv4:2380
     - name: etcd-init.service
       command: start
       content: |
