@@ -68,7 +68,7 @@ export TF_VAR_vault_ca={country = "US", province = "California", \
 	organization = "IT Department", common_name = "${TF_VAR_route53_zone_name}"}
 
 # Vault release: restart vault service if changed
-export TF_VAR_vault_image=vault:0.9.2
+export TF_VAR_vault_image=vault:0.10.1
 
 # Default vault root ca common name, for cert signing
 export TF_VAR_vault_rootca_cn=vault.${TF_VAR_route53_zone_name}
