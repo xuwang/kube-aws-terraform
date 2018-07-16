@@ -95,7 +95,7 @@ Read Kubernetes release notes to make necessary configuration changes. Ideally u
 * Edit envs.sh file to change the version of Kubernetes, as shown in bellow example:
 
 ```
-export TF_VAR_kube_version="v1.7.8"
+export TF_VAR_kube_version="v1.11.0"
 ```
 
 * Update systemd install-kubernetes unit
@@ -125,7 +125,7 @@ $ /opt/bin/kubectl version
 
 ```
 # Vault release: restart vault service if changed
-export TF_VAR_vault_image=0.8.2
+export TF_VAR_vault_image=0.10.3
 ```
 
 * Change vault's configuration and restart vault
@@ -148,7 +148,7 @@ Key Shares: 5
 Key Threshold: 3
 Unseal Progress: 0
 Unseal Nonce:
-Version: 0.8.1
+Version: 0.10.3
 Cluster Name: vault-cluster-e4a80891
 Cluster ID: f5137877-494e-c38b-8dab-********
 
